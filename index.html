@@ -1,0 +1,365 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="Aprende Java desde cero hasta nivel experto con explicaciones en español. La mejor plataforma interactiva para dominar la programación en Java.">
+    <meta name="keywords" content="Java, programación, tutorial, español, aprender Java, curso Java">
+    <title>JavaMaster - Aprende Java de Cero a Experto</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="colors-feminine.css">
+    <link rel="stylesheet" href="modules-view.css">
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="header">
+        <nav class="nav-container">
+            <div class="logo">
+                <span class="logo-icon">☕</span>
+                <span>JavaMaster</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="#inicio">Inicio</a></li>
+                <li><a href="#niveles">Niveles</a></li>
+                <li><a href="#lecciones">Lecciones</a></li>
+                <li><a href="#progreso">Mi Progreso</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero" id="inicio">
+        <div class="container">
+            <h1>Domina Java desde Cero</h1>
+            <p class="hero-subtitle">
+                La plataforma más completa para aprender Java en español.
+                Desde los fundamentos hasta conceptos avanzados con explicaciones claras y ejemplos prácticos.
+            </p>
+
+            <!-- Auth Buttons -->
+            <div style="display: flex; gap: 1rem; justify-content: center; margin: 2rem 0; flex-wrap: wrap;">
+                <button onclick="showAuthModal()" class="nav-btn" style="padding: 1rem 2rem; font-size: 1.1rem;">
+                    🔐 Iniciar Sesión
+                </button>
+                <button onclick="showAuthModal(); setTimeout(() => switchToSignUp(), 100);" class="nav-btn"
+                    style="padding: 1rem 2rem; font-size: 1.1rem; background: linear-gradient(135deg, #9B59B6 0%, #318CE7 100%);">
+                    ✨ Crear Cuenta Gratis
+                </button>
+            </div>
+
+            <div class="hero-stats">
+                <div class="stat-item">
+                    <span class="stat-number">52</span>
+                    <span class="stat-label">Lecciones</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">4</span>
+                    <span class="stat-label">Niveles</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">208</span>
+                    <span class="stat-label">Ejercicios</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Levels Section -->
+    <section id="niveles" class="levels-section">
+        <div class="container">
+            <h2 class="section-title">Niveles de Aprendizaje</h2>
+            <div class="levels-grid">
+                <!-- Nivel Principiante -->
+                <div class="level-card beginner" data-level="beginner">
+                    <div class="level-header">
+                        <span class="level-icon">🌱</span>
+                        <div class="level-info">
+                            <h3>Principiante</h3>
+                            <p class="level-lessons">15 lecciones • 60 ejercicios</p>
+                        </div>
+                    </div>
+                    <p class="level-description">
+                        Aprende los fundamentos de Java: variables, tipos de datos, estructuras de control y métodos.
+                    </p>
+                    <div class="level-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 0%"></div>
+                        </div>
+                        <p class="progress-text">0% completado</p>
+                    </div>
+                </div>
+
+                <!-- Nivel Intermedio -->
+                <div class="level-card intermediate" data-level="intermediate">
+                    <div class="level-header">
+                        <span class="level-icon">🚀</span>
+                        <div class="level-info">
+                            <h3>Intermedio</h3>
+                            <p class="level-lessons">15 lecciones • 60 ejercicios</p>
+                        </div>
+                    </div>
+                    <p class="level-description">
+                        Domina la Programación Orientada a Objetos: clases, herencia, polimorfismo y colecciones.
+                    </p>
+                    <div class="level-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 0%"></div>
+                        </div>
+                        <p class="progress-text">0% completado</p>
+                    </div>
+                </div>
+
+                <!-- Nivel Avanzado -->
+                <div class="level-card advanced" data-level="advanced">
+                    <div class="level-header">
+                        <span class="level-icon">⚡</span>
+                        <div class="level-info">
+                            <h3>Avanzado</h3>
+                            <p class="level-lessons">12 lecciones • 48 ejercicios</p>
+                        </div>
+                    </div>
+                    <p class="level-description">
+                        Explora características modernas: streams, lambdas, concurrencia y manejo avanzado de
+                        excepciones.
+                    </p>
+                    <div class="level-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 0%"></div>
+                        </div>
+                        <p class="progress-text">0% completado</p>
+                    </div>
+                </div>
+
+                <!-- Nivel Experto -->
+                <div class="level-card expert" data-level="expert">
+                    <div class="level-header">
+                        <span class="level-icon">👑</span>
+                        <div class="level-info">
+                            <h3>Experto</h3>
+                            <p class="level-lessons">10 lecciones • 40 ejercicios</p>
+                        </div>
+                    </div>
+                    <p class="level-description">
+                        Conviértete en un experto: patrones de diseño, arquitectura de software y mejores prácticas.
+                    </p>
+                    <div class="level-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 0%"></div>
+                        </div>
+                        <p class="progress-text">0% completado</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Lessons Section -->
+    <section id="lecciones" class="lessons-section">
+        <div class="container">
+            <div class="lessons-header">
+                <h2>Todas las Lecciones</h2>
+                <div class="view-toggle">
+                    <button class="toggle-btn active" data-view="modules" onclick="switchView('modules')">
+                        📚 Por Módulos
+                    </button>
+                    <button class="toggle-btn" data-view="grid" onclick="switchView('grid')">
+                        🔲 Vista Grid
+                    </button>
+                </div>
+            </div>
+
+            <!-- Vista por Módulos (por defecto) -->
+            <div id="modules-view" class="modules-view">
+                <!-- Se generará dinámicamente con JavaScript -->
+            </div>
+
+            <!-- Vista Grid (oculta por defecto) -->
+            <div id="grid-view" class="grid-view" style="display: none;">
+                <div class="filter-buttons">
+                    <button class="filter-btn active" data-filter="all">Todas</button>
+                    <button class="filter-btn" data-filter="beginner">Principiante</button>
+                    <button class="filter-btn" data-filter="intermediate">Intermedio</button>
+                    <button class="filter-btn" data-filter="advanced">Avanzado</button>
+                    <button class="filter-btn" data-filter="expert">Experto</button>
+                </div>
+                <div class="lessons-grid" id="lessons-grid">
+                    <!-- Las lecciones se generarán dinámicamente con JavaScript -->
+                </div>
+            </div>
+        </div>
+        <!-- Mi Progreso Section -->
+        <section id="progreso" class="progress-section">
+            <div class="container">
+                <h2 class="section-title">Mi Progreso</h2>
+                <p class="section-subtitle">Sigue tu avance en el curso completo de Java</p>
+
+                <div class="total-progress-card">
+                    <div class="total-progress-header">
+                        <h3>Progreso Total del Curso</h3>
+                        <span class="total-percentage" id="total-percentage">0%</span>
+                    </div>
+                    <div class="total-progress-bar">
+                        <div class="total-progress-fill" id="total-progress-fill" style="width: 0%"></div>
+                    </div>
+                    <div class="progress-stats">
+                        <div class="stat">
+                            <span class="stat-value" id="completed-lessons">0</span>
+                            <span class="stat-label">Lecciones Completadas</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-value" id="total-lessons">0</span>
+                            <span class="stat-label">Lecciones Totales</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-value" id="completed-exercises">0</span>
+                            <span class="stat-label">Ejercicios Resueltos</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="level-progress-grid">
+                    <div class="level-progress-item">
+                        <h4>🌱 Principiante</h4>
+                        <div class="mini-progress-bar">
+                            <div class="mini-progress-fill" id="beginner-progress" style="width: 0%"></div>
+                        </div>
+                        <span class="mini-progress-text" id="beginner-text">0%</span>
+                    </div>
+                    <div class="level-progress-item">
+                        <h4>🚀 Intermedio</h4>
+                        <div class="mini-progress-bar">
+                            <div class="mini-progress-fill" id="intermediate-progress" style="width: 0%"></div>
+                        </div>
+                        <span class="mini-progress-text" id="intermediate-text">0%</span>
+                    </div>
+                    <div class="level-progress-item">
+                        <h4>⚡ Avanzado</h4>
+                        <div class="mini-progress-bar">
+                            <div class="mini-progress-fill" id="advanced-progress" style="width: 0%"></div>
+                        </div>
+                        <span class="mini-progress-text" id="advanced-text">0%</span>
+                    </div>
+                    <div class="level-progress-item">
+                        <h4>🏆 Experto</h4>
+                        <div class="mini-progress-bar">
+                            <div class="mini-progress-fill" id="expert-progress" style="width: 0%"></div>
+                        </div>
+                        <span class="mini-progress-text" id="expert-text">0%</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Lesson Viewer -->
+        <div class="lesson-viewer" id="lesson-viewer">
+            <div class="lesson-content" id="lesson-content">
+                <button class="lesson-close" id="close-lesson">×</button>
+                <!-- El contenido de la lección se cargará dinámicamente -->
+            </div>
+        </div>
+
+        <!-- Exercise Viewer -->
+        <div class="lesson-viewer" id="exercise-viewer">
+            <div class="lesson-content" id="exercise-content">
+                <button class="lesson-close" onclick="closeExercise()">×</button>
+                <!-- El contenido del ejercicio se cargará dinámicamente -->
+            </div>
+        </div>
+
+        <!-- Evaluation Modal -->
+        <div class="lesson-viewer" id="evaluation-modal">
+            <div class="lesson-content evaluation-content" id="evaluation-content">
+                <button class="lesson-close" onclick="closeEvaluation()">×</button>
+                <!-- El contenido de la evaluación se cargará dinámicamente -->
+            </div>
+        </div>
+
+        <!-- Certificate Modal -->
+        <div class="lesson-viewer" id="certificate-modal">
+            <div class="certificate-container" id="certificate-container">
+                <button class="lesson-close" onclick="closeCertificate()">×</button>
+                <!-- El certificado se generará dinámicamente -->
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-content">
+                <p>© 2026 JavaMaster - Tu camino hacia la maestría en Java</p>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">
+                    Creado con ❤️ por <strong style="color: var(--text-primary);">Belén Calvo</strong> para la comunidad
+                    hispanohablante de programadores
+                </p>
+                <div class="footer-links">
+                    <a href="#inicio">Inicio</a>
+                    <a href="#niveles">Niveles</a>
+                    <a href="#lecciones">Lecciones</a>
+                </div>
+            </div>
+        </footer>
+        <!-- Auth Modal -->
+        <div class="lesson-viewer" id="auth-modal">
+            <div class="lesson-content" style="max-width: 500px;">
+                <button class="lesson-close" onclick="closeAuthModal()">×</button>
+
+                <!-- Sign In Form -->
+                <div id="signin-form">
+                    <h2 style="text-align: center; margin-bottom: 2rem;">Iniciar Sesión</h2>
+                    <input type="email" id="signin-email" placeholder="Email"
+                        style="width: 100%; padding: 0.75rem; margin-bottom: 1rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: white;">
+                    <input type="password" id="signin-password" placeholder="Contraseña"
+                        style="width: 100%; padding: 0.75rem; margin-bottom: 1rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: white;">
+                    <button onclick="handleSignIn()" class="nav-btn"
+                        style="width: 100%; margin-bottom: 1rem;">Entrar</button>
+                    <button onclick="handleGoogleSignIn()" class="nav-btn"
+                        style="width: 100%; margin-bottom: 1rem; background: white; color: #333;">
+                        🔐 Continuar con Google
+                    </button>
+                    <p style="text-align: center; color: var(--text-secondary);">
+                        ¿No tienes cuenta? <a href="#" onclick="switchToSignUp(); return false;"
+                            style="color: #FF6B9D;">Regístrate</a>
+                    </p>
+                </div>
+
+                <!-- Sign Up Form -->
+                <div id="signup-form" style="display: none;">
+                    <h2 style="text-align: center; margin-bottom: 2rem;">Crear Cuenta</h2>
+                    <input type="text" id="signup-name" placeholder="Nombre completo"
+                        style="width: 100%; padding: 0.75rem; margin-bottom: 1rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: white;">
+                    <input type="email" id="signup-email" placeholder="Email"
+                        style="width: 100%; padding: 0.75rem; margin-bottom: 1rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: white;">
+                    <input type="password" id="signup-password" placeholder="Contraseña (mín. 6 caracteres)"
+                        style="width: 100%; padding: 0.75rem; margin-bottom: 1rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: white;">
+                    <button onclick="handleSignUp()" class="nav-btn"
+                        style="width: 100%; margin-bottom: 1rem;">Registrarse</button>
+                    <p style="text-align: center; color: var(--text-secondary);">
+                        ¿Ya tienes cuenta? <a href="#" onclick="switchToSignIn(); return false;"
+                            style="color: #FF6B9D;">Inicia sesión</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Firebase SDK -->
+        <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+        <!-- AI Validator System -->
+        <script src="config.js?v=3"></script>
+        <script src="java-executor.js?v=3"></script>
+        <script src="gemini-integration.js?v=3"></script>
+        <script src="ai-validator.js?v=3"></script>
+
+        <script src="data.js"></script>
+        <script src="validator.js"></script>
+        <script src="script.js"></script>
+        <script src="firebase-config.js"></script>
+        <script src="auth.js"></script>
+        <script src="script-enhanced.js"></script>
+</body>
+
+</html>

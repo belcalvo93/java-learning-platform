@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guía de Estudio - Nivel Principiante | JavaMaster</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Fira+Code&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            color: #2d3748;
+            background: #f7fafc;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 3rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .logo {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+
+        h1 {
+            font-size: 2rem;
+            color: #1a202c;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: #718096;
+            font-size: 1.1rem;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            color: #2d3748;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        h3 {
+            font-size: 1.2rem;
+            color: #4a5568;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        p {
+            margin-bottom: 1rem;
+        }
+
+        ul,
+        ol {
+            margin-left: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+        }
+
+        code {
+            font-family: 'Fira Code', monospace;
+            background: #f7fafc;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.9em;
+            color: #e53e3e;
+        }
+
+        pre {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin: 1rem 0;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        pre code {
+            background: none;
+            color: inherit;
+            padding: 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+
+        th,
+        td {
+            border: 1px solid #e2e8f0;
+            padding: 0.75rem;
+            text-align: left;
+        }
+
+        th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+
+        tr:nth-child(even) {
+            background: #f7fafc;
+        }
+
+        .info-box {
+            background: #ebf8ff;
+            border-left: 4px solid #4299e1;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 4px;
+        }
+
+        .warning-box {
+            background: #fffaf0;
+            border-left: 4px solid #ed8936;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 4px;
+        }
+
+        .success-box {
+            background: #f0fff4;
+            border-left: 4px solid #48bb78;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 4px;
+        }
+
+        .checklist {
+            background: #f7fafc;
+            padding: 1.5rem;
+            border-radius: 6px;
+            margin: 1rem 0;
+        }
+
+        .checklist li {
+            list-style: none;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+
+        .checklist li:before {
+            content: "☐";
+            position: absolute;
+            left: 0;
+            font-size: 1.2rem;
+            color: #667eea;
+        }
+
+        .print-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+        }
+
+        .print-button:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 2px solid #e2e8f0;
+            color: #718096;
+            font-size: 0.9rem;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .container {
+                box-shadow: none;
+                padding: 1rem;
+            }
+
+            .print-button {
+                display: none;
+            }
+
+            h2 {
+                page-break-after: avoid;
+            }
+
+            pre {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <button class="print-button" onclick="window.print()">📥 Guardar como PDF</button>
+
+    <div class="container">
+        <div class="header">
+            <div class="logo">☕ JavaMaster</div>
+            <h1>Guía de Estudio</h1>
+            <p class="subtitle">Nivel Experto - Patrones de Diseño y SOLID</p>
+        </div>
+
+        <h2>📚 Patrones de Diseño y Arquitectura</h2>
+
+        <div class="info-box">
+            <strong>💼 En el mundo real:</strong> Los patrones de diseño son el lenguaje común de arquitectos de
+            software en empresas tech. Conocerlos es requisito para posiciones senior.
+        </div>
+
+        <h2>Patrones de Diseño</h2>
+
+        <h3>1. Singleton</h3>
+        <p>Garantiza que una clase tenga solo una instancia.</p>
+        <pre><code>public class DatabaseConnection {
+    private static DatabaseConnection instance;
+    
+    private DatabaseConnection() {
+        // Constructor privado
+    }
+    
+    public static synchronized DatabaseConnection getInstance() {
+        if (instance == null) {
+            instance = new DatabaseConnection();
+        }
+        return instance;
+    }
+}</code></pre>
+        <p><strong>Cuándo usar:</strong> Conexiones a BD, configuración global, logging.</p>
+
+        <h3>2. Factory</h3>
+        <p>Crea objetos sin especificar la clase exacta.</p>
+        <pre><code>public interface Vehiculo {
+    void conducir();
+}
+
+public class VehiculoFactory {
+    public static Vehiculo crearVehiculo(String tipo) {
+        if (tipo.equals("auto")) {
+            return new Auto();
+        }
+        // ... otros tipos
+        return null;
+    }
+}</code></pre>
+
+        <h3>3. Observer</h3>
+        <p>Notifica a múltiples objetos cuando cambia el estado.</p>
+        <pre><code>public interface Observer {
+    void actualizar(String mensaje);
+}
+
+public class Subject {
+    private List&lt;Observer&gt; observers = new ArrayList&lt;&gt;();
+    
+    public void agregarObserver(Observer o) {
+        observers.add(o);
+    }
+    
+    public void notificar(String mensaje) {
+        for (Observer o : observers) {
+            o.actualizar(mensaje);
+        }
+    }
+}</code></pre>
+
+        <h3>4. Strategy</h3>
+        <p>Define una familia de algoritmos intercambiables.</p>
+        <pre><code>public interface EstrategiaPago {
+    void pagar(double monto);
+}
+
+public class CarritoCompras {
+    private EstrategiaPago estrategia;
+    
+    public void setEstrategia(EstrategiaPago e) {
+        estrategia = e;
+    }
+    
+    public void checkout(double monto) {
+        estrategia.pagar(monto);
+    }
+}</code></pre>
+
+        <h2>Principios SOLID</h2>
+
+        <h3>S - Single Responsibility</h3>
+        <p>Una clase debe tener una sola razón para cambiar.</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>❌ Mal</th>
+                    <th>✅ Bien</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>class Usuario { guardarEnDB(); enviarEmail(); }</code></td>
+                    <td><code>class Usuario { }<br>class UsuarioRepository { }<br>class EmailService { }</code></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>O - Open/Closed</h3>
+        <p>Abierto para extensión, cerrado para modificación.</p>
+        <pre><code>public interface Forma {
+    double calcularArea();
+}
+
+public class Circulo implements Forma {
+    public double calcularArea() {
+        return Math.PI * radio * radio;
+    }
+}</code></pre>
+
+        <h3>L - Liskov Substitution</h3>
+        <p>Los objetos derivados deben poder sustituir a sus clases base.</p>
+        <pre><code>Animal animal = new Perro();
+animal.comer(); // Debe funcionar correctamente</code></pre>
+
+        <h3>I - Interface Segregation</h3>
+        <p>Muchas interfaces específicas son mejores que una general.</p>
+
+        <h3>D - Dependency Inversion</h3>
+        <p>Depender de abstracciones, no de implementaciones concretas.</p>
+        <pre><code>public class ServicioUsuario {
+    private RepositorioUsuario repo; // Interfaz
+    
+    public ServicioUsuario(RepositorioUsuario repo) {
+        this.repo = repo;
+    }
+}</code></pre>
+
+        <h2>Clean Code</h2>
+        <ul>
+            <li><strong>Nombres descriptivos:</strong> <code>calcularSalarioMensual()</code> mejor que
+                <code>calc()</code></li>
+            <li><strong>Funciones pequeñas:</strong> Una función, una responsabilidad</li>
+            <li><strong>DRY:</strong> Don't Repeat Yourself</li>
+            <li><strong>Manejo de errores:</strong> Usar excepciones, no códigos de error</li>
+        </ul>
+
+        <h2>Testing con JUnit</h2>
+        <pre><code>import org.junit.Test;
+import static org.junit.Assert.*;
+
+public class CalculadoraTest {
+    @Test
+    public void testSuma() {
+        Calculadora calc = new Calculadora();
+        int resultado = calc.sumar(2, 3);
+        assertEquals(5, resultado);
+    }
+}</code></pre>
+
+        <div class="warning-box">
+            <strong>💡 Consejos para el Examen</strong>
+            <ol>
+                <li>Memoriza los patrones principales (Singleton, Factory, Observer)</li>
+                <li>Entiende SOLID y ejemplos de cada principio</li>
+                <li>Conoce Clean Code y buenas prácticas</li>
+                <li>Practica identificar cuándo usar cada patrón</li>
+            </ol>
+        </div>
+
+        <div class="success-box">
+            <h3>✅ Checklist de Preparación</h3>
+            <ul class="checklist">
+                <li>Conozco Singleton, Factory, Observer, Strategy</li>
+                <li>Entiendo los 5 principios SOLID</li>
+                <li>Puedo explicar cada principio con ejemplos</li>
+                <li>Sé qué es Clean Code</li>
+                <li>Entiendo DRY y KISS</li>
+                <li>Conozco testing básico con JUnit</li>
+                <li>Entiendo inyección de dependencias</li>
+            </ul>
+        </div>
+
+        <div class="footer">
+            <p><strong>JavaMaster</strong> - Plataforma de Aprendizaje de Java</p>
+            <p>Creado con ❤️ por Belén Calvo para la comunidad hispanohablante de programadores</p>
+            <p style="margin-top: 1rem; font-size: 0.85rem;">© 2026 - Todos los derechos reservados</p>
+        </div>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,34 @@
+# Dependencias de Node.js
+node_modules/
+package-lock.json
+
+# Variables de entorno
+.env
+.env.local
+
+# Archivos temporales del backend
+backend/temp/
+*.class
+
+# Logs
+*.log
+npm-debug.log*
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Build
+dist/
+build/
+
+# Otros
+.cache/

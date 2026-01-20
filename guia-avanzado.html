@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guía de Estudio - Nivel Principiante | JavaMaster</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Fira+Code&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            color: #2d3748;
+            background: #f7fafc;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 3rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .logo {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+
+        h1 {
+            font-size: 2rem;
+            color: #1a202c;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: #718096;
+            font-size: 1.1rem;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            color: #2d3748;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        h3 {
+            font-size: 1.2rem;
+            color: #4a5568;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        p {
+            margin-bottom: 1rem;
+        }
+
+        ul,
+        ol {
+            margin-left: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+        }
+
+        code {
+            font-family: 'Fira Code', monospace;
+            background: #f7fafc;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.9em;
+            color: #e53e3e;
+        }
+
+        pre {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin: 1rem 0;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        pre code {
+            background: none;
+            color: inherit;
+            padding: 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+
+        th,
+        td {
+            border: 1px solid #e2e8f0;
+            padding: 0.75rem;
+            text-align: left;
+        }
+
+        th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+
+        tr:nth-child(even) {
+            background: #f7fafc;
+        }
+
+        .info-box {
+            background: #ebf8ff;
+            border-left: 4px solid #4299e1;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 4px;
+        }
+
+        .warning-box {
+            background: #fffaf0;
+            border-left: 4px solid #ed8936;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 4px;
+        }
+
+        .success-box {
+            background: #f0fff4;
+            border-left: 4px solid #48bb78;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 4px;
+        }
+
+        .checklist {
+            background: #f7fafc;
+            padding: 1.5rem;
+            border-radius: 6px;
+            margin: 1rem 0;
+        }
+
+        .checklist li {
+            list-style: none;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+
+        .checklist li:before {
+            content: "☐";
+            position: absolute;
+            left: 0;
+            font-size: 1.2rem;
+            color: #667eea;
+        }
+
+        .print-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+        }
+
+        .print-button:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 2px solid #e2e8f0;
+            color: #718096;
+            font-size: 0.9rem;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .container {
+                box-shadow: none;
+                padding: 1rem;
+            }
+
+            .print-button {
+                display: none;
+            }
+
+            h2 {
+                page-break-after: avoid;
+            }
+
+            pre {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <button class="print-button" onclick="window.print()">📥 Guardar como PDF</button>
+
+    <div class="container">
+        <div class="header">
+            <div class="logo">☕ JavaMaster</div>
+            <h1>Guía de Estudio</h1>
+            <p class="subtitle">Nivel Avanzado - Java Moderno y Funcional</p>
+        </div>
+
+        <h2>📚 Características Modernas de Java</h2>
+
+        <h3>Expresiones Lambda</h3>
+        <p>Las lambdas son funciones anónimas que permiten escribir código más conciso.</p>
+
+        <div class="info-box">
+            <strong>💼 En el mundo real:</strong> Las lambdas son esenciales en desarrollo moderno. Se usan en
+            frameworks como Spring, Android, y procesamiento de datos.
+        </div>
+
+        <h3>Sintaxis</h3>
+        <pre><code>(parametros) -> expresion
+(parametros) -> { bloque de código }</code></pre>
+
+        <h3>Ejemplos</h3>
+        <pre><code>// Sin lambda
+nombres.forEach(new Consumer&lt;String&gt;() {
+    public void accept(String nombre) {
+        System.out.println(nombre);
+    }
+});
+
+// Con lambda
+nombres.forEach(nombre -> System.out.println(nombre));</code></pre>
+
+        <h2>Streams API</h2>
+        <p>Procesamiento de colecciones de forma declarativa y funcional.</p>
+
+        <h3>filter() - Filtrar elementos</h3>
+        <pre><code>List&lt;Integer&gt; pares = numeros.stream()
+    .filter(n -> n % 2 == 0)
+    .collect(Collectors.toList());</code></pre>
+
+        <h3>map() - Transformar elementos</h3>
+        <pre><code>List&lt;Integer&gt; cuadrados = numeros.stream()
+    .map(n -> n * n)
+    .collect(Collectors.toList());</code></pre>
+
+        <h3>reduce() - Reducir a un valor</h3>
+        <pre><code>int suma = numeros.stream()
+    .reduce(0, (a, b) -> a + b);</code></pre>
+
+        <h3>Ejemplo completo</h3>
+        <pre><code>List&lt;Integer&gt; resultado = numeros.stream()
+    .filter(n -> n % 2 == 0)  // Solo pares
+    .map(n -> n * 2)           // Multiplicar por 2
+    .sorted()                   // Ordenar
+    .collect(Collectors.toList());</code></pre>
+
+        <h2>Optional</h2>
+        <p>Contenedor que puede o no contener un valor (evita NullPointerException).</p>
+        <pre><code>Optional&lt;String&gt; nombre = Optional.of("Ana");
+
+// Verificar si tiene valor
+if (nombre.isPresent()) {
+    System.out.println(nombre.get());
+}
+
+// Usar orElse
+String valor = nombre.orElse("Sin nombre");
+
+// Con lambda
+nombre.ifPresent(n -> System.out.println(n));</code></pre>
+
+        <h2>Manejo de Excepciones</h2>
+
+        <h3>Try-Catch</h3>
+        <pre><code>try {
+    int resultado = 10 / 0;
+} catch (ArithmeticException e) {
+    System.out.println("Error: " + e.getMessage());
+} finally {
+    System.out.println("Siempre se ejecuta");
+}</code></pre>
+
+        <h3>Try-with-resources</h3>
+        <pre><code>try (FileReader fr = new FileReader("archivo.txt")) {
+    // Usar el recurso
+} catch (IOException e) {
+    e.printStackTrace();
+}
+// El recurso se cierra automáticamente</code></pre>
+
+        <h2>Genéricos</h2>
+        <pre><code>public class Caja&lt;T&gt; {
+    private T contenido;
+    
+    public void guardar(T item) {
+        contenido = item;
+    }
+    
+    public T obtener() {
+        return contenido;
+    }
+}
+
+// Uso
+Caja&lt;String&gt; cajaTexto = new Caja&lt;&gt;();
+cajaTexto.guardar("Hola");</code></pre>
+
+        <div class="warning-box">
+            <strong>💡 Consejos para el Examen</strong>
+            <ol>
+                <li>Domina la sintaxis de lambdas</li>
+                <li>Practica Streams con filter, map, reduce</li>
+                <li>Entiende Optional y cuándo usarlo</li>
+                <li>Conoce try-catch y manejo de excepciones</li>
+                <li>Practica genéricos con ejemplos simples</li>
+            </ol>
+        </div>
+
+        <div class="success-box">
+            <h3>✅ Checklist de Preparación</h3>
+            <ul class="checklist">
+                <li>Puedo escribir expresiones lambda</li>
+                <li>Domino operaciones de Streams (filter, map, reduce)</li>
+                <li>Entiendo Optional y sus métodos</li>
+                <li>Sé manejar excepciones con try-catch</li>
+                <li>Conozco try-with-resources</li>
+                <li>Entiendo genéricos básicos</li>
+            </ul>
+        </div>
+
+        <div class="footer">
+            <p><strong>JavaMaster</strong> - Plataforma de Aprendizaje de Java</p>
+            <p>Creado con ❤️ por Belén Calvo para la comunidad hispanohablante de programadores</p>
+            <p style="margin-top: 1rem; font-size: 0.85rem;">© 2026 - Todos los derechos reservados</p>
+        </div>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,182 @@
+/* ============================================
+   VISTA DE MÓDULOS ORGANIZADOS
+   ============================================ */
+.view-toggle {
+    display: flex;
+    gap: 0.5rem;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 0.25rem;
+    border-radius: 12px;
+}
+
+.toggle-btn {
+    padding: 0.5rem 1.25rem;
+    border: none;
+    background: transparent;
+    color: #a0aec0;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.toggle-btn:hover {
+    color: #ffffff;
+}
+
+.toggle-btn.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.modules-view {
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+}
+
+.level-section {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.level-section-header {
+    padding: 2rem;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.02);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.2s ease;
+}
+
+.level-section-header:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.level-section-title {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.level-section-title h3 {
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+.level-section-icon {
+    font-size: 2rem;
+}
+
+.level-section-meta {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    color: #718096;
+    font-size: 0.9rem;
+}
+
+.expand-icon {
+    font-size: 1.5rem;
+    transition: transform 0.3s ease;
+}
+
+.level-section.expanded .expand-icon {
+    transform: rotate(180deg);
+}
+
+.level-section-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.5s ease;
+}
+
+.level-section.expanded .level-section-content {
+    max-height: 5000px;
+}
+
+.module-group {
+    padding: 2rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.module-group:last-child {
+    border-bottom: none;
+}
+
+.module-header {
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.module-header h4 {
+    margin: 0;
+    color: #ffffff;
+    font-size: 1.2rem;
+}
+
+.module-lessons {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.lesson-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.lesson-id {
+    font-size: 0.85rem;
+    color: #718096;
+    font-weight: 600;
+}
+
+.lesson-desc {
+    color: #a0aec0;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.status-badge {
+    font-size: 0.85rem;
+    color: #48bb78;
+    font-weight: 600;
+}
+
+.status-btn {
+    font-size: 0.85rem;
+    color: #667eea;
+    font-weight: 600;
+}
+
+.lesson-card.completed {
+    border-color: rgba(72, 187, 120, 0.3);
+    background: rgba(72, 187, 120, 0.05);
+}
+
+/* Level-specific colors */
+.level-section.beginner .level-section-header {
+    border-left: 4px solid #4facfe;
+}
+
+.level-section.intermediate .level-section-header {
+    border-left: 4px solid #667eea;
+}
+
+.level-section.advanced .level-section-header {
+    border-left: 4px solid #f093fb;
+}
+
+.level-section.expert .level-section-header {
+    border-left: 4px solid #fee140;
+}

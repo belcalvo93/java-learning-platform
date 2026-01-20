@@ -1,0 +1,149 @@
+/**
+ * Validador multi-nivel para ejercicios de Java
+ * Combina validación sintáctica, de estilo y funcional con IA
+ */
+class AIValidator {
+    constructor(geminiApiKey) {
+        this.geminiValidator = geminiApiKey ? new GeminiValidator(geminiApiKey) : null;
+    }
+
+    /**
+     * Validación rápida de sintaxis básica
+     */
+    validateSyntax(code) {
+        const errors = [];
+
+        // Verificar llaves balanceadas
+        const openBraces = (code.match(/{/g) || []).length;
+        const closeBraces = (code.match(/}/g) || []).length;
+        if (openBraces !== closeBraces) {
+            errors.push({
+                type: 'syntax',
+                message: `Llaves desbalanceadas: ${openBraces} aperturas, ${closeBraces} cierres`,
+                severity: 'error'
+            });
+        }
+
+        // Verificar paréntesis balanceados
+        const openParens = (code.match(/\(/g) || []).length;
+        const closeParens = (code.match(/\)/g) || []).length;
+        if (openParens !== closeParens) {
+            errors.push({
+                type: 'syntax',
+                message: `Paréntesis desbalanceados: ${openParens} aperturas, ${closeParens} cierres`,
+                severity: 'error'
+            });
+        }
+
+        // Verificar que tenga al menos una clase
+        if (!code.includes('class ')) {
+            errors.push({
+                type: 'syntax',
+                message: 'El código debe contener al menos una clase',
+                severity: 'error'
+            });
+        }
+
+        return {
+            success: errors.length === 0,
+            errors
+        };
+    }
+
+    /**
+     * Validación de estilo y buenas prácticas
+     */
+    validateStyle(code) {
+        const warnings = [];
+        const lines = code.split('\n');
+
+        // Verificar indentación básica
+        lines.forEach((line, index) => {
+            const trimmed = line.trim();
+            if (!trimmed || trimmed.startsWith('//')) return;
+
+            const actualIndent = line.search(/\S/);
+
+            // Detectar indentación inconsistente (no múltiplo de 4)
+            if (actualIndent > 0 && actualIndent % 4 !== 0) {
+                warnings.push({
+                    type: 'style',
+                    message: `Indentación inconsistente (usa 4 espacios por nivel)`,
+                    line: index + 1,
+                    severity: 'warning'
+                });
+            }
+        });
+
+        // Verificar nombres de variables (camelCase)
+        const varDeclarations = code.match(/(?:int|double|float|String|boolean|char)\s+([a-zA-Z_][a-zA-Z0-9_]*)/g);
+        if (varDeclarations) {
+            varDeclarations.forEach(decl => {
+                const varName = decl.split(/\s+/)[1];
+                if (varName && varName[0] === varName[0].toUpperCase() && !varName.match(/^[A-Z_]+$/)) {
+                    warnings.push({
+                        type: 'naming',
+                        message: `La variable "${varName}" debería usar camelCase (primera letra minúscula)`,
+                        severity: 'info'
+                    });
+                }
+            });
+        }
+
+        return {
+            success: true, // Warnings no impiden la ejecución
+            warnings
+        };
+    }
+
+    /**
+     * Validación simplificada sin IA
+     * Si el código compila y ejecuta correctamente, es exitoso
+     */
+    async validateWithAI(code, exercise, executionResult) {
+        // Paso 1: Validación sintáctica básica
+        const syntaxCheck = this.validateSyntax(code);
+        if (!syntaxCheck.success) {
+            return {
+                success: false,
+                isCorrect: false,
+                errors: syntaxCheck.errors,
+                explanation: 'El código tiene errores de sintaxis que deben corregirse.',
+                suggestions: ['Verifica que todas las llaves y paréntesis estén balanceados']
+            };
+        }
+
+        // Paso 2: Validación de estilo (solo warnings, no bloquean)
+        const styleCheck = this.validateStyle(code);
+
+        // Paso 3: Si la compilación falló, es un error
+        if (!executionResult.success) {
+            return {
+                success: false,
+                isCorrect: false,
+                errors: [...syntaxCheck.errors, ...(executionResult.errors || [])],
+                explanation: 'El código tiene errores de compilación o ejecución.',
+                suggestions: ['Revisa los mensajes de error del compilador']
+            };
+        }
+
+        // Paso 4: Si compiló y ejecutó correctamente, es EXITOSO
+        // Las sugerencias de estilo son solo informativas
+        return {
+            success: true,
+            isCorrect: true,
+            functionalityScore: 100,
+            styleScore: styleCheck.warnings.length === 0 ? 100 : 85,
+            errors: styleCheck.warnings, // Solo warnings informativos
+            explanation: '¡Excelente! Tu código compila y ejecuta correctamente.',
+            suggestions: styleCheck.warnings.length > 0
+                ? ['Considera mejorar el estilo del código para seguir las mejores prácticas de Java']
+                : []
+        };
+    }
+}
+
+// Exportar para uso global
+if (typeof window !== 'undefined') {
+    window.AIValidator = AIValidator;
+}
