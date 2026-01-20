@@ -10,7 +10,7 @@ class AIValidator {
     /**
      * Validación rápida de sintaxis básica
      */
-    validateSyntax(code) {
+    validateSyntax(code, exercise) {
         const errors = [];
 
         // Verificar llaves balanceadas
@@ -35,8 +35,10 @@ class AIValidator {
             });
         }
 
-        // Verificar que tenga al menos una clase
-        if (!code.includes('class ')) {
+        // Verificar que tenga al menos una clase (SOLO si NO es ejercicio de indentación)
+        // Los ejercicios de indentación pueden ser fragmentos de código
+        const isIndentationOnly = exercise && exercise.validation && exercise.validation.checkIndentation;
+        if (!isIndentationOnly && !code.includes('class ')) {
             errors.push({
                 type: 'syntax',
                 message: 'El código debe contener al menos una clase',
@@ -102,7 +104,7 @@ class AIValidator {
      */
     async validateWithAI(code, exercise, executionResult) {
         // Paso 1: Validación sintáctica básica
-        const syntaxCheck = this.validateSyntax(code);
+        const syntaxCheck = this.validateSyntax(code, exercise);
         if (!syntaxCheck.success) {
             return {
                 success: false,
