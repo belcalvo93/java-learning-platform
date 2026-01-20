@@ -6,7 +6,7 @@
 const GEMINI_API_KEY = 'AIzaSyCLhUtDIJAkecznxR1KX3ilQLhkR_HapHA';
 
 // URL del backend (cambiar si despliegas en otro servidor)
-const BACKEND_URL = 'http://localhost:3000';
+const BACKEND_URL = 'https://java-learning-platform.onrender.com';
 
 // Configuración del sistema
 const CONFIG = {
