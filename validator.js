@@ -149,7 +149,16 @@ class JavaValidator {
                 break;
 
             default:
-                isValid = code.includes(exercise.solution);
+                // Normalizar código y solución para comparación
+                const normalizeCode = (str) => str
+                    .replace(/\r\n/g, '\n')  // Windows line endings
+                    .replace(/\r/g, '\n')    // Old Mac line endings
+                    .trim();
+
+                const userCode = normalizeCode(code);
+                const expectedCode = normalizeCode(exercise.solution);
+
+                isValid = userCode === expectedCode || userCode.includes(expectedCode);
                 output = 'Código ejecutado';
         }
 
