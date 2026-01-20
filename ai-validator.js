@@ -128,6 +128,44 @@ class AIValidator {
         }
 
         // Paso 4: Si compiló y ejecutó correctamente, es EXITOSO
+        // Para ejercicios de indentación, verificar que el código coincida con la solución
+        if (exercise.validation && exercise.validation.checkIndentation) {
+            const normalizeCode = (str) => str
+                .replace(/\r\n/g, '\n')  // Windows line endings
+                .replace(/\r/g, '\n')    // Old Mac line endings
+                .trim();
+
+            const userCode = normalizeCode(code);
+            const expectedCode = normalizeCode(exercise.solution);
+
+            if (userCode === expectedCode) {
+                return {
+                    success: true,
+                    isCorrect: true,
+                    functionalityScore: 100,
+                    styleScore: 100,
+                    errors: [],
+                    explanation: '¡Perfecto! Tu código está correctamente indentado.',
+                    suggestions: []
+                };
+            } else {
+                return {
+                    success: false,
+                    isCorrect: false,
+                    errors: [{
+                        type: 'indentation',
+                        message: 'La indentación no coincide con la solución esperada',
+                        severity: 'error'
+                    }],
+                    explanation: 'Revisa la indentación. Recuerda usar 4 espacios por cada nivel.',
+                    suggestions: [
+                        'Cada vez que abres una llave {, el código dentro debe tener 4 espacios más',
+                        'Verifica que todas las líneas estén correctamente alineadas'
+                    ]
+                };
+            }
+        }
+
         // Las sugerencias de estilo son solo informativas
         return {
             success: true,

@@ -96,13 +96,28 @@ async function checkExercise(exerciseId) {
   `;
 
   try {
-    // Extraer el nombre de la clase del código del usuario
-    const classNameMatch = userCode.match(/public\s+class\s+(\w+)/);
-    const className = classNameMatch ? classNameMatch[1] : 'Main';
+    // Verificar si es un ejercicio de solo indentación (no requiere compilación)
+    const isIndentationOnly = exercise.validation && exercise.validation.checkIndentation &&
+      exercise.lessonId === 1; // Lección 1 es de indentación
 
-    // Paso 1: Ejecutar el código en el backend
-    const executor = new JavaExecutor(CONFIG.executeEndpoint);
-    const executionResult = await executor.execute(userCode, className);
+    let executionResult;
+
+    if (isIndentationOnly) {
+      // Para ejercicios de indentación, solo validar el formato sin compilar
+      executionResult = {
+        success: true,
+        output: '',
+        errors: []
+      };
+    } else {
+      // Extraer el nombre de la clase del código del usuario
+      const classNameMatch = userCode.match(/public\s+class\s+(\w+)/);
+      const className = classNameMatch ? classNameMatch[1] : 'Main';
+
+      // Ejecutar el código en el backend
+      const executor = new JavaExecutor(CONFIG.executeEndpoint);
+      executionResult = await executor.execute(userCode, className);
+    }
 
     // Paso 2: Validar con IA
     const validator = new AIValidator(CONFIG.geminiApiKey);
