@@ -132,10 +132,17 @@ class AIValidator {
         // Paso 4: Si compiló y ejecutó correctamente, es EXITOSO
         // Para ejercicios de indentación, verificar que el código coincida con la solución
         if (exercise.validation && exercise.validation.checkIndentation) {
-            const normalizeCode = (str) => str
-                .replace(/\r\n/g, '\n')  // Windows line endings
-                .replace(/\r/g, '\n')    // Old Mac line endings
-                .trim();
+            // Función para normalizar código: elimina comentarios y líneas vacías
+            const normalizeCode = (str) => {
+                return str
+                    .replace(/\r\n/g, '\n')  // Windows line endings
+                    .replace(/\r/g, '\n')    // Old Mac line endings
+                    .split('\n')
+                    .map(line => line.replace(/\/\/.*$/, '').trimEnd()) // Eliminar comentarios de línea
+                    .filter(line => line.trim().length > 0) // Eliminar líneas vacías
+                    .join('\n')
+                    .trim();
+            };
 
             const userCode = normalizeCode(code);
             const expectedCode = normalizeCode(exercise.solution);
@@ -162,7 +169,8 @@ class AIValidator {
                     explanation: 'Revisa la indentación. Recuerda usar 4 espacios por cada nivel.',
                     suggestions: [
                         'Cada vez que abres una llave {, el código dentro debe tener 4 espacios más',
-                        'Verifica que todas las líneas estén correctamente alineadas'
+                        'Verifica que todas las líneas estén correctamente alineadas',
+                        'Asegúrate de no usar tabulaciones, solo espacios'
                     ]
                 };
             }
