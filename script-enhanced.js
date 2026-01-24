@@ -241,7 +241,7 @@ function displayValidationResult(validation, execution, exerciseId) {
       localStorage.setItem(`exercise_${exerciseId}_completed`, 'true');
 
       // Verificar si se completaron TODOS los ejercicios de esta lección
-      checkLessonCompletion(exercise.lessonId, resultDiv);
+      checkLessonCompletion(exercise.lessonId, exerciseId, resultDiv);
     }
   } else {
     resultDiv.innerHTML = `
@@ -264,19 +264,33 @@ function displayValidationResult(validation, execution, exerciseId) {
  * Verifica si todos los ejercicios de una lección están completados
  * Si es así, muestra un mensaje de felicitación con botón a la siguiente lección
  */
-function checkLessonCompletion(lessonId, resultDiv) {
+function checkLessonCompletion(lessonId, currentExerciseId, resultDiv) {
   // Obtener todos los ejercicios de esta lección
   const allExercisesInLesson = exercisesData.filter(e => e.lessonId === lessonId);
 
-  // Verificar cuántos están completados
+  console.log(`Verificando lección ${lessonId}:`, {
+    totalExercises: allExercisesInLesson.length,
+    exerciseIds: allExercisesInLesson.map(e => e.id),
+    currentExerciseId
+  });
+
+  // Verificar cuántos están completados (incluyendo el actual)
   const completedExercises = allExercisesInLesson.filter(e => {
-    // Un ejercicio está completado si su resultado está guardado como exitoso
+    // El ejercicio actual siempre cuenta como completado
+    if (e.id === currentExerciseId) {
+      return true;
+    }
+    // Para los demás, verificar localStorage
     const savedResult = localStorage.getItem(`exercise_${e.id}_completed`);
     return savedResult === 'true';
   });
 
+  console.log(`Ejercicios completados: ${completedExercises.length}/${allExercisesInLesson.length}`);
+
   // Si todos los ejercicios están completados
   if (completedExercises.length === allExercisesInLesson.length) {
+    console.log('¡Lección completada! Mostrando mensaje...');
+
     // Obtener información de la lección actual y la siguiente
     const currentLesson = lessonsData.find(l => l.id === lessonId);
     const currentLessonIndex = lessonsData.findIndex(l => l.id === lessonId);
@@ -314,6 +328,8 @@ function checkLessonCompletion(lessonId, resultDiv) {
       // Agregar el mensaje al div de resultados
       resultDiv.innerHTML += congratsMessage;
     }
+  } else {
+    console.log('Lección aún no completada');
   }
 }
 
