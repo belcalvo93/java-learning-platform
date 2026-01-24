@@ -236,6 +236,12 @@ function displayValidationResult(validation, execution, exerciseId) {
     const exercise = exercisesData.find(e => e.id === exerciseId);
     if (exercise) {
       progressManager.markAsCompleted(exercise.lessonId);
+
+      // Guardar que este ejercicio específico está completado
+      localStorage.setItem(`exercise_${exerciseId}_completed`, 'true');
+
+      // Verificar si se completaron TODOS los ejercicios de esta lección
+      checkLessonCompletion(exercise.lessonId, resultDiv);
     }
   } else {
     resultDiv.innerHTML = `
@@ -251,6 +257,63 @@ function displayValidationResult(validation, execution, exerciseId) {
       ${outputHtml}
     `;
     resultDiv.className = 'exercise-result error';
+  }
+}
+
+/**
+ * Verifica si todos los ejercicios de una lección están completados
+ * Si es así, muestra un mensaje de felicitación con botón a la siguiente lección
+ */
+function checkLessonCompletion(lessonId, resultDiv) {
+  // Obtener todos los ejercicios de esta lección
+  const allExercisesInLesson = exercisesData.filter(e => e.lessonId === lessonId);
+
+  // Verificar cuántos están completados
+  const completedExercises = allExercisesInLesson.filter(e => {
+    // Un ejercicio está completado si su resultado está guardado como exitoso
+    const savedResult = localStorage.getItem(`exercise_${e.id}_completed`);
+    return savedResult === 'true';
+  });
+
+  // Si todos los ejercicios están completados
+  if (completedExercises.length === allExercisesInLesson.length) {
+    // Obtener información de la lección actual y la siguiente
+    const currentLesson = lessonsData.find(l => l.id === lessonId);
+    const currentLessonIndex = lessonsData.findIndex(l => l.id === lessonId);
+    const nextLesson = lessonsData[currentLessonIndex + 1];
+
+    if (currentLesson) {
+      // Agregar mensaje de felicitación al final del resultado
+      const congratsMessage = `
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                    color: white; padding: 1.5rem; border-radius: 8px; margin-top: 1.5rem; 
+                    text-align: center; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);">
+          <h3 style="margin: 0 0 0.5rem 0; font-size: 1.5rem;">🎉 ¡Felicidades!</h3>
+          <p style="margin: 0 0 1rem 0; opacity: 0.95; font-size: 1rem;">
+            Has completado todos los ejercicios de<br>
+            <strong>"${currentLesson.title}"</strong>
+          </p>
+          ${nextLesson ? `
+            <button onclick="openLesson(${nextLesson.id})" 
+                    style="background: white; color: #667eea; border: none; 
+                           padding: 0.75rem 2rem; border-radius: 6px; font-weight: 600; 
+                           cursor: pointer; font-size: 1rem; transition: transform 0.2s;
+                           box-shadow: 0 2px 8px rgba(0,0,0,0.1);"
+                    onmouseover="this.style.transform='scale(1.05)'"
+                    onmouseout="this.style.transform='scale(1)'">
+              📚 Continuar con: ${nextLesson.title} →
+            </button>
+          ` : `
+            <p style="margin: 1rem 0 0; font-size: 1.1rem; font-weight: 600;">
+              🏆 ¡Has completado todo el curso!
+            </p>
+          `}
+        </div>
+      `;
+
+      // Agregar el mensaje al div de resultados
+      resultDiv.innerHTML += congratsMessage;
+    }
   }
 }
 
