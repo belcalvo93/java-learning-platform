@@ -16,6 +16,19 @@ class GeminiValidator {
      * @returns {Promise<Object>} Resultado de la validación
      */
     async analyzeCode(userCode, exercise, executionOutput = '') {
+        // C-02: IA desactivada en el navegador hasta diseño servidor-only.
+        // Ningún fetch a Gemini queda alcanzable desde la UI.
+        if (typeof window === 'undefined' || !window.CONFIG || window.CONFIG.AI_ENABLED !== true) {
+            return {
+                success: false,
+                isCorrect: false,
+                functionalityScore: 0,
+                styleScore: 0,
+                errors: [{ type: 'disabled', message: 'La corrección con IA todavía no está disponible.', severity: 'info' }],
+                explanation: 'La corrección con IA todavía no está disponible.',
+                suggestions: []
+            };
+        }
         const prompt = this.buildValidationPrompt(userCode, exercise, executionOutput);
 
         try {

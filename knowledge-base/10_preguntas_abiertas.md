@@ -26,6 +26,7 @@
 | Alta | PA-03: RESUELTA — no reescribir historial git. La clave Gemini ya fue revocada; alcanza con removerla del código actual (`config.js`) y no reactivar nada. | — | Belén (decidido) |
 | Media | PA-04: proveedor auth/DB futuro (Firebase real vs Supabase vs otro) y modelo Avance/Certificado | US-006/007 | Belén |
 | Media | PA-05: ¿panel admin en repo (git) alcanza hasta post-MVP o se necesita editor contenido? | US-007 alcance | Belén |
+| Media | PA-07: ¿cómo reactivar la IA de forma segura? La clave de Gemini vive solo en un servidor (nunca en el navegador), con límite de uso por persona. Depende del backend seguro de C-05/C-06. | IA post-MVP | Belén |
 | Baja | PA-06: certificado v1.0 local — ¿mostrarlo como "no verificable" o esconderlo hasta login? | US-005 copy | Belén |
 | Baja | [DISCOVERY] `scale` futuro: piloto `team` hoy, ¿umbral para pasar a `public_multi_user` (infra/costo)? | Roadmap | Belén |
 

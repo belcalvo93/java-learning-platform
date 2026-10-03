@@ -63,10 +63,9 @@ Cargá la skill correspondiente al contexto ANTES de escribir código.
 
 El plan de implementación completo está en [CHANGES.md](CHANGES.md). Resumen:
 
-- **Total**: 10 changes, orden secuencial (una sola sesión, un change por vez con su propio commit).
-- **Orden**: `C-01 → C-02 → C-03 → C-04 → C-07` (sitio publicado) → `C-05 → C-06` (ejecución segura, sin desplegar) → `C-08, C-09` (solo diseño futuro).
-- **Camino crítico**: `C-01 → C-02 → C-04 → C-07` (MVP lanzable en C-07; C-03 obligatorio en paralelo lógico, C-08 cierra como diseño siguiente).
-- **Primer change**: `C-01` (validator-audit — matriz 208 ejercicios, TDD).
+- **Cambios**: ver [CHANGES.md](CHANGES.md) — índice canónico (el conteo y el orden viven ahí, no se duplican acá para no desincronizar).
+- **Orden y próximo change**: el orden y el próximo change pendiente están en [CHANGES.md](CHANGES.md): el primero sin `[x]`.
+- **Camino crítico**: ver [CHANGES.md](CHANGES.md) (vive ahí, no se duplica acá para no desincronizar).
 
 **Antes de cualquier `/opsx:propose`**: leé [CHANGES.md](CHANGES.md), identificá las dependencias del change y los archivos de "Leer antes".
 

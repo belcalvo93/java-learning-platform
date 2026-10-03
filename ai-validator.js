@@ -4,7 +4,10 @@
  */
 class AIValidator {
     constructor(geminiApiKey) {
-        this.geminiValidator = geminiApiKey ? new GeminiValidator(geminiApiKey) : null;
+        // C-02: IA desactivada en el navegador hasta diseño servidor-only.
+        // La key se ignora siempre (aunque se pase una); la validación
+        // local por sintaxis/estilo/reglas queda intacta.
+        this.geminiValidator = null;
     }
 
     /**

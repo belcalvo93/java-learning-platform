@@ -27,6 +27,7 @@ C-01 validator-audit                       ← PRIMERA TAREA, desbloquea todo
   │     └── C-04 frontend-no-backend       ← degrada a reglas, nunca expone Render caído
   │           └── C-10 validator-fix-rules     ← corrige reglas que rechazan la solución canónica (TDD)
   │                 └── C-07 publish-frontend  ← solo frontend estático, sin backend
+  │                       ├── C-11 editor-ux                   ← polish editor post-publicación
   │                       ├── C-08 login-persisted-design      ← FUTURO, diseño solamente
   │                       └── C-09 admin-metrics-design        ← FUTURO, diseño solamente
   └── C-05 execution-alternatives
@@ -44,10 +45,11 @@ C-01 validator-audit
       → C-04 frontend-no-backend
         → C-10 validator-fix-rules       ← corrige reglas ids 3–8 y 168 (TDD)
           → C-07 publish-frontend        ← MVP PUBLICADO (sitio publicado)
-          → C-05 execution-alternatives
-            → C-06 secure-executor     ← ejecución segura, SIN desplegar
-              → C-08 login-persisted-design      ← FUTURO, diseño solamente
-              → C-09 admin-metrics-design        ← FUTURO, diseño solamente
+            → C-11 editor-ux                 ← polish editor, sin librerías
+              → C-05 execution-alternatives
+                → C-06 secure-executor     ← ejecución segura, SIN desplegar
+                  → C-08 login-persisted-design      ← FUTURO, diseño solamente
+                  → C-09 admin-metrics-design        ← FUTURO, diseño solamente
 ```
 
 Regla: no empezar un change hasta que el anterior esté archivado (`openspec/changes/archive/`).
@@ -69,10 +71,11 @@ C-01 → C-02 → C-04 → C-10 → C-07 → C-08*
   4  │ C-04 frontend-no-backend
   5  │ C-10 validator-fix-rules           ← corrige reglas ids 3–8 y 168
   6  │ C-07 publish-frontend            ← sitio publicado
-  7  │ C-05 execution-alternatives
-  8  │ C-06 secure-executor             ← sin desplegar
-  9  │ C-08 login-persisted-design      ← solo diseño
-  10 │ C-09 admin-metrics-design        ← solo diseño
+  7  │ C-11 editor-ux                   ← polish editor post-publicación
+  8  │ C-05 execution-alternatives
+  9  │ C-06 secure-executor             ← sin desplegar
+  10 │ C-08 login-persisted-design      ← solo diseño
+  11 │ C-09 admin-metrics-design        ← solo diseño
 ```
 
 ---
@@ -106,11 +109,10 @@ C-01 → C-02 → C-04 → C-10 → C-07 → C-08*
 > C-02 primero. C-03 y C-04 tras C-02; C-10 tras C-04. Sin rewrite de historial (PA-03).
 
 ### [C-02] `secrets-cleanup`
-- **Estado**: `[ ]` pendiente
+- **Estado**: `[x]` completado y archivado (`openspec/changes/archive/2026-10-03-c-02-secrets-cleanup/`) — paso manual Render Environment hecho por Belén: solo había PORT, sin secretos.
 - **Scope**: Cero secretos en código actual + Gemini desactivado en navegador (verificación manual — config/texto, sin lógica nueva)
   - `config.js`: eliminar `GEMINI_API_KEY` hardcodeada (`config.js:6`); reemplazar por placeholder vacío + comentario "servidor-only, nunca en frontend"; eliminar `BACKEND_URL` apuntando a Render suspendido
   - `gemini-integration.js` + `ai-validator.js`: desactivar llamadas desde el navegador (feature-flag `AI_ENABLED=false` o early-return con mensaje "IA no disponible hasta diseño servidor-only"); ningún `fetch` a Gemini queda alcanzable desde UI
-  - `firebase-config.js` / `auth.js`: marcar explícitamente como ejemplo NO operativo (banner en comentario + eliminar keys de ejemplo o reemplazar por `REEMPLAZAR`) o remover su importación desde `index.html` si nada lo usa
   - Verificación manual descrita en el change (sin tests de lógica): `git grep -in apikey` y `git grep -in gemini` no devuelven secretos reales; `node -e "require('./config.js')"` o apertura de `index.html` sin errores de consola por la desactivación; checklist de archivos tocados
   - Revisar las variables de entorno del servicio en Render (Environment) y rotar cualquier clave o token cargado ahí. No registrar sus valores en ningún archivo.
   - NO reescribir historial git (PA-03): solo código actual
@@ -144,6 +146,8 @@ C-01 → C-02 → C-04 → C-10 → C-07 → C-08*
   - `java-executor.js` + `script.js`/`script-enhanced.js`: detección de backend no configurado → mensaje exacto "ejecución no disponible — validando por reglas" y fallback a `validator.js`; nunca reintento infinito, nunca expone URL interna en UI ante fallo
   - Eliminar default de `BACKEND_URL` a Render suspendido; si se configura una URL, timeout explícito + error legible con stage (`compilation`/`execution`) ante timeout/fallo de red
   - Aviso persistente de progreso: "se guarda en este navegador" (RN-PRO-01); `localStorage` lleno/bloqueado → aviso + la app sigue funcionando sin guardar (Flujo 1)
+  - Firebase no-operativo (viene de C-02): banner "EJEMPLO NO OPERATIVO — sin login real en v1.0" en `firebase-config.js` y `auth.js` + keys de ejemplo → `REEMPLAZAR`; listar referencias vivas (`authManager`/`showAuthModal`/ids) y, si no hay uso vivo, retirar de `index.html` los scripts del SDK + ambos archivos (si hay uso vivo, dejar import con banner y reportar); archivos quedan en disco para el diseño C-08
+  - UI honesta con IA apagada (verificación manual — visual): ocultar botones de login y cualquier mensaje visible de Firebase; sacar la etiqueta "Feedback de IA" y los porcentajes "Funcionalidad/Estilo" de la validación local mientras la IA esté apagada (dan falsa impresión de precisión); el aviso "se guarda en este navegador" queda visible; verificar abriendo ejercicios en móvil + desktop sin errores de consola
   - Tests (TDD): backend ausente → fallback a reglas; backend caído/timeout → mensaje + sin reintento; `localStorage` indisponible → aviso + app operativa; error de validación → mensaje en español sin stacktrace crudo
 - **Dependencias**: C-02
 - **Governance**: ALTO
@@ -229,6 +233,19 @@ C-01 → C-02 → C-04 → C-10 → C-07 → C-08*
   - `knowledge-base/06_funcionalidades.md` §US-001, US-002, US-008 (navegación, guías, sitio sin secretos)
   - `knowledge-base/07_flujos_principales.md` §Flujo 3 (publicar vía git + invariante 52/208)
   - `knowledge-base/05_reglas_de_negocio.md` §RN-CON-01, RN-CON-03, RN-PRO-01, RN-PRO-02 (invariantes y copy obligatorio)
+
+### [C-11] `editor-ux`
+- **Estado**: `[ ]` pendiente
+- **Scope**: Mejoras de UX del editor de código (verificación manual — visual, sin lógica de negocio nueva)
+  - Numeración de líneas + guías sutiles de indentación en el editor, SIN librerías de terceros: textarea con columna de números y capa de guías sincronizadas (scroll y tamaño); si no alcanza sin librería, evaluar UNA librería y consultar a Belén antes de agregarla
+  - Ocultar la pista cuando el ejercicio sale correcto (la pista solo se muestra ante fallo o a pedido)
+  - Mover el `@import` de `styles.css:101` al principio del archivo (los `@import` deben ir primeros para aplicarse)
+  - Verificación manual: abrir ejercicios en móvil + desktop; chequear sincronía números/scroll, guías alineadas, pista oculta en correcto y visible en fallo, cero errores de consola; sin tests de lógica
+- **Dependencias**: C-07
+- **Governance**: BAJO
+- **Leer antes**:
+  - `knowledge-base/06_funcionalidades.md` §US-003 (resolver ejercicios con validación inmediata)
+  - `knowledge-base/02_descripcion_general.md` §Stack tecnológico (Vanilla sin framework)
 
 ---
 

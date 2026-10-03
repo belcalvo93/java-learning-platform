@@ -1,22 +1,25 @@
 /**
- * Configuración de API Keys y constantes del sistema
+ * Configuración del sistema (frontend — SIN secretos)
+ *
+ * v1.0 sin login ni base de datos; progreso solo en este navegador.
+ * IA DESACTIVADA hasta diseño servidor-only (C-02): `geminiApiKey` queda
+ * vacío — NUNCA poner una key real en el frontend.
  */
 
-// API Key de Gemini (GRATUITA)
-const GEMINI_API_KEY = 'AIzaSyCLhUtDIJAkecznxR1KX3ilQLhkR_HapHA';
-
-// URL del backend (cambiar si despliegas en otro servidor)
-const BACKEND_URL = 'https://java-learning-platform.onrender.com';
+// Backend desactivado en v1.0 (Render suspendido hasta ejecución segura,
+// RN-SEG-02). Sin default: el frontend degrada a validación por reglas.
+const BACKEND_URL = '';
 
 // Configuración del sistema
 const CONFIG = {
-    // API de IA
-    geminiApiKey: GEMINI_API_KEY,
+    // IA desactivada en el navegador hasta diseño servidor-only (C-02)
+    AI_ENABLED: false,
+    geminiApiKey: '',
 
-    // Backend
+    // Backend (inactivo en v1.0)
     backendUrl: BACKEND_URL,
-    executeEndpoint: `${BACKEND_URL}/api/execute`,
-    healthEndpoint: `${BACKEND_URL}/health`,
+    executeEndpoint: '',
+    healthEndpoint: '',
 
     // Timeouts
     executionTimeout: 5000, // 5 segundos
