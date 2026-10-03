@@ -170,7 +170,7 @@ C-01 → C-02 → C-04 → C-10 → C-07 → C-08*
   - `knowledge-base/05_reglas_de_negocio.md` §RN-SEG-02, RN-PRO-01 (prohibido reactivar sin tests, aviso local-only)
 
 ### [C-10] `validator-fix-rules`
-- **Estado**: `[ ]` pendiente
+- **Estado**: `[x]` completado y archivado (`openspec/changes/archive/2026-10-03-c-10-validator-fix-rules/`, spec sincronizada en `openspec/specs/validator-rules/`) — verificaciones manuales en navegador hechas por Belén: OK.
 - **Scope**: Corregir las reglas de `validator.js` que hoy rechazan la solución canónica de `data.js` (TDD)
   - Ids alcanzados: 3, 4, 5, 6, 7, 8 y 168 (hallazgo de C-01, ver `docs/validator-audit.md`); no tocar reglas de ningún otro id
   - Por cada id: 1 test que PASA con la solución correcta de `data.js` + 1 test que FALLA con una solución incorrecta (TDD, sin framework nuevo, `node --test`)

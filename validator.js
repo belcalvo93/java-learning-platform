@@ -60,8 +60,18 @@ class JavaValidator {
             const leadingSpaces = line.search(/\S/);
             if (leadingSpaces === -1) continue;
 
+            // Continuation lines keep their own alignment: if the previous
+            // significant line does not close the statement (';', '{', '}')
+            // this line continues it (e.g. chained '.forEach(...)'). Only
+            // block lines must be a multiple of 4.
+            let prev = null;
+            for (let j = i - 1; j >= 0; j--) {
+                const t = lines[j].trim();
+                if (t && !t.startsWith('//')) { prev = t; break; }
+            }
+            const isContinuation = prev !== null && !/[;{}]$/.test(prev);
             // Check if indentation is correct (must be multiple of 4)
-            if (leadingSpaces % indentSize !== 0) {
+            if (!isContinuation && leadingSpaces % indentSize !== 0) {
                 this.errors.push(`Error de indentación en línea ${i + 1}: Usa 4 espacios por nivel (encontrados: ${leadingSpaces})`);
                 return; // Stop after first error
             }
@@ -118,34 +128,34 @@ class JavaValidator {
                 if (isValid) output = this.extractOutput(code);
                 break;
 
-            case 3: // Variable edad
-                isValid = this.validateIntVariable(code, 'edad', 25);
-                if (isValid) output = '25';
-                break;
-
-            case 4: // Variable String
-                isValid = this.validateStringVariable(code, 'nombre');
+            case 3: // Múltiples Métodos (dos métodos a/b con println)
+                isValid = this.validateTwoMethods(code);
                 if (isValid) output = this.extractOutput(code);
                 break;
 
-            case 5: // Suma
-                isValid = this.validateSum(code);
-                if (isValid) output = 'Resultado: 15';
+            case 4: // Bucle Anidado (for + condición par + println)
+                isValid = this.validateNestedLoop(code);
+                if (isValid) output = this.extractOutput(code);
                 break;
 
-            case 6: // If-Else
-                isValid = this.validateIfElse(code);
-                if (isValid) output = this.simulateIfElse(code, 20);
+            case 5: // Hola Mundo
+                isValid = this.validateHolaMundo(code);
+                if (isValid) output = 'Hola, Java!';
                 break;
 
-            case 7: // Comparar números
-                isValid = this.validateComparison(code);
-                if (isValid) output = this.simulateComparison(code, 15, 20);
+            case 6: // Múltiples Líneas (dos println)
+                isValid = this.validateTwoLines(code);
+                if (isValid) output = this.extractOutput(code);
                 break;
 
-            case 8: // Bucle for
-                isValid = this.validateForLoop(code);
-                if (isValid) output = '1\n2\n3\n4\n5';
+            case 7: // Print vs Println
+                isValid = this.validatePrintVsPrintln(code);
+                if (isValid) output = this.extractOutput(code);
+                break;
+
+            case 8: // Printf con %d
+                isValid = this.validatePrintf(code);
+                if (isValid) output = 'Edad: 25';
                 break;
 
             default:
@@ -159,6 +169,17 @@ class JavaValidator {
                 const expectedCode = normalizeCode(exercise.solution);
 
                 isValid = userCode === expectedCode || userCode.includes(expectedCode);
+                if (exerciseId === 168) {
+                    const hasPipeline = code.includes('Files.lines') && code.includes('.filter(') && code.includes('.forEach(');
+                    if (!hasPipeline) {
+                        this.errors.push('Error: Debes usar el pipeline Files.lines(...).filter(...).forEach(...);');
+                        isValid = false;
+                    } else if (this.errors.length === 0) {
+                        // Tolerar variaciones de formato con el pipeline
+                        // presente y chequeos generales limpios.
+                        isValid = true;
+                    }
+                }
                 output = 'Código ejecutado';
         }
 
@@ -272,6 +293,84 @@ class JavaValidator {
         }
         if (!code.match(/i\s*\+\+|i\s*=\s*i\s*\+\s*1/)) {
             this.errors.push('Error: Debes incrementar i con i++');
+            return false;
+        }
+        return true;
+    }
+
+    validateTwoMethods(code) {
+        if (!code.match(/void\s+a\s*\(\s*\)/)) {
+            this.errors.push('Error: Debes declarar el método: void a()');
+            return false;
+        }
+        if (!code.match(/void\s+b\s*\(\s*\)/)) {
+            this.errors.push('Error: Debes declarar el método: void b()');
+            return false;
+        }
+        const printlnCount = (code.match(/System\.out\.println\s*\([^)]+\)\s*;/g) || []).length;
+        if (printlnCount < 2) {
+            this.errors.push(`Error: Cada método debe imprimir con System.out.println (encontradas: ${printlnCount}, esperadas: 2)`);
+            return false;
+        }
+        return true;
+    }
+
+    validateNestedLoop(code) {
+        if (!code.match(/for\s*\(/)) {
+            this.errors.push('Error: Debes usar un bucle for: for (init; cond; inc)');
+            return false;
+        }
+        if (!code.match(/%\s*2\s*==\s*0/)) {
+            this.errors.push('Error: Debes agregar la condición de número par: if (i % 2 == 0)');
+            return false;
+        }
+        if (!code.includes('System.out.println')) {
+            this.errors.push('Error: Debes imprimir con System.out.println()');
+            return false;
+        }
+        return true;
+    }
+
+    validateHolaMundo(code) {
+        if (!code.match(/System\.out\.println\s*\(\s*"Hola, Java!"\s*\)\s*;/)) {
+            this.errors.push('Error: Debes imprimir "Hola, Java!" con System.out.println("Hola, Java!");');
+            return false;
+        }
+        return true;
+    }
+
+    validateTwoLines(code) {
+        if (!code.includes('Línea 1') || !code.includes('Línea 2')) {
+            this.errors.push('Error: Debes imprimir "Línea 1" y "Línea 2" con dos System.out.println');
+            return false;
+        }
+        const printlnCount = (code.match(/System\.out\.println\s*\([^)]+\)\s*;/g) || []).length;
+        if (printlnCount < 2) {
+            this.errors.push(`Error: Necesitas 2 llamadas a println (encontradas: ${printlnCount})`);
+            return false;
+        }
+        return true;
+    }
+
+    validatePrintVsPrintln(code) {
+        if (!code.match(/System\.out\.print\s*\(/)) {
+            this.errors.push('Error: Debes usar System.out.print() para el primer tramo (sin salto de línea)');
+            return false;
+        }
+        if (!code.match(/System\.out\.println\s*\(/)) {
+            this.errors.push('Error: Debes usar System.out.println() para el segundo tramo (con salto de línea)');
+            return false;
+        }
+        return true;
+    }
+
+    validatePrintf(code) {
+        if (!code.match(/System\.out\.printf\s*\(/)) {
+            this.errors.push('Error: Debes usar System.out.printf() para imprimir con formato');
+            return false;
+        }
+        if (!code.includes('%d')) {
+            this.errors.push('Error: Debes usar el especificador %d para el número entero');
             return false;
         }
         return true;

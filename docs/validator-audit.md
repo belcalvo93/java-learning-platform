@@ -7,27 +7,20 @@ Matriz generada por `tools/audit-validator.js` (solo lectura sobre `data.js`,
 
 - Ejercicios auditados: 208
 - rules-only-ok: 0
-- needs-real-execution: 16
-- rules-cheatable: 192
-- % engañable (rules-cheatable / 208): 92.3 %
+- needs-real-execution: 9
+- rules-cheatable: 199
+- % engañable (rules-cheatable / 208): 95.7 %
 - Invariante 52/208: PASA
 - Lecciones: 52 (beginner 15, intermediate 15, advanced 12, expert 10)
 - Lecciones sin ejercicios: 51, 52
 
 ## Ejercicios que exigen ejecución real (needs-real-execution)
 
-3, 4, 5, 6, 7, 8, 33, 34, 35, 36, 37, 38, 39, 40, 148, 168
+33, 34, 35, 36, 37, 38, 39, 40, 148
 
 ## Hallazgos de contenido (sin correcciones)
 
 - Lecciones sin ejercicios en data.js (lessonId ausentes): 51, 52. El conteo de 52 lecciones proviene de lessonsData en script.js, no del lessonId.
-- Id 3 («Múltiples Métodos»): la regla actual rechaza la solución canónica.
-- Id 4 («Bucle Anidado»): la regla actual rechaza la solución canónica.
-- Id 5 («Hola Mundo»): la regla actual rechaza la solución canónica.
-- Id 6 («Múltiples Líneas»): la regla actual rechaza la solución canónica.
-- Id 7 («Print vs Println»): la regla actual rechaza la solución canónica.
-- Id 8 («Printf»): la regla actual rechaza la solución canónica.
-- Id 168 («Files Lines Stream»): la regla actual rechaza la solución canónica.
 
 ## Matriz por ejercicio
 
@@ -35,12 +28,12 @@ Matriz generada por `tools/audit-validator.js` (solo lectura sobre `data.js`,
 | --- | --- | --- | --- | --- | --- |
 | 1 | 1 | Indentar un Método | rules-cheatable | sí | sondas aceptadas falsamente: comentario-con-respuesta, codigo-muerto-con-patron, literal-con-patron |
 | 2 | 1 | Código con If-Else | rules-cheatable | sí | sondas aceptadas falsamente: comentario-con-respuesta, codigo-muerto-con-patron, literal-con-patron |
-| 3 | 1 | Múltiples Métodos | needs-real-execution | no | la regla específica rechaza la solución canónica: sin ejecución real no hay veredicto fiable |
-| 4 | 1 | Bucle Anidado | needs-real-execution | no | la regla específica rechaza la solución canónica: sin ejecución real no hay veredicto fiable |
-| 5 | 2 | Hola Mundo | needs-real-execution | no | la regla específica rechaza la solución canónica: sin ejecución real no hay veredicto fiable |
-| 6 | 2 | Múltiples Líneas | needs-real-execution | no | la regla específica rechaza la solución canónica: sin ejecución real no hay veredicto fiable |
-| 7 | 2 | Print vs Println | needs-real-execution | no | la regla específica rechaza la solución canónica: sin ejecución real no hay veredicto fiable |
-| 8 | 2 | Printf | needs-real-execution | no | la regla específica rechaza la solución canónica: sin ejecución real no hay veredicto fiable |
+| 3 | 1 | Múltiples Métodos | rules-cheatable | sí | sondas aceptadas falsamente: comentario-con-respuesta, codigo-muerto-con-patron, literal-con-patron |
+| 4 | 1 | Bucle Anidado | rules-cheatable | sí | sondas aceptadas falsamente: comentario-con-respuesta, codigo-muerto-con-patron, literal-con-patron |
+| 5 | 2 | Hola Mundo | rules-cheatable | sí | sondas aceptadas falsamente: comentario-con-respuesta, codigo-muerto-con-patron |
+| 6 | 2 | Múltiples Líneas | rules-cheatable | sí | sondas aceptadas falsamente: comentario-con-respuesta, codigo-muerto-con-patron, literal-con-patron |
+| 7 | 2 | Print vs Println | rules-cheatable | sí | sondas aceptadas falsamente: comentario-con-respuesta, codigo-muerto-con-patron, literal-con-patron |
+| 8 | 2 | Printf | rules-cheatable | sí | sondas aceptadas falsamente: comentario-con-respuesta, codigo-muerto-con-patron, literal-con-patron |
 | 9 | 3 | Var Int | rules-cheatable | sí | sondas aceptadas falsamente: comentario-con-respuesta, codigo-muerto-con-patron |
 | 10 | 3 | Var String | rules-cheatable | sí | sondas aceptadas falsamente: comentario-con-respuesta, codigo-muerto-con-patron |
 | 11 | 3 | Casting | rules-cheatable | sí | sondas aceptadas falsamente: comentario-con-respuesta, codigo-muerto-con-patron |
@@ -200,7 +193,7 @@ Matriz generada por `tools/audit-validator.js` (solo lectura sobre `data.js`,
 | 165 | 37 | File Delete | rules-cheatable | sí | sondas aceptadas falsamente: comentario-con-respuesta, codigo-muerto-con-patron |
 | 166 | 38 | BufferedReader | rules-cheatable | sí | sondas aceptadas falsamente: comentario-con-respuesta, codigo-muerto-con-patron |
 | 167 | 38 | BufferedWriter | rules-cheatable | sí | sondas aceptadas falsamente: comentario-con-respuesta, codigo-muerto-con-patron |
-| 168 | 38 | Files Lines Stream | needs-real-execution | no | la regla específica rechaza la solución canónica: sin ejecución real no hay veredicto fiable |
+| 168 | 38 | Files Lines Stream | rules-cheatable | sí | sondas aceptadas falsamente: comentario-con-respuesta, codigo-muerto-con-patron |
 | 169 | 39 | Thread Extends | rules-cheatable | sí | sondas aceptadas falsamente: comentario-con-respuesta, codigo-muerto-con-patron |
 | 170 | 39 | Runnable Interface | rules-cheatable | sí | sondas aceptadas falsamente: comentario-con-respuesta, codigo-muerto-con-patron |
 | 171 | 39 | Thread Start | rules-cheatable | sí | sondas aceptadas falsamente: comentario-con-respuesta, codigo-muerto-con-patron |
