@@ -126,7 +126,7 @@ C-01 → C-02 → C-04 → C-10 → C-07 → C-08*
   - `knowledge-base/02_descripcion_general.md` §Integraciones externas (estado real Gemini/Firebase/Render)
 
 ### [C-03] `readme-truth`
-- **Estado**: `[ ]` pendiente
+- **Estado**: `[x]` completado y archivado (`openspec/changes/archive/2026-10-03-c-03-readme-truth/`)
 - **Scope**: README obligatorio — describir lo que la plataforma hace HOY (verificación manual — texto, sin lógica)
   - Reescribir secciones: quitar "Compilador Java en Tiempo Real en el navegador", "Sistema de Progreso con Firebase", "Certificado" como hechos; reemplazar por estado real: validación por reglas offline (`validator.js`), progreso solo en este navegador (`localStorage`), sin login ni base de datos, backend Render suspendido y no requerido, IA desactivada
   - Actualizar Demo/Despliegue: frontend GitHub Pages como único despliegue MVP; sección Render movida a "desactivado hasta ejecución segura (RN-SEG-02)" sin pasos de activación

@@ -9,16 +9,15 @@
 
 - ✅ **52 Lecciones Completas** - Desde principiante hasta experto
 - ✅ **208 Ejercicios Interactivos** - Practica mientras aprendes
-- ✅ **Compilador Java en Tiempo Real** - Ejecuta código directamente en el navegador
+- ✅ **Validación inmediata en el navegador** - Revisión por reglas (`validator.js`); sin compilación ni ejecución real en v1.0
 - ✅ **4 Niveles de Aprendizaje** - Principiante, Intermedio, Avanzado y Experto
-- ✅ **Sistema de Progreso** - Guarda tu avance con Firebase
+- ✅ **Progreso local** - Se guarda solo en este navegador (`localStorage`); sin login ni base de datos en v1.0
 - ✅ **Guías de Estudio Descargables** - Material complementario para cada nivel
-- ✅ **Certificado de Finalización** - Al completar todos los niveles
+- ✅ **Constancia local de finalización** - Generada en el navegador, no verificable (se pierde si cambias de navegador o dispositivo)
 
 ## 🚀 Demo en Vivo
 
-**Frontend:** [https://TU-USUARIO.github.io/javamaster-platform/](https://TU-USUARIO.github.io/javamaster-platform/)  
-**Backend:** [https://javamaster-backend.onrender.com](https://javamaster-backend.onrender.com)
+> Demo en preparación — el enlace público se publicará en una versión posterior.
 
 ## 📋 Contenido del Curso
 
@@ -54,20 +53,21 @@
 
 ### Frontend
 - HTML5, CSS3, JavaScript (Vanilla)
-- Firebase (Autenticación y Base de Datos)
+- Firebase (ejemplo no operativo en v1.0 — sin login ni base de datos)
 - Diseño responsivo
 
-### Backend
-- Node.js + Express
-- Java JDK 21 (para compilación)
-- CORS habilitado
+### Ejecutor de código (desactivado en v1.0)
+- La ejecución de código está en rediseño por seguridad.
+- Node.js + Express y Java JDK 21 solo sirven para el desarrollo del ejecutor futuro; no son necesarios para usar la plataforma.
 
 ## 📦 Instalación Local
 
 ### Requisitos Previos
-- Node.js 16+ ([Descargar](https://nodejs.org/))
-- Java JDK 21+ ([Descargar](https://www.oracle.com/java/technologies/downloads/))
-- Git ([Descargar](https://git-scm.com/))
+- Navegador moderno y Git ([Descargar](https://git-scm.com/)) para obtener el código
+- Python 3 (o cualquier servidor HTTP estático) para servir los archivos
+- Node.js 16+ y Java JDK 21+ solo si vas a desarrollar el ejecutor futuro (no necesarios para usar la plataforma)
+
+<!-- Nota interna: `TU-USUARIO` más abajo es un marcador pendiente — se reemplazará por la dirección real al publicar el sitio. -->
 
 ### Pasos
 
@@ -77,13 +77,12 @@ git clone https://github.com/TU-USUARIO/javamaster-platform.git
 cd javamaster-platform
 ```
 
-2. **Configurar el backend**
-```bash
-cd backend
-npm install
-cp .env.example .env
-# Edita .env y agrega tu API key de Gemini (opcional)
-npm start
+2. **Sin configuración de backend (desactivado en v1.0)**
+```
+La ejecución de código está en rediseño por seguridad.
+No se requiere instalar dependencias del backend ni configurar secretos.
+Si la ejecución no está disponible, la plataforma valida por reglas
+y muestra: "ejecución no disponible — validando por reglas".
 ```
 
 3. **Iniciar el frontend**
@@ -100,22 +99,15 @@ http://localhost:8000
 
 ## 🌐 Despliegue en Producción
 
-### GitHub Pages (Frontend)
+### GitHub Pages (Frontend, única vía en v1.0)
 1. Haz fork de este repositorio
 2. Ve a Settings → Pages
 3. Selecciona la rama `main` y carpeta `/ (root)`
 4. Tu sitio estará en: `https://TU-USUARIO.github.io/javamaster-platform/`
+<!-- Nota interna: marcador pendiente — la URL real se fija al publicar el sitio -->
 
-### Render (Backend)
-1. Crea una cuenta en [Render](https://render.com)
-2. Conecta tu repositorio de GitHub
-3. Crea un nuevo Web Service:
-   - **Root Directory:** `backend`
-   - **Build Command:** `npm install`
-   - **Start Command:** `npm start`
-4. Actualiza `config.js` con la URL de tu backend de Render
-
-**Ver guía completa:** [DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT_GUIDE.md)
+### Ejecutor de código (desactivado en v1.0)
+La ejecución de código está en rediseño por seguridad. No se requiere backend para usar la plataforma.
 
 ## 📚 Estructura del Proyecto
 
@@ -174,6 +166,7 @@ Creado con ❤️ para la comunidad hispanohablante de programadores.
 Si tienes preguntas o encuentras algún problema:
 
 - 📧 Email: [tu-email@ejemplo.com]
+<!-- Nota interna (pendiente): la autora actualiza sus datos de contacto ella misma -->
 - 🐛 Issues: [GitHub Issues](https://github.com/TU-USUARIO/javamaster-platform/issues)
 
 ---
