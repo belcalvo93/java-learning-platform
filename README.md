@@ -17,7 +17,7 @@
 
 ## 🚀 Demo en Vivo
 
-> Demo en preparación — el enlace público se publicará en una versión posterior.
+**Frontend:** https://java.belencalvo.me/
 
 ## 📋 Contenido del Curso
 
@@ -67,13 +67,11 @@
 - Python 3 (o cualquier servidor HTTP estático) para servir los archivos
 - Node.js 16+ y Java JDK 21+ solo si vas a desarrollar el ejecutor futuro (no necesarios para usar la plataforma)
 
-<!-- Nota interna: `TU-USUARIO` más abajo es un marcador pendiente — se reemplazará por la dirección real al publicar el sitio. -->
-
 ### Pasos
 
 1. **Clonar el repositorio**
 ```bash
-git clone https://github.com/TU-USUARIO/javamaster-platform.git
+git clone https://github.com/belcalvo93/java-learning-platform.git
 cd javamaster-platform
 ```
 
@@ -103,8 +101,7 @@ http://localhost:8000
 1. Haz fork de este repositorio
 2. Ve a Settings → Pages
 3. Selecciona la rama `main` y carpeta `/ (root)`
-4. Tu sitio estará en: `https://TU-USUARIO.github.io/javamaster-platform/`
-<!-- Nota interna: marcador pendiente — la URL real se fija al publicar el sitio -->
+4. Tu sitio estará en: `https://java.belencalvo.me/` (dominio propio configurado en Settings > Pages)
 
 ### Ejecutor de código (desactivado en v1.0)
 La ejecución de código está en rediseño por seguridad. No se requiere backend para usar la plataforma.
@@ -167,7 +164,7 @@ Si tienes preguntas o encuentras algún problema:
 
 - 📧 Email: [tu-email@ejemplo.com]
 <!-- Nota interna (pendiente): la autora actualiza sus datos de contacto ella misma -->
-- 🐛 Issues: [GitHub Issues](https://github.com/TU-USUARIO/javamaster-platform/issues)
+- 🐛 Issues: [GitHub Issues](https://github.com/belcalvo93/java-learning-platform/issues)
 
 ---
 
