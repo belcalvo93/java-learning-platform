@@ -25,9 +25,10 @@ C-01 validator-audit                       ← PRIMERA TAREA, desbloquea todo
   ├── C-02 secrets-cleanup                 ← revocar y remover del código actual, sin rewrite historial
   │     ├── C-03 readme-truth              ← README obligatorio: lo que la plataforma hace HOY
   │     └── C-04 frontend-no-backend       ← degrada a reglas, nunca expone Render caído
-  │           └── C-07 publish-frontend    ← solo frontend estático, sin backend
-  │                 ├── C-08 login-persisted-design      ← FUTURO, diseño solamente
-  │                 └── C-09 admin-metrics-design        ← FUTURO, diseño solamente
+  │           └── C-10 validator-fix-rules     ← corrige reglas que rechazan la solución canónica (TDD)
+  │                 └── C-07 publish-frontend  ← solo frontend estático, sin backend
+  │                       ├── C-08 login-persisted-design      ← FUTURO, diseño solamente
+  │                       └── C-09 admin-metrics-design        ← FUTURO, diseño solamente
   └── C-05 execution-alternatives
         └── C-06 secure-executor           ← tests pasando ANTES de cualquier reactivación (RN-SEG-02)
 ```
@@ -41,7 +42,8 @@ C-01 validator-audit
   → C-02 secrets-cleanup
     → C-03 readme-truth
       → C-04 frontend-no-backend
-        → C-07 publish-frontend        ← MVP PUBLICADO (sitio publicado)
+        → C-10 validator-fix-rules       ← corrige reglas ids 3–8 y 168 (TDD)
+          → C-07 publish-frontend        ← MVP PUBLICADO (sitio publicado)
           → C-05 execution-alternatives
             → C-06 secure-executor     ← ejecución segura, SIN desplegar
               → C-08 login-persisted-design      ← FUTURO, diseño solamente
@@ -50,10 +52,10 @@ C-01 validator-audit
 
 Regla: no empezar un change hasta que el anterior esté archivado (`openspec/changes/archive/`).
 
-### Camino crítico (5 changes — mínimo irreducible)
+### Camino crítico (6 changes — mínimo irreducible)
 
 ```
-C-01 → C-02 → C-04 → C-07 → C-08*
+C-01 → C-02 → C-04 → C-10 → C-07 → C-08*
 ```
 
 > `*` C-08 cierra el camino crítico como diseño del paso siguiente; el MVP lanzable termina en C-07. C-05/C-06 corren en rama paralela y C-06 NO bloquea la publicación (el MVP publica sin backend por DD-02). C-03 es obligatorio pero no bloquea C-04 (pueden ir en paralelo tras C-02; se lista fuera del crítico para no inflarlo).
@@ -65,11 +67,12 @@ C-01 → C-02 → C-04 → C-07 → C-08*
   2  │ C-02 secrets-cleanup
   3  │ C-03 readme-truth
   4  │ C-04 frontend-no-backend
-  5  │ C-07 publish-frontend            ← sitio publicado
-  6  │ C-05 execution-alternatives
-  7  │ C-06 secure-executor             ← sin desplegar
-  8  │ C-08 login-persisted-design      ← solo diseño
-  9  │ C-09 admin-metrics-design        ← solo diseño
+  5  │ C-10 validator-fix-rules           ← corrige reglas ids 3–8 y 168
+  6  │ C-07 publish-frontend            ← sitio publicado
+  7  │ C-05 execution-alternatives
+  8  │ C-06 secure-executor             ← sin desplegar
+  9  │ C-08 login-persisted-design      ← solo diseño
+  10 │ C-09 admin-metrics-design        ← solo diseño
 ```
 
 ---
@@ -79,7 +82,7 @@ C-01 → C-02 → C-04 → C-07 → C-08*
 > Un solo change. Debe completarse antes que todo lo demás (PA-01 bloquea DD-02 final).
 
 ### [C-01] `validator-audit`
-- **Estado**: `[ ]` pendiente
+- **Estado**: `[x]` completado y archivado (`openspec/changes/archive/2026-10-03-c-01-validator-audit/`)
 - **Scope**: Auditoría de los 208 ejercicios: reglas vs compilación real vs engañabilidad (TDD — PRIMERA tarea del roadmap)
   - Script de auditoría `tools/audit-validator.js` (Node, sin dependencias nuevas): recorre `data.js` (208 registros) + reglas de `validator.js` y clasifica cada ejercicio en: `rules-only-ok` / `needs-real-execution` / `rules-cheatable`
   - Sonda de engaño: por cada regla, genera ≥2 variantes tramposas (p. ej. string literal con la respuesta esperada, código muerto que contiene el patrón) y registra si `validator.js` las acepta falsamente
@@ -100,7 +103,7 @@ C-01 → C-02 → C-04 → C-07 → C-08*
 
 ## FASE 1 — Limpieza de secretos y desactivación insegura
 
-> C-02 primero. C-03 y C-04 en paralelo tras C-02. Sin rewrite de historial (PA-03).
+> C-02 primero. C-03 y C-04 tras C-02; C-10 tras C-04. Sin rewrite de historial (PA-03).
 
 ### [C-02] `secrets-cleanup`
 - **Estado**: `[ ]` pendiente
@@ -150,6 +153,22 @@ C-01 → C-02 → C-04 → C-07 → C-08*
   - `knowledge-base/08_arquitectura_propuesta.md` §Graceful degradation, §Static-first (patrones)
   - `knowledge-base/05_reglas_de_negocio.md` §RN-SEG-02, RN-PRO-01 (prohibido reactivar sin tests, aviso local-only)
 
+### [C-10] `validator-fix-rules`
+- **Estado**: `[ ]` pendiente
+- **Scope**: Corregir las reglas de `validator.js` que hoy rechazan la solución canónica de `data.js` (TDD)
+  - Ids alcanzados: 3, 4, 5, 6, 7, 8 y 168 (hallazgo de C-01, ver `docs/validator-audit.md`); no tocar reglas de ningún otro id
+  - Por cada id: 1 test que PASA con la solución correcta de `data.js` + 1 test que FALLA con una solución incorrecta (TDD, sin framework nuevo, `node --test`)
+  - Si el error está en `data.js` y no en la regla → NO tocarlo: reportarlo como hallazgo y consultar a Belén antes de seguir
+  - No tocar contenido de lecciones/ejercicios fuera de estas reglas; no cambiar IDs ni conteos (RN-CON-01, RN-CON-03)
+  - Al cerrar: re-correr `tools/audit-validator.js` y actualizar `docs/validator-audit.md` con la matriz nueva
+- **Dependencias**: C-01
+- **Governance**: MEDIO
+- **Leer antes**:
+  - `docs/validator-audit.md` §hallazgos ids 3–8, 168 (qué rechaza cada regla hoy)
+  - `knowledge-base/05_reglas_de_negocio.md` §RN-CON-01, RN-CON-02, RN-CON-03 (invariante 52/208, offline-first, IDs estables)
+  - `knowledge-base/09_decisiones_y_supuestos.md` §SU-01 (supuesto que este change ayuda a cerrar)
+  - `knowledge-base/06_funcionalidades.md` §US-003 (validación por reglas offline)
+
 ---
 
 ## FASE 2 — Ejecución segura (evaluar antes de construir)
@@ -161,6 +180,7 @@ C-01 → C-02 → C-04 → C-07 → C-08*
 - **Scope**: Evaluación documentada de alternativas de ejecución Java + decisión DD-02 final (verificación manual — análisis, sin código productivo)
   - Matriz `docs/execution-options.md`: parche sandbox propio (allowlist + `execFile` + timeout + output cap + cleanup) vs Piston/Judge0 vs WASM vs solo-reglas; columnas: costo mensual free-tier, mantenimiento, fidelidad compilación JDK21, superficie de ataque, latencia, qué subset de C-01 cubre
   - Usa la matriz C-01 como entrada: cuántos ejercicios exigen ejecución real determina si basta con solo-reglas o hace falta sandbox
+  - Entrada de C-01 (hallazgo archivado): 92,3 % de ejercicios engañables (192/208 `rules-cheatable`, 16 `needs-real-execution`, 0 `rules-only-ok`) — ver `docs/validator-audit.md`. Dimensiona cuánto cubre "solo reglas" en la matriz.
   - Decisión explícita firmada por Belén (costo/mantenimiento primero per RN-COS-02): una opción ganadora + criterio de reversión; si gana "solo reglas", C-06 se reduce a endurecer validación por reglas
   - Verificación manual: tabla completa + supuestos de costo con fuentes (precios free-tier enlazados); revisión de Belén; sin tests de lógica
 - **Dependencias**: C-01
@@ -192,7 +212,7 @@ C-01 → C-02 → C-04 → C-07 → C-08*
 
 ## FASE 3 — Publicación del MVP (frontend sin backend)
 
-> Solo tras C-03 + C-04. Publica Pages. No toca backend.
+> Solo tras C-03 + C-04 + C-10. Publica Pages. No toca backend.
 
 ### [C-07] `publish-frontend`
 - **Estado**: `[ ]` pendiente
@@ -202,7 +222,7 @@ C-01 → C-02 → C-04 → C-07 → C-08*
   - Barrido: 52/52 lecciones y 208/208 ejercicios accesibles; cero errores JS en consola en `index.html` + 4 guías (móvil + desktop); `git grep -i apikey|secret|gemini` sin secretos reales; Firebase ejemplo ausente o marcado no-operativo
   - Copy visible: "progreso solo en este navegador" y degradación "ejecución no disponible — validando por reglas" donde aplique; certificado v1.0 (si visible) rotulado local/no-verificable o escondido per PA-06
   - Verificación manual descrita en el change: checklist de publicación firmada (URLs, conteos, consolas, grep, dispositivos); sin tests de lógica; smoke script opcional permitido pero no exigido
-- **Dependencias**: C-03, C-04
+- **Dependencias**: C-03, C-04, C-10
 - **Governance**: BAJO
 - **Leer antes**:
   - `knowledge-base/01_vision_y_objetivos.md` §Alcance v1.0, §Métricas de éxito (definición de lanzable)
