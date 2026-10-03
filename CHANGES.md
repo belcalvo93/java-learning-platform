@@ -30,7 +30,9 @@ C-01 validator-audit                       ← PRIMERA TAREA, desbloquea todo
   │                       ├── C-11 editor-ux                   ← polish editor post-publicación
   │                       │     └── C-12 ui-redesign           ← rediseño visual en 2 etapas
   │                       ├── C-08 login-persisted-design      ← FUTURO, diseño solamente
+  │                       │     └── C-13 login-y-progreso-en-cuenta ← implementa C-08 (ALTO)
   │                       └── C-09 admin-metrics-design        ← FUTURO, diseño solamente
+  │                             └── C-14 panel-admin           ← implementa C-09 (ALTO)
   └── C-05 execution-alternatives
         └── C-06 secure-executor           ← tests pasando ANTES de cualquier reactivación (RN-SEG-02)
 ```
@@ -52,6 +54,8 @@ C-01 validator-audit
                   → C-06 secure-executor     ← ejecución segura, SIN desplegar
                     → C-08 login-persisted-design      ← FUTURO, diseño solamente
                     → C-09 admin-metrics-design        ← FUTURO, diseño solamente
+                    → C-13 login-y-progreso-en-cuenta ← implementa C-08 (ALTO)
+                    → C-14 panel-admin               ← implementa C-09 (ALTO)
 ```
 
 Regla: no empezar un change hasta que el anterior esté archivado (`openspec/changes/archive/`).
@@ -79,6 +83,8 @@ C-01 → C-02 → C-04 → C-10 → C-07 → C-08*
   10 │ C-06 secure-executor             ← sin desplegar
   11 │ C-08 login-persisted-design      ← solo diseño
   12 │ C-09 admin-metrics-design        ← solo diseño
+  13 │ C-13 login-y-progreso-en-cuenta  ← implementa C-08 (ALTO)
+  14 │ C-14 panel-admin                 ← implementa C-09 (ALTO)
 ```
 
 ---
@@ -150,7 +156,7 @@ C-01 → C-02 → C-04 → C-10 → C-07 → C-08*
   - Eliminar default de `BACKEND_URL` a Render suspendido; si se configura una URL, timeout explícito + error legible con stage (`compilation`/`execution`) ante timeout/fallo de red
   - Aviso persistente de progreso: "se guarda en este navegador" (RN-PRO-01); `localStorage` lleno/bloqueado → aviso + la app sigue funcionando sin guardar (Flujo 1)
   - Firebase no-operativo (viene de C-02): banner "EJEMPLO NO OPERATIVO — sin login real en v1.0" en `firebase-config.js` y `auth.js` + keys de ejemplo → `REEMPLAZAR`; listar referencias vivas (`authManager`/`showAuthModal`/ids) y, si no hay uso vivo, retirar de `index.html` los scripts del SDK + ambos archivos (si hay uso vivo, dejar import con banner y reportar); archivos quedan en disco para el diseño C-08
-  - UI honesta con IA apagada (verificación manual — visual): ocultar botones de login y cualquier mensaje visible de Firebase; sacar la etiqueta "Feedback de IA" y los porcentajes "Funcionalidad/Estilo" de la validación local mientras la IA esté apagada (dan falsa impresión de precisión); el aviso "se guarda en este navegador" queda visible; verificar abriendo ejercicios en móvil + desktop sin errores de consola
+  - UI honesta con IA apagada (verificación manual — visual): mostrar los botones de sesión deshabilitados con la etiqueta "Próximamente: guardá tu progreso en tu cuenta" (el login con base de datos es un objetivo del proyecto); sacar el mensaje "Firebase inicializado correctamente"; mantener el aviso "tu progreso se guarda solo en este navegador" como estado temporal; sacar la etiqueta "Feedback de IA" y los porcentajes "Funcionalidad/Estilo" de la validación local mientras la IA esté apagada (dan falsa impresión de precisión); verificar abriendo ejercicios en móvil + desktop sin errores de consola
   - Tests (TDD): backend ausente → fallback a reglas; backend caído/timeout → mensaje + sin reintento; `localStorage` indisponible → aviso + app operativa; error de validación → mensaje en español sin stacktrace crudo
 - **Dependencias**: C-02
 - **Governance**: ALTO
@@ -296,3 +302,40 @@ C-01 → C-02 → C-04 → C-10 → C-07 → C-08*
   - `knowledge-base/06_funcionalidades.md` §US-007 (CRUD contenido + agregados)
   - `knowledge-base/09_decisiones_y_supuestos.md` §SU-02 (git-directo confirmado)
   - `knowledge-base/04_modelo_de_datos.md` §Guías, §Seed data inicial (contenido como seed)
+
+---
+
+## FASE 5 — Post-MVP: implementación de login y admin (tras diseños C-08/C-09)
+
+> Solo tras los diseños C-08 y C-09. Riesgo ALTO en ambos: reglas de Firestore, rol admin y cero secretos en el frontend.
+
+### [C-13] `login-y-progreso-en-cuenta`
+- **Estado**: `[ ]` pendiente
+- **Scope**: Implementar el diseño de C-08: login con Firebase real + progreso por usuario (código, con tests donde haya lógica)
+  - Auth Firebase real (proveedor y modelo según `docs/auth-db-decision.md` de C-08); Firestore con reglas de seguridad (cada usuario solo lee/escribe su progreso; admin por rol, nunca desde el cliente)
+  - Progreso por usuario con fuente de verdad en servidor; `localStorage` pasa a caché; migración del progreso local existente (import por única vez, sin duplicar)
+  - Certificado verificable según diseño C-08; lecciones siguen públicas (sin barrera)
+  - Riesgo ALTO: reglas de Firestore (denegación por defecto, testear), rol admin (asignación solo servidor/consola, nunca autootorgable desde el frontend), cero secretos en el frontend (solo config pública de Firebase)
+  - Verificación: tests donde haya lógica + checklist manual (login/logout, progreso cross-device, migración sin duplicados, acceso denegado sin rol)
+- **Dependencias**: C-08
+- **Governance**: ALTO
+- **Leer antes**:
+  - `docs/auth-db-decision.md` (diseño C-08 a implementar)
+  - `knowledge-base/03_actores_y_roles.md` §RBAC futuro (qué cambia con sesión)
+  - `knowledge-base/04_modelo_de_datos.md` §Usuario/Avance/Certificado FUTURO
+  - `knowledge-base/05_reglas_de_negocio.md` §RN-PRO-03, §RN-SEG-03
+  - `knowledge-base/06_funcionalidades.md` §US-006 (criterios de auth real)
+
+### [C-14] `panel-admin`
+- **Estado**: `[ ]` pendiente
+- **Scope**: Implementar el diseño de C-09: panel de administración + métricas (código, con tests donde haya lógica)
+  - CRUD de contenido y agregados (completions, drop-off por lección) según `docs/admin-metrics-decision.md` de C-09; acceso solo con rol admin verificado por servidor/reglas
+  - Riesgo ALTO: rol admin (nunca autootorgable desde el frontend), reglas de Firestore para agregados sin exponer PII, cero secretos en el frontend
+  - Verificación: tests donde haya lógica + checklist manual (admin ve panel, no-admin denegado, agregados sin PII)
+- **Dependencias**: C-09, C-13
+- **Governance**: ALTO
+- **Leer antes**:
+  - `docs/admin-metrics-decision.md` (diseño C-09 a implementar)
+  - `knowledge-base/03_actores_y_roles.md` §Administradora, §RBAC futuro
+  - `knowledge-base/06_funcionalidades.md` §US-007 (CRUD contenido + agregados)
+  - `knowledge-base/05_reglas_de_negocio.md` §RN-SEG-03 (cero secretos)
