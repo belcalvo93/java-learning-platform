@@ -28,6 +28,7 @@ C-01 validator-audit                       ← PRIMERA TAREA, desbloquea todo
   │           └── C-10 validator-fix-rules     ← corrige reglas que rechazan la solución canónica (TDD)
   │                 └── C-07 publish-frontend  ← solo frontend estático, sin backend
   │                       ├── C-11 editor-ux                   ← polish editor post-publicación
+  │                       │     └── C-12 ui-redesign           ← rediseño visual en 2 etapas
   │                       ├── C-08 login-persisted-design      ← FUTURO, diseño solamente
   │                       └── C-09 admin-metrics-design        ← FUTURO, diseño solamente
   └── C-05 execution-alternatives
@@ -46,10 +47,11 @@ C-01 validator-audit
         → C-10 validator-fix-rules       ← corrige reglas ids 3–8 y 168 (TDD)
           → C-07 publish-frontend        ← MVP PUBLICADO (sitio publicado)
             → C-11 editor-ux                 ← polish editor, sin librerías
-              → C-05 execution-alternatives
-                → C-06 secure-executor     ← ejecución segura, SIN desplegar
-                  → C-08 login-persisted-design      ← FUTURO, diseño solamente
-                  → C-09 admin-metrics-design        ← FUTURO, diseño solamente
+              → C-12 ui-redesign               ← rediseño visual en 2 etapas
+                → C-05 execution-alternatives
+                  → C-06 secure-executor     ← ejecución segura, SIN desplegar
+                    → C-08 login-persisted-design      ← FUTURO, diseño solamente
+                    → C-09 admin-metrics-design        ← FUTURO, diseño solamente
 ```
 
 Regla: no empezar un change hasta que el anterior esté archivado (`openspec/changes/archive/`).
@@ -72,10 +74,11 @@ C-01 → C-02 → C-04 → C-10 → C-07 → C-08*
   5  │ C-10 validator-fix-rules           ← corrige reglas ids 3–8 y 168
   6  │ C-07 publish-frontend            ← sitio publicado
   7  │ C-11 editor-ux                   ← polish editor post-publicación
-  8  │ C-05 execution-alternatives
-  9  │ C-06 secure-executor             ← sin desplegar
-  10 │ C-08 login-persisted-design      ← solo diseño
-  11 │ C-09 admin-metrics-design        ← solo diseño
+  8  │ C-12 ui-redesign                 ← rediseño visual en 2 etapas
+  9  │ C-05 execution-alternatives
+  10 │ C-06 secure-executor             ← sin desplegar
+  11 │ C-08 login-persisted-design      ← solo diseño
+  12 │ C-09 admin-metrics-design        ← solo diseño
 ```
 
 ---
@@ -246,6 +249,19 @@ C-01 → C-02 → C-04 → C-10 → C-07 → C-08*
 - **Leer antes**:
   - `knowledge-base/06_funcionalidades.md` §US-003 (resolver ejercicios con validación inmediata)
   - `knowledge-base/02_descripcion_general.md` §Stack tecnológico (Vanilla sin framework)
+
+### [C-12] `ui-redesign`
+- **Estado**: `[ ]` pendiente
+- **Scope**: Rediseño visual del frontend en dos etapas (verificación manual con capturas antes/después — visual, sin lógica de negocio nueva)
+  - Etapa 1 — dirección visual definida con la autora ANTES de escribir código: público, tono, paleta, tipografía y componentes; se documenta y Belén la aprueba; sin código hasta el OK
+  - Etapa 2 — implementación con la skill `frontend-design`: conservar la identidad actual (paleta rosa/violeta refinada, no ruptura); sin cambiar IDs ni conteos 52/208 (RN-CON-01, RN-CON-03); sin librerías ni fuentes externas; contraste accesible (WCAG AA en texto) y buen uso en celular
+  - Verificación manual: capturas antes/después en móvil + desktop, checklist de contraste y de invariantes 52/208, cero errores de consola; sin tests de lógica
+- **Dependencias**: C-11
+- **Governance**: BAJO
+- **Leer antes**:
+  - `knowledge-base/06_funcionalidades.md` §US-001, US-002 (navegación y guías que se rediseñan)
+  - `knowledge-base/02_descripcion_general.md` §Stack tecnológico (Vanilla sin framework, sin fuentes externas)
+  - `knowledge-base/05_reglas_de_negocio.md` §RN-CON-01, RN-CON-03 (invariantes e IDs estables)
 
 ---
 
