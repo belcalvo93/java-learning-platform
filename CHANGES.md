@@ -153,7 +153,7 @@ C-01 → C-02 → C-04 → C-10 → C-07 → C-08*
   - `knowledge-base/04_modelo_de_datos.md` §ProgresoLocal (local-only como limitación documentada)
 
 ### [C-04] `frontend-no-backend`
-- **Estado**: `[ ]` pendiente
+- **Estado**: `[x]` completado y archivado (`openspec/changes/archive/2026-10-03-c-04-frontend-no-backend/`, spec sincronizada en `openspec/specs/frontend-no-backend/`) — verificaciones manuales en navegador hechas por Belén: OK.
 - **Scope**: Frontend funciona 100% sin backend con degradación explícita (TDD)
   - `java-executor.js` + `script.js`/`script-enhanced.js`: detección de backend no configurado → mensaje exacto "ejecución no disponible — validando por reglas" y fallback a `validator.js`; nunca reintento infinito, nunca expone URL interna en UI ante fallo
   - Eliminar default de `BACKEND_URL` a Render suspendido; si se configura una URL, timeout explícito + error legible con stage (`compilation`/`execution`) ante timeout/fallo de red
