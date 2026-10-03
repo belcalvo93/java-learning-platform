@@ -41,12 +41,12 @@
 
             <!-- Auth Buttons -->
             <div style="display: flex; gap: 1rem; justify-content: center; margin: 2rem 0; flex-wrap: wrap;">
-                <button onclick="showAuthModal()" class="nav-btn" style="padding: 1rem 2rem; font-size: 1.1rem;">
-                    🔐 Iniciar Sesión
-                </button>
-                <button onclick="showAuthModal(); setTimeout(() => switchToSignUp(), 100);" class="nav-btn"
+                <a href="#niveles" class="nav-btn" style="padding: 1rem 2rem; font-size: 1.1rem; text-decoration: none;">
+                    Empezar a aprender
+                </a>
+                <button disabled aria-disabled="true" class="nav-btn"
                     style="padding: 1rem 2rem; font-size: 1.1rem; background: linear-gradient(135deg, #9B59B6 0%, #318CE7 100%);">
-                    ✨ Crear Cuenta Gratis
+                    Próximamente: guardá tu progreso en tu cuenta
                 </button>
             </div>
 
@@ -194,6 +194,7 @@
         <section id="progreso" class="progress-section">
             <div class="container">
                 <h2 class="section-title">Mi Progreso</h2>
+                <div id="local-only-notice" role="status">ℹ️ Tu progreso se guarda solo en este navegador.</div>
                 <p class="section-subtitle">Sigue tu avance en el curso completo de Java</p>
 
                 <div class="total-progress-card">
@@ -304,7 +305,9 @@
         <div class="lesson-viewer" id="auth-modal">
             <div class="lesson-content" style="max-width: 500px;">
                 <button class="lesson-close" onclick="closeAuthModal()">×</button>
-
+                <div role="status" style="background: #ebf8ff; border-left: 4px solid #3182ce; padding: 0.75rem; border-radius: 4px; margin-bottom: 1rem;">
+                    <p style="margin: 0; font-size: 0.9rem;">El inicio de sesión no está disponible en esta versión. Tu progreso se guarda solo en este navegador.</p>
+                </div>
                 <!-- Sign In Form -->
                 <div id="signin-form">
                     <h2 style="text-align: center; margin-bottom: 2rem;">Iniciar Sesión</h2>
@@ -312,9 +315,9 @@
                         style="width: 100%; padding: 0.75rem; margin-bottom: 1rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: white;">
                     <input type="password" id="signin-password" placeholder="Contraseña"
                         style="width: 100%; padding: 0.75rem; margin-bottom: 1rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: white;">
-                    <button onclick="handleSignIn()" class="nav-btn"
+                    <button disabled aria-disabled="true" class="nav-btn"
                         style="width: 100%; margin-bottom: 1rem;">Entrar</button>
-                    <button onclick="handleGoogleSignIn()" class="nav-btn"
+                    <button disabled aria-disabled="true" class="nav-btn"
                         style="width: 100%; margin-bottom: 1rem; background: white; color: #333;">
                         🔐 Continuar con Google
                     </button>
@@ -333,7 +336,7 @@
                         style="width: 100%; padding: 0.75rem; margin-bottom: 1rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: white;">
                     <input type="password" id="signup-password" placeholder="Contraseña (mín. 6 caracteres)"
                         style="width: 100%; padding: 0.75rem; margin-bottom: 1rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: white;">
-                    <button onclick="handleSignUp()" class="nav-btn"
+                    <button disabled aria-disabled="true" class="nav-btn"
                         style="width: 100%; margin-bottom: 1rem;">Registrarse</button>
                     <p style="text-align: center; color: var(--text-secondary);">
                         ¿Ya tienes cuenta? <a href="#" onclick="switchToSignIn(); return false;"

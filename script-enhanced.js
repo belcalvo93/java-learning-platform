@@ -91,11 +91,24 @@ async function checkExercise(exerciseId) {
   resultDiv.innerHTML = `
     <div style="text-align: center; padding: 2rem;">
       <div style="font-size: 2rem; margin-bottom: 1rem;">⏳</div>
-      <div style="color: var(--text-secondary);">Validando tu código con IA...</div>
+      <div style="color: var(--text-secondary);">Validando por reglas…</div>
     </div>
   `;
 
   try {
+    // Sin backend en v1.0: degradar a validación por reglas con mensaje honesto.
+    const degradedMessage = (typeof DEGRADED_MESSAGE === 'string' && DEGRADED_MESSAGE)
+      || 'ejecución no disponible — validando por reglas';
+    const backendReady = (typeof isBackendConfigured === 'function')
+      && isBackendConfigured(CONFIG.backendUrl, CONFIG.executeEndpoint);
+
+    if (!backendReady) {
+      const validation = validateByRules(userCode, exercise);
+      const executionResult = { success: true, output: validation.output || '', errors: [] };
+      displayValidationResult(validation, executionResult, exerciseId, { notice: degradedMessage });
+      return;
+    }
+
     // Verificar si es un ejercicio de solo indentación (no requiere compilación)
     const isIndentationOnly = exercise.validation && exercise.validation.checkIndentation &&
       exercise.lessonId === 1; // Lección 1 es de indentación
@@ -114,36 +127,100 @@ async function checkExercise(exerciseId) {
       const classNameMatch = userCode.match(/public\s+class\s+(\w+)/);
       const className = classNameMatch ? classNameMatch[1] : 'Main';
 
-      // Ejecutar el código en el backend
+      // Ejecutar el código en el backend (un único intento con timeout)
       const executor = new JavaExecutor(CONFIG.executeEndpoint);
       executionResult = await executor.execute(userCode, className);
     }
 
-    // Paso 2: Validar con IA
-    const validator = new AIValidator(CONFIG.geminiApiKey);
-    const validationResult = await validator.validateWithAI(userCode, exercise, executionResult);
+    // Validación por reglas: el veredicto siempre lo da validator.js
+    const validationResult = validateByRules(userCode, exercise);
 
     // Paso 3: Mostrar resultados
-    displayValidationResult(validationResult, executionResult, exerciseId);
+    displayValidationResult(
+      validationResult,
+      executionResult.degraded
+        ? { success: true, output: validationResult.output || '', errors: [] }
+        : executionResult,
+      exerciseId,
+      executionResult.degraded ? { notice: executionResult.notice || degradedMessage } : {}
+    );
 
   } catch (error) {
     console.error('Error en validación:', error);
     resultDiv.innerHTML = `
       <div style="background: #fff5f5; border-left: 4px solid #e53e3e; padding: 1rem; border-radius: 4px; margin-top: 1rem;">
-        <strong style="color: #742a2a;">❌ Error del Sistema</strong>
+        <strong style="color: #742a2a;">❌ No se pudo validar tu código</strong>
         <p style="margin: 0.5rem 0 0; color: #742a2a; font-size: 0.9rem;">
-          ${error.message || 'No se pudo conectar con el servidor. Asegúrate de que el backend esté corriendo.'}
+          ejecución no disponible — validando por reglas
         </p>
         <p style="margin: 0.5rem 0 0; color: #742a2a; font-size: 0.85rem;">
-          Ejecuta: <code>cd backend && npm start</code>
+          Probá de nuevo en unos segundos. Si el problema sigue, revisá tu conexión.
+        </p>
+      </div>
+    `;
+    try {
+      const fallback = validateByRules(userCode, exercise);
+      displayValidationResult(
+        fallback,
+        { success: true, output: fallback.output || '', errors: [] },
+        exerciseId,
+        { notice: 'ejecución no disponible — validando por reglas' }
+      );
+    } catch (_) { /* el mensaje visible ya explica el estado */ }
+  }
+}
+
+// Veredicto por reglas (validator.js decide; sin puntajes ni etiquetas de IA).
+function validateByRules(userCode, exercise) {
+  const isIndentationOnly = exercise.validation && exercise.validation.checkIndentation &&
+    exercise.lessonId === 1;
+  if (isIndentationOnly) {
+    const normalizeCode = (str) => {
+      return str
+        .replace(/\r\n/g, '\n')
+        .replace(/\r/g, '\n')
+        .split('\n')
+        .map(line => line.replace(/\/\/.*$/, '').trimEnd())
+        .filter(line => line.trim().length > 0)
+        .join('\n')
+        .trim();
+    };
+    if (normalizeCode(userCode) === normalizeCode(exercise.solution)) {
+      return { success: true, output: '', errors: [], suggestions: [] };
+    }
+    return {
+      success: false,
+      output: '',
+      errors: [{ message: 'La indentación no coincide con la solución esperada', severity: 'error' }],
+      suggestions: [
+        'Cada vez que abrís una llave {, el código dentro lleva 4 espacios más',
+        'Verificá que todas las líneas estén alineadas con espacios, no tabulaciones'
+      ]
+    };
+  }
+  const verdict = javaValidator.validate(userCode, exercise.id);
+  return {
+    success: verdict.isValid === true,
+    output: verdict.output || '',
+    errors: (verdict.errors || []).map(m => ({ message: String(m), severity: 'error' })),
+    suggestions: (verdict.warnings || []).map(w => String((w && w.message) || w))
+  };
+}
+
+function displayValidationResult(validation, execution, exerciseId, options = {}) {
+  const resultDiv = document.getElementById('exercise-result');
+
+  // Aviso de degradación honesta (sin backend en v1.0)
+  let noticeHtml = '';
+  if (options.notice) {
+    noticeHtml = `
+      <div style="background: #ebf8ff; border-left: 4px solid #3182ce; padding: 0.75rem; border-radius: 4px; margin-top: 1rem;">
+        <p style="margin: 0; color: #2a4365; font-size: 0.9rem;">
+          ℹ️ ${options.notice}
         </p>
       </div>
     `;
   }
-}
-
-function displayValidationResult(validation, execution, exerciseId) {
-  const resultDiv = document.getElementById('exercise-result');
 
   // Construir HTML de errores
   let errorsHtml = '';
@@ -174,19 +251,6 @@ function displayValidationResult(validation, execution, exerciseId) {
     }
   }
 
-  // Construir HTML de explicación de IA
-  let aiExplanationHtml = '';
-  if (validation.explanation) {
-    aiExplanationHtml = `
-      <div style="background: rgba(102, 126, 234, 0.1); border-left: 4px solid #667eea; padding: 1rem; border-radius: 4px; margin-top: 1rem;">
-        <strong style="color: #667eea;">🤖 Feedback de IA:</strong>
-        <p style="margin: 0.5rem 0 0; color: var(--text-primary); font-size: 0.9rem; line-height: 1.6;">
-          ${validation.explanation}
-        </p>
-      </div>
-    `;
-  }
-
   // Construir HTML de sugerencias
   let suggestionsHtml = '';
   if (validation.suggestions && validation.suggestions.length > 0) {
@@ -214,19 +278,14 @@ function displayValidationResult(validation, execution, exerciseId) {
   // Resultado final
   if (validation.success) {
     resultDiv.innerHTML = `
+      ${noticeHtml}
       <div style="background: #f0fff4; border-left: 4px solid #48bb78; padding: 1rem; border-radius: 4px; margin-top: 1rem;">
         <strong style="color: #22543d;">✓ ¡Excelente Trabajo!</strong>
         <p style="margin: 0.5rem 0 0; color: #276749; font-size: 0.9rem;">
           Tu código es correcto y cumple con los requisitos del ejercicio.
         </p>
-        ${validation.functionalityScore ? `
-          <div style="margin-top: 0.5rem; color: #276749; font-size: 0.85rem;">
-            📊 Funcionalidad: ${validation.functionalityScore}% | Estilo: ${validation.styleScore}%
-          </div>
-        ` : ''}
       </div>
       ${errorsHtml}
-      ${aiExplanationHtml}
       ${suggestionsHtml}
       ${outputHtml}
     `;
@@ -238,13 +297,20 @@ function displayValidationResult(validation, execution, exerciseId) {
       progressManager.markAsCompleted(exercise.lessonId);
 
       // Guardar que este ejercicio específico está completado
-      localStorage.setItem(`exercise_${exerciseId}_completed`, 'true');
+      try {
+        if (typeof safeSet === 'function') {
+          safeSet(localStorage, `exercise_${exerciseId}_completed`, 'true');
+        } else {
+          localStorage.setItem(`exercise_${exerciseId}_completed`, 'true');
+        }
+      } catch (_) { /* el progreso en memoria sigue válido */ }
 
       // Verificar si se completaron TODOS los ejercicios de esta lección
       checkLessonCompletion(exercise.lessonId, exerciseId, resultDiv);
     }
   } else {
     resultDiv.innerHTML = `
+      ${noticeHtml}
       <div style="background: #fff5f5; border-left: 4px solid #e53e3e; padding: 1rem; border-radius: 4px; margin-top: 1rem;">
         <strong style="color: #742a2a;">✗ Necesita Correcciones</strong>
         <p style="margin: 0.5rem 0 0; color: #742a2a; font-size: 0.9rem;">
@@ -252,7 +318,6 @@ function displayValidationResult(validation, execution, exerciseId) {
         </p>
       </div>
       ${errorsHtml}
-      ${aiExplanationHtml}
       ${suggestionsHtml}
       ${outputHtml}
     `;
@@ -280,8 +345,15 @@ function checkLessonCompletion(lessonId, currentExerciseId, resultDiv) {
     if (e.id === currentExerciseId) {
       return true;
     }
-    // Para los demás, verificar localStorage
-    const savedResult = localStorage.getItem(`exercise_${e.id}_completed`);
+    // Para los demás, verificar el guardado (sin romper si está bloqueado)
+    let savedResult = null;
+    try {
+      savedResult = (typeof safeGet === 'function')
+        ? safeGet(localStorage, `exercise_${e.id}_completed`, null)
+        : localStorage.getItem(`exercise_${e.id}_completed`);
+    } catch (_) {
+      savedResult = null;
+    }
     return savedResult === 'true';
   });
 
@@ -496,9 +568,23 @@ function submitEvaluation() {
   const passed = score >= currentEvaluation.passingScore;
 
   // Save result
-  const results = JSON.parse(localStorage.getItem('evaluationResults') || '{}');
+  let results = {};
+  try {
+    const raw = (typeof safeGet === 'function')
+      ? safeGet(localStorage, 'evaluationResults', '{}')
+      : localStorage.getItem('evaluationResults');
+    results = JSON.parse(raw || '{}');
+  } catch (_) {
+    results = {};
+  }
   results[currentEvaluation.level] = { score, passed, date: new Date().toISOString() };
-  localStorage.setItem('evaluationResults', JSON.stringify(results));
+  try {
+    if (typeof safeSet === 'function') {
+      safeSet(localStorage, 'evaluationResults', JSON.stringify(results));
+    } else {
+      localStorage.setItem('evaluationResults', JSON.stringify(results));
+    }
+  } catch (_) { /* el resultado en pantalla sigue válido */ }
 
   showEvaluationResult(score, correct, passed);
 }
@@ -552,7 +638,15 @@ function closeEvaluation() {
 // ============================================
 
 function checkForCertificate() {
-  const results = JSON.parse(localStorage.getItem('evaluationResults') || '{}');
+  let results = {};
+  try {
+    const raw = (typeof safeGet === 'function')
+      ? safeGet(localStorage, 'evaluationResults', '{}')
+      : localStorage.getItem('evaluationResults');
+    results = JSON.parse(raw || '{}');
+  } catch (_) {
+    results = {};
+  }
   const levels = ['beginner', 'intermediate', 'advanced', 'expert'];
 
   const allPassed = levels.every(level => results[level]?.passed);

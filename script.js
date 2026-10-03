@@ -2,9 +2,98 @@
 // JAVA MASTER - PROGRESS MANAGER
 // ============================================
 
+// Aviso visible: el progreso vive solo en este navegador (RN-PRO-01).
+// Lenguaje simple, sin jerga interna.
+const LOCAL_ONLY_NOTICE = 'tu progreso se guarda solo en este navegador';
+const STORAGE_BLOCKED_NOTICE = 'No se pudo guardar tu progreso en este navegador, pero podés seguir practicando.';
+
+// Respaldo en memoria cuando el guardado del navegador falla o está bloqueado.
+const __memoryStore = new Map();
+
+function notifyStorageDegraded(message) {
+  try {
+    if (typeof window !== 'undefined' && window && Array.isArray(window.__storageNotices)) {
+      window.__storageNotices.push(message);
+    }
+  } catch (_) { /* solo test-hook, nunca rompe */ }
+  try {
+    if (typeof document !== 'undefined' && document && typeof document.getElementById === 'function') {
+      ensureLocalOnlyNotice(message);
+    }
+  } catch (_) { /* sin DOM: la app sigue operativa */ }
+}
+
+// Acceso seguro al guardado: nunca lanza; ante fallo avisa y usa memoria.
+function safeGet(storage, key, fallback = null, onNotice) {
+  try {
+    const value = storage.getItem(key);
+    return value === null || value === undefined ? fallback : value;
+  } catch (_) {
+    (onNotice || notifyStorageDegraded)(STORAGE_BLOCKED_NOTICE);
+    return __memoryStore.has(key) ? __memoryStore.get(key) : fallback;
+  }
+}
+
+function safeSet(storage, key, value, onNotice) {
+  try {
+    storage.setItem(key, value);
+    __memoryStore.set(key, value);
+    return true;
+  } catch (_) {
+    __memoryStore.set(key, value);
+    (onNotice || notifyStorageDegraded)(STORAGE_BLOCKED_NOTICE);
+    return false;
+  }
+}
+
+function safeRemove(storage, key, onNotice) {
+  try {
+    storage.removeItem(key);
+    __memoryStore.delete(key);
+    return true;
+  } catch (_) {
+    __memoryStore.delete(key);
+    (onNotice || notifyStorageDegraded)(STORAGE_BLOCKED_NOTICE);
+    return false;
+  }
+}
+
+// Aviso persistente junto al progreso: visible tras cada recarga.
+function ensureLocalOnlyNotice(extraMessage) {
+  if (typeof document === 'undefined' || !document.getElementById) return;
+  let notice = document.getElementById('local-only-notice');
+  if (!notice && typeof document.createElement === 'function') {
+    const created = document.createElement('div');
+    if (!created || typeof created.setAttribute !== 'function') return;
+    notice = created;
+    notice.id = 'local-only-notice';
+    notice.setAttribute('role', 'status');
+    const anchor = document.getElementById('progreso') || document.body;
+    if (anchor && typeof anchor.prepend === 'function') {
+      anchor.prepend(notice);
+    } else if (anchor && typeof anchor.appendChild === 'function') {
+      anchor.appendChild(notice);
+    } else {
+      return;
+    }
+  }
+  const text = extraMessage ? `${LOCAL_ONLY_NOTICE}. ${extraMessage}` : `ℹ️ ${LOCAL_ONLY_NOTICE}.`;
+  if ('textContent' in notice) notice.textContent = text;
+}
+
 class ProgressManager {
   constructor() {
-    this.progress = JSON.parse(localStorage.getItem('javaMasterProgress') || '{}');
+    let saved = '{}';
+    try {
+      saved = safeGet(localStorage, 'javaMasterProgress', '{}');
+    } catch (_) {
+      saved = '{}';
+    }
+    try {
+      this.progress = JSON.parse(saved || '{}');
+    } catch (_) {
+      this.progress = {};
+    }
   }
 
   isCompleted(lessonId) {
@@ -13,7 +102,7 @@ class ProgressManager {
 
   markAsCompleted(lessonId) {
     this.progress[lessonId] = true;
-    localStorage.setItem('javaMasterProgress', JSON.stringify(this.progress));
+    safeSet(localStorage, 'javaMasterProgress', JSON.stringify(this.progress));
     this.updateUI();
   }
 
@@ -30,11 +119,12 @@ class ProgressManager {
 
   resetProgress() {
     this.progress = {};
-    localStorage.removeItem('javaMasterProgress');
+    safeRemove(localStorage, 'javaMasterProgress');
     this.updateUI();
   }
 
   updateUI() {
+    ensureLocalOnlyNotice();
     const stats = this.getStats();
 
     const totalPercent = Math.round((stats.completedLessons / stats.totalLessons) * 100) || 0;

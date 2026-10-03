@@ -31,6 +31,7 @@ C-01 validator-audit                       ← PRIMERA TAREA, desbloquea todo
   │                       │     └── C-12 ui-redesign           ← rediseño visual en 2 etapas
   │                       ├── C-08 login-persisted-design      ← FUTURO, diseño solamente
   │                       │     └── C-13 login-y-progreso-en-cuenta ← implementa C-08 (ALTO)
+  │                       │           └── C-15 level-gating-exams ← gating por examen (deps C-05/C-06/C-13)
   │                       └── C-09 admin-metrics-design        ← FUTURO, diseño solamente
   │                             └── C-14 panel-admin           ← implementa C-09 (ALTO)
   └── C-05 execution-alternatives
@@ -56,6 +57,7 @@ C-01 validator-audit
                     → C-09 admin-metrics-design        ← FUTURO, diseño solamente
                     → C-13 login-y-progreso-en-cuenta ← implementa C-08 (ALTO)
                     → C-14 panel-admin               ← implementa C-09 (ALTO)
+                    → C-15 level-gating-exams        ← gating por examen (diseño primero)
 ```
 
 Regla: no empezar un change hasta que el anterior esté archivado (`openspec/changes/archive/`).
@@ -85,6 +87,7 @@ C-01 → C-02 → C-04 → C-10 → C-07 → C-08*
   12 │ C-09 admin-metrics-design        ← solo diseño
   13 │ C-13 login-y-progreso-en-cuenta  ← implementa C-08 (ALTO)
   14 │ C-14 panel-admin                 ← implementa C-09 (ALTO)
+  15 │ C-15 level-gating-exams          ← gating por examen (diseño primero)
 ```
 
 ---
@@ -339,3 +342,20 @@ C-01 → C-02 → C-04 → C-10 → C-07 → C-08*
   - `knowledge-base/03_actores_y_roles.md` §Administradora, §RBAC futuro
   - `knowledge-base/06_funcionalidades.md` §US-007 (CRUD contenido + agregados)
   - `knowledge-base/05_reglas_de_negocio.md` §RN-SEG-03 (cero secretos)
+
+### [C-15] `level-gating-exams`
+- **Estado**: `[ ]` pendiente
+- **Scope**: Gating de niveles por examen, diseño primero (código con tests donde haya lógica, tras aprobar el diseño)
+  - Un nivel se desbloquea solo aprobando el examen del nivel anterior; para saltear un nivel hay que rendir y aprobar su examen, sin hacer las actividades
+  - Diseño primero: responder las preguntas abiertas antes de implementar — contenido del examen, nota mínima, reintentos, comportamiento para la administradora
+  - Depende de C-05/C-06: con las reglas actuales un examen se aprueba pegando el texto esperado (el diseño debe resolver anti-trampa según lo decidido en ejecución segura)
+  - Depende de C-13: con progreso solo local el bloqueo se saltea borrando los datos del navegador (el gating exige progreso por usuario)
+  - Verificación: tests donde haya lógica + checklist manual (bloqueo por defecto, desbloqueo por aprobación, salteo por examen, reintentos, rol admin)
+- **Dependencias**: C-05, C-06, C-13
+- **Governance**: MEDIO
+- **Leer antes**:
+  - `docs/auth-db-decision.md` (progreso por usuario de C-08/C-13, base del bloqueo)
+  - `docs/validator-audit.md` (engaño por pegado del texto esperado — hallazgo C-01)
+  - `knowledge-base/06_funcionalidades.md` §US-001, US-005 (niveles y progreso)
+  - `knowledge-base/04_modelo_de_datos.md` §ProgresoLocal, §Usuario/Avance futuro
+  - `knowledge-base/05_reglas_de_negocio.md` §RN-CON-01, RN-PRO-03 (invariantes, servidor fuente de verdad)
