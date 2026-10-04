@@ -35,16 +35,18 @@ function loadValidator() {
 }
 
 // Casos válidos por ejercicio (pasan los chequeos generales: indentación
-// múltiplos de 4, llaves balanceadas, punto y coma).
+// múltiplos de 4, llaves balanceadas, punto y coma). Actualizados a las
+// reglas estructurales del lote 1 (C-18): nombres fijos por consigna
+// (Ejemplo, P, Hola, e), condición y límites estrictos.
 const VALID = {
-  1: 'class Main {\n    public static void main(String[] args) {\n        System.out.println("hola");\n    }\n}',
-  2: 'class Main {\n    void m() {\n        System.out.println("una");\n        System.out.println("dos");\n    }\n}',
-  3: 'class Main {\n    void a() {\n        System.out.println("hola");\n    }\n    void b() {\n        System.out.println("chau");\n    }\n}',
-  4: 'class Main {\n    void m() {\n        for (int i = 0; i < 10; i++) {\n            if (i % 2 == 0) {\n                System.out.println(i);\n            }\n        }\n    }\n}',
-  5: 'class Main {\n    void m() {\n        System.out.println("Hola, Java!");\n    }\n}',
+  1: 'public class Ejemplo {\n    public static void main(String[] args) {\n        System.out.println("hola");\n    }\n}',
+  2: 'if (edad >= 18) {\n    System.out.println("una");\n} else {\n    System.out.println("dos");\n}',
+  3: 'class P {\n    void a() {\n        System.out.println("hola");\n    }\n\n    void b() {\n        System.out.println("chau");\n    }\n}',
+  4: 'class Main {\n    void m() {\n        for (int i = 0; i < 5; i++) {\n            if (i % 2 == 0) {\n                System.out.println(i);\n            }\n        }\n    }\n}',
+  5: 'public class Hola {\n    public static void main(String[] args) {\n        System.out.println("Hola, Java!");\n    }\n}',
   6: 'class Main {\n    void m() {\n        System.out.println("Línea 1");\n        System.out.println("Línea 2");\n    }\n}',
   7: 'class Main {\n    void m() {\n        System.out.print("a");\n        System.out.println("b");\n    }\n}',
-  8: 'class Main {\n    void m() {\n        System.out.printf("Edad: %d", 25);\n    }\n}',
+  8: 'class Main {\n    void m() {\n        int e = 25;\n        System.out.printf("Edad: %d", e);\n    }\n}',
   100: 'class A {\n    void m() {\n    }\n}',
 };
 const INVALID = {

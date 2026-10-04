@@ -33,15 +33,29 @@ const exercises = loadExercises();
 const JavaValidator = loadValidatorClass(exercises);
 const solutionOf = (id) => exercises.find((e) => e.id === id).solution;
 
-// Soluciones incorrectas: cada una de ids 3-8 SATISFACE la vieja regla del id
-// (pensada para otro ejercicio) pero VIOLA la regla nueva del design
-// §Decisions-1, así que hoy son aceptadas (test en RED) y tras el fix serán
-// rechazadas. La del 168 no usa el pipeline y ya es rechazada (rama default).
+// NOTA lote 1 (C-18): WRONG[6] y WRONG2[5] se actualizaron al diseño
+// aprobado (textos libres en ids 5-6): el if-else con dos println y el
+// Hola+"Hola Mundo" ahora son válidos a propósito; se reemplazaron por
+// violaciones de la regla NUEVA (dos print sin salto; print en vez de
+// println). VARIATIONS[3] (clase Q, una línea) y [5][0] (println suelto)
+// también: ahora exigen clase P con indentación estructural y programa
+// Hola+main (ajuste 3: la línea vacía entre métodos ya no es requisito).
+// VARIATIONS[4][0] (ajuste 3): el id 4 exige +4/bloque como los ids 1-3.
+// (El resto de WRONG sigue como en C-10: satisface la vieja regla del id
+// pero viola la regla del design §Decisions-1.)
+// NOTA nombre libre (decisión Belén 2026-10-04): WRONG[5] era
+// 'public class Suma con main+println' (violaba el nombre fijo Hola); con
+// nombre libre pasó a ser VÁLIDA y se reemplazó por clase NO pública
+// (viola la regla nueva: la consigna del id 5 dice "clase pública").
+// NOTA ajuste id5-print (decisión Belén 2026-10-04): WRONG2[5] era
+// 'public class Hola con main+System.out.print' (violaba "solo println");
+// con print/println/printf aceptados pasó a ser VÁLIDA y se reemplazó por
+// clase pública con main VACÍO (viola la regla nueva: sin impresión).
 const WRONG = {
   3: 'class P {\n    int edad = 25;\n    void a() {\n        System.out.println(edad);\n    }\n}',
   4: 'class C {\n    String nombre = "Ana";\n    void m() {\n        System.out.println(nombre);\n    }\n}',
-  5: 'public class Suma {\n    public static void main(String[] args) {\n        int a = 10;\n        int b = 5;\n        int resultado = a + b;\n        System.out.println(resultado);\n    }\n}',
-  6: 'public class C {\n    public static void main(String[] args) {\n        int edad = 20;\n        if (edad >= 18) {\n            System.out.println("Mayor");\n        } else {\n            System.out.println("Menor");\n        }\n    }\n}',
+  5: 'class Hola {\n    public static void main(String[] args) {\n        System.out.println("Hola, Java!");\n    }\n}',
+  6: 'System.out.print("Línea 1");\nSystem.out.print("Línea 2");',
   7: 'public class C {\n    public static void main(String[] args) {\n        int num1 = 15;\n        int num2 = 20;\n        if (num1 < num2) {\n            System.out.println(num2);\n        }\n    }\n}',
   8: 'public class C {\n    public static void main(String[] args) {\n        for (int i = 1; i <= 5; i++) {\n            System.out.println(i);\n        }\n    }\n}',
   168: 'import java.nio.file.*;\npublic class Lector {\n    public static void main(String[] args) {\n        System.out.println("hola");\n    }\n}',
@@ -59,7 +73,7 @@ const BROKEN_INDENT = {
 const WRONG2 = {
   3: 'class P {\n    void a() {\n        return;\n    }\n    void b() {\n        return;\n    }\n}',
   4: 'for (int i = 0; i < 5; i++) {\n    System.out.println(i);\n}',
-  5: 'public class Hola {\n    public static void main(String[] args) {\n        System.out.println("Hola Mundo");\n    }\n}',
+  5: 'public class Hola {\n    public static void main(String[] args) {\n    }\n}',
   6: 'System.out.println("Línea 1");',
   7: 'System.out.println("Hola ");\nSystem.out.println("Mundo");',
   8: 'public class E {\n    public static void main(String[] args) {\n        int e = 25;\n        System.out.println("Edad: " + e);\n    }\n}',
@@ -69,15 +83,18 @@ const WRONG2 = {
 // Fase B, variaciones razonables: deben pasar con las reglas nuevas.
 const VARIATIONS = {
   3: [
-    'class P { void a() { System.out.println("a"); } void b() { System.out.println("b"); } }',
-    'class Q {\n    void a() {\n        System.out.println("a");\n    }\n    void b() {\n        System.out.println("b");\n    }\n}',
+    'class P {\n    void a() {\n        System.out.println("uno");\n    }\n\n    void b() {\n        System.out.println("uno");\n    }\n}',
+    'class P {\n    void b() {\n        System.out.println("b");\n    }\n\n    void a() {\n        System.out.println("a");\n        System.out.println("extra");\n    }\n}',
   ],
   4: [
-    'for (int i = 0; i < 5; i++) { if (i % 2 == 0) {\nSystem.out.println(i); } }',
+    // C-18 ajuste 3: el id 4 exige indentación estructural +4/bloque como
+    // los ids 1-3 (el encabezado compacto de antes viola la regla nueva);
+    // la variación tolera espacios dentro de cada línea.
+    'for  (  int  i  =  0  ;  i  <  5  ;  i++  )  {\n    if  (  i  %  2  ==  0  )  {\n        System.out.println(  i  )  ;\n    }\n}',
     'for ( int i = 0 ; i < 5 ; i++ ) {\n    if ( i % 2 == 0 ) {\n        System.out.println( i ) ;\n    }\n}',
   ],
   5: [
-    'System.out.println("Hola, Java!");',
+    'public class Hola {\n    public static void main(String[] args) {\n        System.out.println("hola mama");\n    }\n}',
     'public class Hola {\n    public static void main(String[] args) {\n        System.out.println ( "Hola, Java!" ) ;\n    }\n}',
   ],
   6: [

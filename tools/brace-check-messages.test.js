@@ -52,10 +52,11 @@ const checkBracesError = (code) => {
   return v.errors.length === 1 ? v.errors[0] : null;
 };
 
-const VALID_TWO_METHODS = 'class Main {\n'
+const VALID_TWO_METHODS = 'class P {\n'
   + '    void a() {\n'
   + '        System.out.println("hola");\n'
   + '    }\n'
+  + '\n'
   + '    void b() {\n'
   + '        System.out.println("chau");\n'
   + '    }\n'

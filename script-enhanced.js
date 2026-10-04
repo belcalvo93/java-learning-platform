@@ -247,8 +247,11 @@ async function checkExercise(exerciseId) {
 
 // Veredicto por reglas (validator.js decide; sin puntajes ni etiquetas de IA).
 function validateByRules(userCode, exercise) {
+  // C-18 ajuste 1: los ids 1-4 ya tienen regla estructural propia en
+  // validator.js y van por javaValidator (abajo). Este atajo de igualdad
+  // exacta queda solo para otros ejercicios de lección 1 sin regla propia.
   const isIndentationOnly = exercise.validation && exercise.validation.checkIndentation &&
-    exercise.lessonId === 1;
+    exercise.lessonId === 1 && ![1, 2, 3, 4].includes(exercise.id);
   if (isIndentationOnly) {
     const normalizeCode = (str) => {
       return str
