@@ -22,7 +22,13 @@ function openExercise(exerciseId) {
     <p>${exercise.description}</p>
     
     <div class="exercise-editor">
-      <textarea class="exercise-textarea" id="exercise-code">${exercise.starterCode}</textarea>
+      <div class="editor-with-gutter">
+        <div class="line-numbers" id="line-numbers" aria-hidden="true">1</div>
+        <div class="editor-area">
+          <div class="indent-guides" aria-hidden="true"><div id="indent-guides"></div></div>
+          <textarea class="exercise-textarea" id="exercise-code" spellcheck="false">${exercise.starterCode}</textarea>
+        </div>
+      </div>
       <div class="exercise-actions">
         <button class="btn-primary" onclick="checkExercise(${exercise.id})">✓ Verificar Solución</button>
         <button class="btn-secondary" onclick="showHint(${exercise.id})">💡 Ver Pista</button>
@@ -51,10 +57,79 @@ function openExercise(exerciseId) {
   viewer.classList.add('active');
   document.body.style.overflow = 'hidden';
 
-  // Enable tab key in textarea
+  // Enable tab key in textarea + gutter de números sincronizado (c-11)
+  // + guías de indentación estilo VS Code (c-11 6.1, sin librerías)
   setTimeout(() => {
     const textarea = document.getElementById('exercise-code');
-    if (textarea) {
+    const gutter = document.getElementById('line-numbers');
+    const guides = document.getElementById('indent-guides');
+    if (textarea && gutter) {
+      const syncGutter = () => {
+        const count = textarea.value.split('\n').length;
+        let numbers = '';
+        for (let i = 1; i <= count; i++) numbers += i + '\n';
+        gutter.textContent = numbers;
+        gutter.scrollTop = textarea.scrollTop;
+      };
+      // Dibuja una guía por cada nivel de 4 espacios de cada línea, solo
+      // hasta su propio nivel. Las líneas en blanco continúan la guía del
+      // bloque (toman el nivel del siguiente bloque, o del anterior si no
+      // hay siguiente). Nada a la derecha del texto ni bajo la última línea.
+      const renderGuides = () => {
+        if (!guides) return;
+        const lines = textarea.value.split('\n');
+        if (lines.length > 500) { guides.innerHTML = ''; return; }
+        const raw = lines.map((line) => {
+          if (!line.trim()) return -1;
+          const spaces = (line.replace(/\t/g, '    ').match(/^ */) || [''])[0].length;
+          return Math.floor(spaces / 4);
+        });
+        const nextLevel = new Array(lines.length).fill(0);
+        const hasNext = new Array(lines.length).fill(false);
+        let seen = false;
+        let nxt = 0;
+        for (let i = lines.length - 1; i >= 0; i--) {
+          hasNext[i] = seen;
+          if (raw[i] >= 0) { seen = true; nxt = raw[i]; }
+          nextLevel[i] = nxt;
+        }
+        let prev = 0;
+        let html = '';
+        for (let i = 0; i < lines.length; i++) {
+          const level = raw[i] >= 0 ? raw[i] : (hasNext[i] ? nextLevel[i] : prev);
+          if (raw[i] >= 0) prev = raw[i];
+          for (let k = 0; k < level; k++) {
+            html += '<div class="indent-guide" style="left:calc(var(--spacing-md) + '
+              + (k * 4) + 'ch);top:calc(var(--spacing-md) + '
+              + Number((i * 1.6).toFixed(3)) + 'em)"></div>';
+          }
+        }
+        guides.innerHTML = html;
+        positionGuides();
+      };
+      const positionGuides = () => {
+        if (!guides) return;
+        guides.style.transform = 'translate(' + (-textarea.scrollLeft) + 'px,' + (-textarea.scrollTop) + 'px)';
+      };
+      const syncAll = () => { syncGutter(); renderGuides(); };
+      textarea.addEventListener('input', syncAll);
+      textarea.addEventListener('scroll', () => { gutter.scrollTop = textarea.scrollTop; positionGuides(); });
+      textarea.addEventListener('keydown', function (e) {
+        if (e.key === 'Tab') {
+          e.preventDefault();
+          const start = this.selectionStart;
+          const end = this.selectionEnd;
+
+          // Insert tab character
+          this.value = this.value.substring(0, start) + '    ' + this.value.substring(end);
+
+          // Move cursor
+          this.selectionStart = this.selectionEnd = start + 4;
+          syncAll();
+        }
+      });
+      syncAll();
+    } else if (textarea) {
       textarea.addEventListener('keydown', function (e) {
         if (e.key === 'Tab') {
           e.preventDefault();
@@ -188,10 +263,14 @@ function validateByRules(userCode, exercise) {
     if (normalizeCode(userCode) === normalizeCode(exercise.solution)) {
       return { success: true, output: '', errors: [], suggestions: [] };
     }
+    // Aviso de llaves (c-11-editor-ux): solo TEXTO agregado al mensaje.
+    // El veredicto se decidió arriba y no se toca (éxito solo si coincide).
+    const baseMessage = 'La indentación no coincide con la solución esperada';
+    const notice = (typeof braceNotice === 'function') ? braceNotice(userCode) : null;
     return {
       success: false,
       output: '',
-      errors: [{ message: 'La indentación no coincide con la solución esperada', severity: 'error' }],
+      errors: [{ message: notice ? baseMessage + '. ' + notice : baseMessage, severity: 'error' }],
       suggestions: [
         'Cada vez que abrís una llave {, el código dentro lleva 4 espacios más',
         'Verificá que todas las líneas estén alineadas con espacios, no tabulaciones'
@@ -264,19 +343,32 @@ function displayValidationResult(validation, execution, exerciseId, options = {}
     `;
   }
 
-  // Construir HTML de output
+  // Construir HTML de output: solo salida genuina (c-11-editor-ux 6.3).
+  // validator.js ya no emite salidas simuladas (`output` siempre ''): sin
+  // ejecución real (C-06) no se muestra ningún bloque. Robusto si `output`
+  // falta o `execution` viene vacío.
+  // (El campo `output` de validator.js NO es regla: solo texto de salida.)
   let outputHtml = '';
-  if (execution.output) {
+  const shownOutput = (execution && execution.output && execution.output !== 'Código ejecutado')
+    ? execution.output
+    : '';
+  if (shownOutput) {
     outputHtml = `
       <div style="background: #1a202c; color: #e2e8f0; padding: 1rem; border-radius: 6px; margin-top: 1rem; font-family: 'Fira Code', monospace;">
         <div style="color: #48bb78; margin-bottom: 0.5rem; font-weight: 600;">▶ Salida del programa:</div>
-        <pre style="margin: 0; color: #e2e8f0; white-space: pre-wrap; line-height: 1.6;">${execution.output}</pre>
+        <pre style="margin: 0; color: #e2e8f0; white-space: pre-wrap; line-height: 1.6;">${shownOutput}</pre>
       </div>
     `;
   }
 
+  // Pista (c-11-editor-ux): oculta ante éxito, visible ante fallo o a pedido
+  // con "Ver Pista" (showHint). No toca noticeHtml (contrato C-04).
+  const hintDiv = document.getElementById('exercise-hint');
+  const hintExercise = exercisesData.find(e => e.id === exerciseId);
+
   // Resultado final
   if (validation.success) {
+    if (hintDiv) hintDiv.style.display = 'none';
     resultDiv.innerHTML = `
       ${noticeHtml}
       <div style="background: #f0fff4; border-left: 4px solid #48bb78; padding: 1rem; border-radius: 4px; margin-top: 1rem;">
@@ -309,6 +401,10 @@ function displayValidationResult(validation, execution, exerciseId, options = {}
       checkLessonCompletion(exercise.lessonId, exerciseId, resultDiv);
     }
   } else {
+    if (hintDiv && hintExercise && hintExercise.hint) {
+      hintDiv.textContent = '💡 Pista: ' + hintExercise.hint;
+      hintDiv.style.display = 'block';
+    }
     resultDiv.innerHTML = `
       ${noticeHtml}
       <div style="background: #fff5f5; border-left: 4px solid #e53e3e; padding: 1rem; border-radius: 4px; margin-top: 1rem;">
@@ -415,7 +511,10 @@ function showHint(exerciseId) {
 
 function resetExercise(exerciseId) {
   const exercise = exercisesData.find(e => e.id === exerciseId);
-  document.getElementById('exercise-code').value = exercise.starterCode;
+  const codeArea = document.getElementById('exercise-code');
+  codeArea.value = exercise.starterCode;
+  // Re-sincroniza números y guías (el valor por código no dispara `input`)
+  try { codeArea.dispatchEvent(new Event('input')); } catch (_) { /* visual */ }
   const resultDiv = document.getElementById('exercise-result');
   resultDiv.innerHTML = '';
   resultDiv.className = ''; // Clear error/success classes

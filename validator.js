@@ -86,12 +86,18 @@ class JavaValidator {
         }
     }
 
+    // c-11-editor-ux 6.2: la DECISIÓN no cambia (error si y solo si los
+    // conteos crudos difieren, igual que antes); solo el TEXTO usa
+    // `braceNotice` para decir de más/de menos en español simple. Si
+    // `braceNotice` no ve dirección (p. ej. llaves solo dentro de strings),
+    // se conserva el mensaje genérico anterior.
     checkBraces(code) {
         const openBraces = (code.match(/{/g) || []).length;
         const closeBraces = (code.match(/}/g) || []).length;
 
         if (openBraces !== closeBraces) {
-            this.errors.push(`Error: Llaves desbalanceadas (${openBraces} aperturas, ${closeBraces} cierres)`);
+            const notice = (typeof braceNotice === 'function') ? braceNotice(code) : null;
+            this.errors.push(`Error: ${notice || `Llaves desbalanceadas (${openBraces} aperturas, ${closeBraces} cierres)`}`);
         }
     }
 
@@ -117,45 +123,41 @@ class JavaValidator {
         let isValid = false;
         let output = '';
 
+        // c-11-editor-ux 6.3: sin salidas simuladas. Ningún ejercicio
+        // devuelve texto de salida inventado; el bloque "Salida del programa"
+        // solo aparece con ejecución real (C-06). `output` queda siempre ''.
+        // Solo cambia el texto de salida: ningún veredicto válido/inválido.
         switch (exerciseId) {
             case 1: // Hola Java
                 isValid = this.validateHelloWorld(code);
-                if (isValid) output = this.extractOutput(code);
                 break;
 
             case 2: // Múltiples líneas
                 isValid = this.validateMultipleLines(code);
-                if (isValid) output = this.extractOutput(code);
                 break;
 
             case 3: // Múltiples Métodos (dos métodos a/b con println)
                 isValid = this.validateTwoMethods(code);
-                if (isValid) output = this.extractOutput(code);
                 break;
 
             case 4: // Bucle Anidado (for + condición par + println)
                 isValid = this.validateNestedLoop(code);
-                if (isValid) output = this.extractOutput(code);
                 break;
 
             case 5: // Hola Mundo
                 isValid = this.validateHolaMundo(code);
-                if (isValid) output = 'Hola, Java!';
                 break;
 
             case 6: // Múltiples Líneas (dos println)
                 isValid = this.validateTwoLines(code);
-                if (isValid) output = this.extractOutput(code);
                 break;
 
             case 7: // Print vs Println
                 isValid = this.validatePrintVsPrintln(code);
-                if (isValid) output = this.extractOutput(code);
                 break;
 
             case 8: // Printf con %d
                 isValid = this.validatePrintf(code);
-                if (isValid) output = 'Edad: 25';
                 break;
 
             default:
@@ -180,7 +182,6 @@ class JavaValidator {
                         isValid = true;
                     }
                 }
-                output = 'Código ejecutado';
         }
 
         return {
@@ -375,53 +376,50 @@ class JavaValidator {
         }
         return true;
     }
+}
 
-    extractOutput(code) {
-        const matches = code.match(/System\.out\.println\s*\(\s*([^)]+)\s*\)/g);
-        if (!matches) return '';
-
-        return matches.map(match => {
-            const content = match.match(/\(\s*([^)]+)\s*\)/)[1];
-            // Remove quotes and clean up
-            return content.replace(/^["']|["']$/g, '').trim();
-        }).join('\n');
-    }
-
-    simulateIfElse(code, edadValue) {
-        // Extract the condition
-        const conditionMatch = code.match(/if\s*\(([^)]+)\)/);
-        if (!conditionMatch) return '';
-
-        // Simulate: edad = 20
-        const condition = conditionMatch[1].replace(/edad/g, edadValue);
-        let isTrue = false;
-
-        try {
-            // Simple evaluation for >= 18
-            if (condition.includes('>=')) {
-                isTrue = edadValue >= 18;
-            } else if (condition.includes('<=')) {
-                isTrue = 18 <= edadValue;
-            }
-        } catch (e) {
-            return '';
+// Aviso de llaves (c-11-editor-ux): helper PURO, solo texto para el
+// estudiante. Cuenta `{` vs `}` ignorando el contenido entre comillas
+// simples/dobles y los comentarios `//`. Devuelve `null` si están
+// balanceadas, o la dirección (falta/sobra apertura/cierre) en español
+// simple. NUNCA cambia veredictos: ninguna regla lo usa.
+function braceNotice(code) {
+    let open = 0;
+    let close = 0;
+    let inSingle = false;
+    let inDouble = false;
+    let inLineComment = false;
+    for (let i = 0; i < code.length; i++) {
+        const ch = code[i];
+        const next = code[i + 1];
+        if (inLineComment) {
+            if (ch === '\n') inLineComment = false;
+            continue;
         }
-
-        // Extract the appropriate block
-        const ifMatch = code.match(/if\s*\([^)]+\)\s*\{([^}]+)\}/);
-        const elseMatch = code.match(/else\s*\{([^}]+)\}/);
-
-        const block = isTrue ? (ifMatch ? ifMatch[1] : '') : (elseMatch ? elseMatch[1] : '');
-        const printMatch = block.match(/System\.out\.println\s*\(\s*"([^"]+)"\s*\)/);
-
-        return printMatch ? printMatch[1] : '';
+        if (inSingle) {
+            if (ch === '\\') { i++; continue; }
+            if (ch === "'") inSingle = false;
+            continue;
+        }
+        if (inDouble) {
+            if (ch === '\\') { i++; continue; }
+            if (ch === '"') inDouble = false;
+            continue;
+        }
+        if (ch === '/' && next === '/') { inLineComment = true; i++; continue; }
+        if (ch === "'") { inSingle = true; continue; }
+        if (ch === '"') { inDouble = true; continue; }
+        if (ch === '{') open++;
+        else if (ch === '}') close++;
     }
-
-    simulateComparison(code, num1, num2) {
-        // Determine which is greater
-        const greater = num1 > num2 ? num1 : num2;
-        return greater.toString();
+    if (open === close) return null;
+    if (open > close) {
+        return 'Parece que falta una llave de cierre (}). Revisá que cada llave de apertura { tenga su cierre.';
     }
+    if (open === 0) {
+        return 'Parece que falta una llave de apertura ({). Revisá si hay una llave de cierre sin su apertura.';
+    }
+    return 'Parece que sobra una llave de cierre (}). Revisá si hay una llave de cierre de más.';
 }
 
 // Create global validator instance

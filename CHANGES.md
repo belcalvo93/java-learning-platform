@@ -29,6 +29,8 @@ C-01 validator-audit                       ← PRIMERA TAREA, desbloquea todo
   │                 └── C-07 publish-frontend  ← solo frontend estático, sin backend
   │                       ├── C-16 content-and-mapping         ← paquete de contenido (MEDIO)
   │                       ├── C-11 editor-ux                   ← polish editor post-publicación
+  │                       │     ├── C-18 validator-structural      ← validación por tokens (TDD, diseño primero)
+  │                       │     ├── C-11b lesson-exercise-nav    ← diseño navegación por lección (solo diseño)
   │                       │     └── C-12 ui-redesign           ← rediseño visual en 2 etapas
   │                       ├── C-08 login-persisted-design      ← FUTURO, diseño solamente
   │                       │     └── C-13 login-y-progreso-en-cuenta ← implementa C-08 (ALTO)
@@ -37,6 +39,7 @@ C-01 validator-audit                       ← PRIMERA TAREA, desbloquea todo
   │                             └── C-14 panel-admin           ← implementa C-09 (ALTO)
   └── C-05 execution-alternatives
         └── C-06 secure-executor           ← tests pasando ANTES de cualquier reactivación (RN-SEG-02)
+              └── C-17 console-output            ← panel consola con salida real (deps C-06)
 ```
 
 ### Orden secuencial (una sola sesión — reemplaza cualquier paralelismo)
@@ -52,9 +55,12 @@ C-01 validator-audit
           → C-07 publish-frontend        ← MVP PUBLICADO (sitio publicado)
             → C-16 content-and-mapping       ← paquete de contenido (MEDIO)
               → C-11 editor-ux                 ← polish editor, sin librerías
-              → C-12 ui-redesign               ← rediseño visual en 2 etapas
+                → C-18 validator-structural      ← validación por tokens (TDD, diseño primero)
+                → C-11b lesson-exercise-nav      ← diseño navegación por lección (solo diseño)
+                → C-12 ui-redesign               ← rediseño visual en 2 etapas
                 → C-05 execution-alternatives
                   → C-06 secure-executor     ← ejecución segura, SIN desplegar
+                    → C-17 console-output          ← panel consola con salida real
                     → C-08 login-persisted-design      ← FUTURO, diseño solamente
                     → C-09 admin-metrics-design        ← FUTURO, diseño solamente
                     → C-13 login-y-progreso-en-cuenta ← implementa C-08 (ALTO)
@@ -83,14 +89,17 @@ C-01 → C-02 → C-04 → C-10 → C-07 → C-08*
   6  │ C-07 publish-frontend            ← sitio publicado
   7  │ C-16 content-and-mapping         ← paquete de contenido (MEDIO)
   8  │ C-11 editor-ux                   ← polish editor post-publicación
-  9  │ C-12 ui-redesign                 ← rediseño visual en 2 etapas
-  10 │ C-05 execution-alternatives
-  11 │ C-06 secure-executor             ← sin desplegar
-  12 │ C-08 login-persisted-design      ← solo diseño
-  13 │ C-09 admin-metrics-design        ← solo diseño
-  14 │ C-13 login-y-progreso-en-cuenta  ← implementa C-08 (ALTO)
-  15 │ C-14 panel-admin                 ← implementa C-09 (ALTO)
-  16 │ C-15 level-gating-exams          ← gating por examen (diseño primero)
+  9  │ C-18 validator-structural        ← validación por tokens (TDD, diseño primero)
+  10 │ C-11b lesson-exercise-nav        ← diseño navegación por lección (solo diseño)
+  11 │ C-12 ui-redesign                 ← rediseño visual en 2 etapas
+  12 │ C-05 execution-alternatives
+  13 │ C-06 secure-executor             ← sin desplegar
+  14 │ C-17 console-output              ← panel consola con salida real
+  15 │ C-08 login-persisted-design      ← solo diseño
+  16 │ C-09 admin-metrics-design        ← solo diseño
+  17 │ C-13 login-y-progreso-en-cuenta  ← implementa C-08 (ALTO)
+  18 │ C-14 panel-admin                 ← implementa C-09 (ALTO)
+  19 │ C-15 level-gating-exams          ← gating por examen (diseño primero)
 ```
 
 ---
@@ -227,6 +236,19 @@ C-01 → C-02 → C-04 → C-10 → C-07 → C-08*
   - `knowledge-base/09_decisiones_y_supuestos.md` §DD-01 (por qué el parche mínimo no alcanza)
   - `knowledge-base/02_descripcion_general.md` §API REST, §Backend executor (líneas vulnerables de referencia)
 
+### [C-17] `console-output`
+- **Estado**: `[ ]` pendiente
+- **Scope**: Panel oscuro tipo consola debajo del editor con la salida REAL del programa (requisito de Belén, sin implementar aún)
+  - Muestra lo que imprime el programa o el error de compilación, en un panel oscuro tipo consola debajo del editor
+  - Depende de C-06 porque hoy no hay ejecución real: solo tiene sentido con el executor seguro (sin placeholders ni texto fijo)
+  - Renderizar la salida como texto plano escapado (nunca HTML crudo)
+  - Verificación: tests donde haya lógica + checklist manual (salida real visible, error de compilación legible, sin placeholders)
+- **Dependencias**: C-06
+- **Governance**: BAJO
+- **Leer antes**:
+  - `knowledge-base/07_flujos_principales.md` §Flujo 2 (contrato validado+sandbox)
+  - `knowledge-base/06_funcionalidades.md` §US-004 (ejecución real cuando esté disponible)
+
 ---
 
 ## FASE 3 — Publicación del MVP (frontend sin backend)
@@ -266,19 +288,51 @@ C-01 → C-02 → C-04 → C-10 → C-07 → C-08*
   - `knowledge-base/05_reglas_de_negocio.md` §RN-CON-01, RN-CON-03 (invariantes e IDs estables)
 
 ### [C-11] `editor-ux`
-- **Estado**: `[ ]` pendiente
-- **Scope**: Mejoras de UX del editor de código (verificación manual — visual, sin lógica de negocio nueva)
-  - Numeración de líneas + guías sutiles de indentación en el editor, SIN librerías de terceros: textarea con columna de números y capa de guías sincronizadas (scroll y tamaño); si no alcanza sin librería, evaluar UNA librería y consultar a Belén antes de agregarla
-  - Ocultar la pista cuando el ejercicio sale correcto (la pista solo se muestra ante fallo o a pedido)
+- **Estado**: `[x]` completado y archivado (`openspec/changes/archive/2026-10-04-c-11-editor-ux/`, spec sincronizada en `openspec/specs/editor-ux/`) — diff revisado y verificado en navegador por Belén: OK.
+- **Scope**: Mejoras de UX del editor de código (verificación manual — visual, sin lógica de negocio nueva salvo el aviso de llaves)
+  - Numeración de líneas + guías sutiles de indentación en el editor, SIN librerías de terceros: textarea con columna de números y capa de guías sincronizadas (scroll y tamaño); si no alcanza sin librería, PARAR y consultar a Belén antes de agregar una
+  - Ocultar la pista cuando el ejercicio sale correcto (se muestra ante fallo o a pedido con "Ver Pista")
   - Mover el `@import` de `styles.css:101` al principio del archivo (los `@import` deben ir primeros para aplicarse)
-  - Tener en cuenta (hallazgos C-16): el botón "Siguiente Ejercicio" navega por id y no por lección; cuando falla la indentación, el mensaje "no coincide con la solución esperada" no distingue una llave de más
-  - Lista de ejercicios por lección (requisito de Belén, sin implementar aún): cada lección debe mostrar la lista de sus ejercicios por nombre (en la tarjeta de lección, desplegable, y en el modal de la lección), con tilde de completado; Practicar abre el ejercicio elegido y "Siguiente/Anterior Ejercicio" navega dentro de la lección. Motivo: hoy los ejercicios están agrupados por tema y es imposible encontrar uno concreto desde la vista grid.
-  - Verificación manual: abrir ejercicios en móvil + desktop; chequear sincronía números/scroll, guías alineadas, pista oculta en correcto y visible en fallo, cero errores de consola; sin tests de lógica
-- **Dependencias**: C-07
+  - Mejorar el mensaje de indentación fallida para que avise cuando hay una llave de más o de menos, en vez de "no coincide con la solución esperada" (solo el mensaje; las reglas de validación no cambian; si se agrega cálculo de aviso de llaves, lleva sus tests)
+  - Verificación manual: abrir ejercicios en móvil + desktop; chequear sincronía números/scroll, guías alineadas, pista oculta en correcto y visible en fallo o con "Ver Pista", mensaje de llaves claro, cero errores de consola; sin tests de lógica nuevos salvo el cálculo del aviso de llaves si se agrega
+- **Dependencias**: C-16
 - **Governance**: BAJO
 - **Leer antes**:
   - `knowledge-base/06_funcionalidades.md` §US-003 (resolver ejercicios con validación inmediata)
   - `knowledge-base/02_descripcion_general.md` §Stack tecnológico (Vanilla sin framework)
+
+### [C-18] `validator-structural`
+- **Estado**: `[ ]` pendiente
+- **Scope**: Validador estructural (TDD, diseño primero)
+  - Comparar por tokens en vez de por texto; ignorar comentarios y formato.
+  - Nombres de variable libres (equivalencia por renombrado consistente), salvo los que fija la consigna (clases, métodos, API del JDK).
+  - Textos entre comillas libres salvo que el ejercicio los exija; números y operadores estrictos, porque son la lógica.
+  - Rechazar la respuesta pegada dentro de un comentario.
+  - Debe aceptar las 208 soluciones y las variantes válidas.
+  - Entran los ids 1 a 8, que tienen validadores propios. Hoy el Hola Mundo (id 5) rechaza "¡Hola, mundo!" porque exige exactamente "Hola, Java!": tiene que aceptar cualquier texto entre comillas dentro de `System.out.println(...)`, con o sin exclamaciones y con cualquier mayúscula o minúscula. Lo mismo para los demás ejercicios donde la consigna pide "imprimir un mensaje" sin fijar el texto.
+  - Los mensajes de error no deben mostrar la respuesta ni la línea de código exacta (hoy dice `Debes imprimir "Hola, Java!" con System.out.println("Hola, Java!");`): tienen que decir qué concepto falta, por ejemplo "falta imprimir algo con System.out.println".
+  - La comparación de indentación del ejercicio de la lección 1 debe medir la estructura (cada bloque con 4 espacios más que el anterior), no la igualdad con la solución.
+  - Orden de trabajo: primero auditar y listar, de los 208 ejercicios, cuáles exigen de más (nombres, textos, espacios) y cuáles están bien, con una propuesta de regla por ejercicio. No implementar nada hasta que Belén lo revise.
+  - Verificación: tests TDD + matriz regenerada; conteos 52/208 intactos. Largo plazo: ejecución real (C-05/C-06).
+- **Dependencias**: C-16
+- **Governance**: MEDIO
+- **Leer antes**:
+  - `docs/validator-audit.md` (engaño por pegado del texto esperado — hallazgo C-01/C-16)
+  - `knowledge-base/05_reglas_de_negocio.md` §RN-CON-01, RN-CON-02 (invariantes, offline-first)
+  - `knowledge-base/06_funcionalidades.md` §US-003 (resolver ejercicios con validación inmediata)
+
+### [C-11b] `lesson-exercise-nav`
+- **Estado**: `[ ]` pendiente
+- **Scope**: Diseño de navegación de ejercicios por lección — DOCUMENTO, sin implementar (verificación manual)
+  - Cada lección muestra la lista de sus ejercicios por nombre (en la tarjeta de lección, desplegable, y en el modal de la lección), con tilde de completado
+  - Practicar abre el ejercicio elegido; "Siguiente/Anterior Ejercicio" navega dentro de la lección (hoy navega por id global, no por lección)
+  - Motivo: hoy los ejercicios están agrupados por tema y es imposible encontrar uno concreto desde la vista grid
+  - Verificación manual: revisión del documento por Belén; explícito "sin implementar en este change"
+- **Dependencias**: C-11
+- **Governance**: BAJO
+- **Leer antes**:
+  - `knowledge-base/06_funcionalidades.md` §US-001, US-003 (navegación y resolución)
+  - `knowledge-base/04_modelo_de_datos.md` §ProgresoLocal (tilde de completado)
 
 ### [C-12] `ui-redesign`
 - **Estado**: `[ ]` pendiente
