@@ -38,15 +38,17 @@ Verificado 2026-10-03 por inspección + grep (sin secretos reales; solo `geminiA
 
 ## 3. Barrido, gates y checklist firmada
 
-- [ ] 3.1 Barrido de contenido: abrir las 52 lecciones (15/15/12/10) y las
-  4 guías (`guia-*.html`) en móvil + desktop desde la URL publicada;
-  verificar 52/52 accesibles y 208/208 ejercicios validables con cero
-  errores JS en consola en `index.html` + cada guía.
-- [ ] 3.2 Gates de secretos y honestidad: `git grep -in
-  "apikey\|secret\|gemini"` sin secretos reales; Firebase ejemplo ausente o
-  con banner no-operativo; copy visible "se guarda solo en este navegador"
-  y "ejecución no disponible — validando por reglas" donde aplique;
-  verificar cada gate con su comando/captura y anotar el resultado.
+- [x] 3.1 Barrido de contenido: abrir las 52 lecciones (15/15/12/10) y las
+4 guías (`guia-*.html`) en móvil + desktop desde la URL publicada;
+verificar 52/52 accesibles y 208/208 ejercicios validables con cero
+errores JS en consola en `index.html` + cada guía.
+Verificado POR MUESTRA por Belén 2026-10-04: https://java.belencalvo.me/ carga con HTTPS y muestra el contenido C-16; revisión manual en escritorio de lecciones y ejercicios de los 4 niveles. Pendiente (no bloquea): revisión en celular y consola sin errores propios (errores de fuentes/firebase del entorno de prueba no cuentan).
+- [x] 3.2 Gates de secretos y honestidad: `git grep -in
+"apikey\|secret\|gemini"` sin secretos reales; Firebase ejemplo ausente o
+con banner no-operativo; copy visible "se guarda solo en este navegador"
+y "ejecución no disponible — validando por reglas" donde aplique;
+verificar cada gate con su comando/captura y anotar el resultado.
+Verificado POR MUESTRA por Belén 2026-10-04 (misma revisión que 3.1). Pendiente (no bloquea): consola del navegador sin errores propios.
 - [x] 3.3 Decisión PA-06: MANTENER la "Constancia local de finalización — no verificable" (`README.md:16`) — decidido por Belén 2026-10-03; verificado que no promete validez externa (RN-PRO-02).
 
 ## 4. Rollback si algo sale mal

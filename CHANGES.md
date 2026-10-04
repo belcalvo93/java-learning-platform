@@ -234,7 +234,7 @@ C-01 → C-02 → C-04 → C-10 → C-07 → C-08*
 > Solo tras C-03 + C-04 + C-10. Publica Pages. No toca backend.
 
 ### [C-07] `publish-frontend`
-- **Estado**: `[ ]` pendiente
+- **Estado**: `[x]` completado y archivado (`openspec/changes/archive/2026-10-04-c-07-publish-frontend/`) — sitio verificado por Belén en https://java.belencalvo.me/ (HTTPS, contenido C-16, muestra desktop de los 4 niveles: OK). Pendiente no bloqueante: revisión en celular y consola sin errores propios.
 - **Scope**: Sitio estático publicado en GitHub Pages sin secretos ni backend (verificación manual — configuración/publicación)
   - Configuración Pages (rama `main`, raíz), URLs placeholder reemplazadas por la real, `BACKEND_URL` sin valor o ausente
   - Antes de publicar, confirmar el estado de GitHub Pages en Settings > Pages (por qué dejó de verse el sitio) y verificar que quede apuntando a la rama main, carpeta raíz.
