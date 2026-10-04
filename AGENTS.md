@@ -79,7 +79,7 @@ Confirmadas por Belén (contrato; romperlas es un defecto):
 
 - **Seguridad executor**: NUNCA reactivar Render ni ejecutar código de usuario sin allowlist (`^[A-Z][A-Za-z0-9_]{0,31}$`) + `execFile` sin shell + tests pasando → gate RN-SEG-02.
 - **Cero secretos**: NUNCA commitear API keys en código trackeado → remover del código actual, desactivar llamadas IA desde el navegador, sin reescribir historial git (PA-03).
-- **Contenido intacto**: NUNCA tocar lecciones/ejercicios salvo hallazgo de la auditoría C-01.
+- **Contenido intacto**: NUNCA tocar lecciones ni ejercicios salvo dentro de un change de contenido (C-16) con revisión de Belén; ids y cantidades (52/208) no cambian.
 - **TDD o verificación**: NUNCA lógica sin tests primero → TDD; config/textos con verificación manual descrita en el change.
 - **Un change un commit**: NUNCA mezclar objetivos → cambios chicos, commit propio revertible; NUNCA commit/push sin pedido explícito.
 - **Invariantes 52/208**: NUNCA cambiar IDs ni conteos → 52 lecciones (15/15/12/10), 208 ejercicios.

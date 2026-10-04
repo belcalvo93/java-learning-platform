@@ -56,14 +56,13 @@ describe('1. Invariante 52/208 (carga solo-lectura)', () => {
     assert.ok(result.failures.some((f) => f.includes('100')));
   });
 
-  test('1.3 triangula: lecciones 51 y 52 sin ejercicios se reportan como hallazgo (no fallo)', () => {
+  test('1.3 triangula: lecciones 22, 25, 40 y 42 sin ejercicios se reportan como hallazgo (no fallo)', () => {
     const exercises = audit.loadExercises(REPO_ROOT);
     const lessons = audit.loadLessons(REPO_ROOT);
     const result = audit.checkInvariant(exercises, lessons);
     assert.equal(result.passed, true);
-    assert.ok(result.orphanLessonIds.includes(51));
-    assert.ok(result.orphanLessonIds.includes(52));
-    assert.ok(result.findings.some((f) => f.includes('51') && f.includes('52')));
+    assert.deepStrictEqual([...result.orphanLessonIds].sort((a, b) => a - b), [22, 25, 40, 42]);
+    assert.ok(result.findings.some((f) => f.includes('22') && f.includes('42')));
   });
 });
 

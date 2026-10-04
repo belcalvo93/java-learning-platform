@@ -27,6 +27,7 @@ C-01 validator-audit                       ← PRIMERA TAREA, desbloquea todo
   │     └── C-04 frontend-no-backend       ← degrada a reglas, nunca expone Render caído
   │           └── C-10 validator-fix-rules     ← corrige reglas que rechazan la solución canónica (TDD)
   │                 └── C-07 publish-frontend  ← solo frontend estático, sin backend
+  │                       ├── C-16 content-and-mapping         ← paquete de contenido (MEDIO)
   │                       ├── C-11 editor-ux                   ← polish editor post-publicación
   │                       │     └── C-12 ui-redesign           ← rediseño visual en 2 etapas
   │                       ├── C-08 login-persisted-design      ← FUTURO, diseño solamente
@@ -49,7 +50,8 @@ C-01 validator-audit
       → C-04 frontend-no-backend
         → C-10 validator-fix-rules       ← corrige reglas ids 3–8 y 168 (TDD)
           → C-07 publish-frontend        ← MVP PUBLICADO (sitio publicado)
-            → C-11 editor-ux                 ← polish editor, sin librerías
+            → C-16 content-and-mapping       ← paquete de contenido (MEDIO)
+              → C-11 editor-ux                 ← polish editor, sin librerías
               → C-12 ui-redesign               ← rediseño visual en 2 etapas
                 → C-05 execution-alternatives
                   → C-06 secure-executor     ← ejecución segura, SIN desplegar
@@ -79,15 +81,16 @@ C-01 → C-02 → C-04 → C-10 → C-07 → C-08*
   4  │ C-04 frontend-no-backend
   5  │ C-10 validator-fix-rules           ← corrige reglas ids 3–8 y 168
   6  │ C-07 publish-frontend            ← sitio publicado
-  7  │ C-11 editor-ux                   ← polish editor post-publicación
-  8  │ C-12 ui-redesign                 ← rediseño visual en 2 etapas
-  9  │ C-05 execution-alternatives
-  10 │ C-06 secure-executor             ← sin desplegar
-  11 │ C-08 login-persisted-design      ← solo diseño
-  12 │ C-09 admin-metrics-design        ← solo diseño
-  13 │ C-13 login-y-progreso-en-cuenta  ← implementa C-08 (ALTO)
-  14 │ C-14 panel-admin                 ← implementa C-09 (ALTO)
-  15 │ C-15 level-gating-exams          ← gating por examen (diseño primero)
+  7  │ C-16 content-and-mapping         ← paquete de contenido (MEDIO)
+  8  │ C-11 editor-ux                   ← polish editor post-publicación
+  9  │ C-12 ui-redesign                 ← rediseño visual en 2 etapas
+  10 │ C-05 execution-alternatives
+  11 │ C-06 secure-executor             ← sin desplegar
+  12 │ C-08 login-persisted-design      ← solo diseño
+  13 │ C-09 admin-metrics-design        ← solo diseño
+  14 │ C-13 login-y-progreso-en-cuenta  ← implementa C-08 (ALTO)
+  15 │ C-14 panel-admin                 ← implementa C-09 (ALTO)
+  16 │ C-15 level-gating-exams          ← gating por examen (diseño primero)
 ```
 
 ---
@@ -246,12 +249,30 @@ C-01 → C-02 → C-04 → C-10 → C-07 → C-08*
   - `knowledge-base/07_flujos_principales.md` §Flujo 3 (publicar vía git + invariante 52/208)
   - `knowledge-base/05_reglas_de_negocio.md` §RN-CON-01, RN-CON-03, RN-PRO-01, RN-PRO-02 (invariantes y copy obligatorio)
 
+### [C-16] `content-and-mapping`
+- **Estado**: `[x]` completado y archivado (`openspec/changes/archive/2026-10-04-c-16-content-and-mapping/`, spec sincronizada en `openspec/specs/course-content/`) — diff revisado por Belén: OK.
+- **Scope**: Aplicar el paquete de contenido verificado `content-pack/content-pack.json` (código; script con invariantes + tests)
+  - Ejecutar `node tools/apply-content-pack.js`: reescribe `content` de las lecciones en `script.js` (51 lecciones; la 1 intacta) y `lessonId`/consigna/starter vacío de los 208 ejercicios en `data.js`; NO toca `solution`, `hint`, `validation`, `title`, `difficulty` ni ids (el script verifica invariantes antes de escribir y falla si algo se rompe)
+  - Reasignación de ejercicios a su lección (mapa nuevo en `docs/content-review-notes.md`); lecciones sin ejercicios pasan a ser [22, 25, 40, 42]
+  - Actualizar test 1.3 de `tools/audit-validator.test.js` (lecciones sin ejercicios) y tarjetas de nivel en `index.html` (62/58/48/40 por nivel)
+  - Correr suite completa (`tools/content-quality.test.js` debe pasar) y regenerar `docs/validator-audit.md`
+  - Verificación: invariantes del script + suite verde + matriz regenerada; diff revisado por Belén antes de cerrar
+- **Dependencias**: C-07, C-10
+- **Governance**: MEDIO
+- **Leer antes**:
+  - `docs/content-review-notes.md` (qué cambia: mapa lección→ejercicios)
+  - `docs/content-audit.md` (línea base antes del contenido nuevo)
+  - `docs/validator-audit.md` (matriz a regenerar)
+  - `knowledge-base/05_reglas_de_negocio.md` §RN-CON-01, RN-CON-03 (invariantes e IDs estables)
+
 ### [C-11] `editor-ux`
 - **Estado**: `[ ]` pendiente
 - **Scope**: Mejoras de UX del editor de código (verificación manual — visual, sin lógica de negocio nueva)
   - Numeración de líneas + guías sutiles de indentación en el editor, SIN librerías de terceros: textarea con columna de números y capa de guías sincronizadas (scroll y tamaño); si no alcanza sin librería, evaluar UNA librería y consultar a Belén antes de agregarla
   - Ocultar la pista cuando el ejercicio sale correcto (la pista solo se muestra ante fallo o a pedido)
   - Mover el `@import` de `styles.css:101` al principio del archivo (los `@import` deben ir primeros para aplicarse)
+  - Tener en cuenta (hallazgos C-16): el botón "Siguiente Ejercicio" navega por id y no por lección; cuando falla la indentación, el mensaje "no coincide con la solución esperada" no distingue una llave de más
+  - Lista de ejercicios por lección (requisito de Belén, sin implementar aún): cada lección debe mostrar la lista de sus ejercicios por nombre (en la tarjeta de lección, desplegable, y en el modal de la lección), con tilde de completado; Practicar abre el ejercicio elegido y "Siguiente/Anterior Ejercicio" navega dentro de la lección. Motivo: hoy los ejercicios están agrupados por tema y es imposible encontrar uno concreto desde la vista grid.
   - Verificación manual: abrir ejercicios en móvil + desktop; chequear sincronía números/scroll, guías alineadas, pista oculta en correcto y visible en fallo, cero errores de consola; sin tests de lógica
 - **Dependencias**: C-07
 - **Governance**: BAJO
@@ -265,6 +286,7 @@ C-01 → C-02 → C-04 → C-10 → C-07 → C-08*
   - Etapa 1 — dirección visual definida con la autora ANTES de escribir código: público, tono, paleta, tipografía y componentes; se documenta y Belén la aprueba; sin código hasta el OK
   - Etapa 2 — implementación con la skill `frontend-design`: conservar la identidad actual (paleta rosa/violeta refinada, no ruptura); sin cambiar IDs ni conteos 52/208 (RN-CON-01, RN-CON-03); sin librerías ni fuentes externas; contraste accesible (WCAG AA en texto) y buen uso en celular
   - Verificación manual: capturas antes/después en móvil + desktop, checklist de contraste y de invariantes 52/208, cero errores de consola; sin tests de lógica
+  - Tener en cuenta (hallazgos C-16, ver C-11): el botón "Siguiente Ejercicio" navega por id y no por lección; el mensaje de indentación fallida no distingue una llave de más
 - **Dependencias**: C-11
 - **Governance**: BAJO
 - **Leer antes**:
