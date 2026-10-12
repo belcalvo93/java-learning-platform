@@ -79,3 +79,5 @@ las decisiones de producto y la revisión son mías.
 
 - GitHub: https://github.com/belcalvo93
 - LinkedIn: https://www.linkedin.com/in/belucalvo/
+
+Licencia: MIT (ver LICENSE).
