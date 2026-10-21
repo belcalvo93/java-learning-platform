@@ -10,11 +10,33 @@ function openExercise(exerciseId) {
 
   const viewer = document.getElementById('exercise-viewer');
   const content = document.getElementById('exercise-content');
+  content.dataset.exerciseId = String(exercise.id);
 
-  // Find current exercise index and get prev/next
-  const currentIndex = exercisesData.indexOf(exercise);
-  const prevExercise = exercisesData[currentIndex - 1];
-  const nextExercise = exercisesData[currentIndex + 1];
+  // C-11b: navegación dentro de la lección actual + función única de disponibilidad
+  const nav = (typeof LessonNav !== 'undefined' && LessonNav.getLessonNav)
+    ? LessonNav.getLessonNav(exercisesData, lessonsData, exercise.id)
+    : null;
+  const prevExercise = nav ? nav.prev : null;
+  const prevAvailable = prevExercise
+    ? ((typeof LessonNav !== 'undefined' && LessonNav.isAvailable) ? LessonNav.isAvailable('exercise', prevExercise.id) : true)
+    : false;
+  let nextLabel = 'Siguiente Ejercicio →';
+  let nextOnClick = '';
+  let nextDisabled = true;
+  if (nav && nav.advance) {
+    if (nav.advance.type === 'exercise' && nav.advance.target) {
+      nextLabel = 'Siguiente Ejercicio →';
+      nextOnClick = `openExercise(${nav.advance.target.id})`;
+      nextDisabled = !nav.advance.available;
+    } else if (nav.advance.type === 'lesson' && nav.advance.target) {
+      nextLabel = 'Siguiente Lección →';
+      nextOnClick = `closeExercise(); openLesson(${nav.advance.target.id})`;
+      nextDisabled = !nav.advance.available;
+    } else {
+      nextLabel = 'Siguiente Lección →';
+      nextDisabled = true;
+    }
+  }
 
   content.innerHTML = `
     <button class="lesson-close" onclick="closeExercise()">×</button>
@@ -39,17 +61,17 @@ function openExercise(exerciseId) {
     </div>
     
     <div class="lesson-navigation" style="margin-top: 2rem;">
-      <button class="nav-btn" onclick="openExercise(${prevExercise?.id})" ${!prevExercise ? 'disabled' : ''}>
+      <button class="nav-btn" data-nav="prev" onclick="${prevExercise ? `openExercise(${prevExercise.id})` : ''}" ${!prevExercise || !prevAvailable ? 'disabled' : ''}>
         ← Ejercicio Anterior
       </button>
-      <button class="nav-btn" onclick="showExercisesMenu()">
+      <button class="nav-btn" data-nav="all" onclick="showExercisesMenu()">
         📋 Ver Todos los Ejercicios
       </button>
-      <button class="nav-btn" onclick="closeExercise()">
+      <button class="nav-btn" data-nav="back" onclick="closeExercise()">
         Volver a Lecciones
       </button>
-      <button class="nav-btn" onclick="openExercise(${nextExercise?.id})" ${!nextExercise ? 'disabled' : ''}>
-        Siguiente Ejercicio →
+      <button class="nav-btn" data-nav="next" onclick="${nextOnClick}" ${nextDisabled ? 'disabled' : ''}>
+        ${nextLabel}
       </button>
     </div>
   `;
@@ -479,7 +501,7 @@ function checkLessonCompletion(lessonId, currentExerciseId, resultDiv) {
             <strong>"${currentLesson.title}"</strong>
           </p>
           ${nextLesson ? `
-            <button onclick="openLesson(${nextLesson.id})" 
+            <button onclick="closeExercise(); openLesson(${nextLesson.id})" 
                     style="background: white; color: #667eea; border: none; 
                            padding: 0.75rem 2rem; border-radius: 6px; font-weight: 600; 
                            cursor: pointer; font-size: 1rem; transition: transform 0.2s;
@@ -526,44 +548,57 @@ function resetExercise(exerciseId) {
 
 function showExercisesMenu() {
   const content = document.getElementById('exercise-content');
+  delete content.dataset.exerciseId;
 
   const getLevelName = (level) => {
     const names = { beginner: 'Principiante', intermediate: 'Intermedio', advanced: 'Avanzado', expert: 'Experto' };
     return names[level];
   };
 
-  const getLessonLevel = (lessonId) => {
-    const lesson = lessonsData.find(l => l.id === lessonId);
-    return lesson ? lesson.level : 'beginner';
-  };
+  const groups = (typeof LessonNav !== 'undefined' && LessonNav.groupExercisesByLesson)
+    ? LessonNav.groupExercisesByLesson(exercisesData, lessonsData)
+    : [];
+  const readingIds = (typeof LessonNav !== 'undefined' && LessonNav.readingLessonIds)
+    ? LessonNav.readingLessonIds(exercisesData, lessonsData)
+    : [];
 
   content.innerHTML = `
         <button class="lesson-close" onclick="closeExercise()">×</button>
         <h2>📋 Todos los Ejercicios (${exercisesData.length} total)</h2>
-        <p style="color: var(--text-secondary); margin-bottom: 2rem;">Haz clic en cualquier ejercicio para practicar</p>
+        <p style="color: var(--text-secondary); margin-bottom: 1rem;">Haz clic en cualquier ejercicio para practicar (agrupados por lección)</p>
+        ${readingIds.length ? `<p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.5rem;">📖 Lecciones de lectura (sin ejercicios): ${readingIds.map(id => '#' + id).join(', ')}</p>` : ''}
         
-        <div style="display: grid; gap: 1rem;">
-            ${exercisesData.map((ex, index) => {
-    const level = getLessonLevel(ex.lessonId);
+        <div class="exercises-menu-groups" style="display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.5rem;">
+            ${groups.map((group) => {
+    const levelName = getLevelName(group.lesson.level);
     return `
-                    <div class="lesson-card" onclick="openExercise(${ex.id})" style="cursor: pointer; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); transition: all 0.3s;">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <div>
-                                <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.25rem;">
-                                    Ejercicio ${index + 1} • ${getLevelName(level)}
+                <div class="exercise-group" data-lesson-id="${group.lesson.id}" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 1rem;">
+                    <h3 class="exercise-group-title" style="margin: 0 0 0.75rem 0; font-size: 1.05rem; color: var(--text-primary);">
+                        Lección #${group.lesson.id}: ${group.lesson.title} <span style="color: var(--text-muted); font-weight: 400; font-size: 0.85rem;">• ${levelName} (${group.exercises.length} ${group.exercises.length === 1 ? 'ejercicio' : 'ejercicios'})</span>
+                    </h3>
+                    <div class="exercise-group-items" style="display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.75rem;">
+                        ${group.exercises.map((ex, idx) => `
+                            <div class="lesson-card exercise-item" data-exercise-id="${ex.id}" onclick="openExercise(${ex.id})" style="cursor: pointer; padding: 0.85rem 1rem; background: rgba(255,255,255,0.05); border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); transition: all 0.3s;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.75rem;">
+                                    <div style="min-width: 0; flex: 1;">
+                                        <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.2rem;">
+                                            Ejercicio ${idx + 1} de ${group.exercises.length} • ${levelName}
+                                        </div>
+                                        <h4 style="margin: 0; color: var(--text-primary);">${ex.title}</h4>
+                                        <p style="margin: 0.35rem 0 0; color: var(--text-secondary); font-size: 0.9rem;">${ex.description}</p>
+                                    </div>
+                                    <div style="font-size: 1.35rem;">💻</div>
                                 </div>
-                                <h4 style="margin: 0; color: var(--text-primary);">${ex.title}</h4>
-                                <p style="margin: 0.5rem 0 0; color: var(--text-secondary); font-size: 0.9rem;">${ex.description}</p>
                             </div>
-                            <div style="font-size: 1.5rem;">💻</div>
-                        </div>
+                        `).join('')}
                     </div>
-                `;
+                </div>
+            `;
   }).join('')}
         </div>
         
         <div class="lesson-navigation" style="margin-top: 2rem;">
-            <button class="nav-btn" onclick="closeExercise()">Cerrar</button>
+            <button class="nav-btn" data-nav="close" onclick="closeExercise()">Cerrar</button>
         </div>
     `;
 }
@@ -830,26 +865,48 @@ function downloadCertificate() {
 // ENHANCED LESSON VIEWER
 // ============================================
 
-// Override the original openLesson to include exercises
+// Override the original openLesson to include exercises and C-11b lesson-nav tags
 const originalOpenLesson = window.openLesson;
 window.openLesson = function (lessonId) {
   originalOpenLesson(lessonId);
 
-  // Add exercise button if available
-  const exercise = exercisesData.find(e => e.lessonId === lessonId);
-  if (exercise) {
-    const content = document.getElementById('lesson-content');
-    const navDiv = content.querySelector('.lesson-navigation');
-    if (navDiv) {
-      const exerciseBtn = document.createElement('button');
-      exerciseBtn.className = 'nav-btn';
-      exerciseBtn.textContent = '💻 Practicar';
-      exerciseBtn.onclick = () => {
-        closeLesson();
-        setTimeout(() => openExercise(exercise.id), 300);
-      };
-      navDiv.insertBefore(exerciseBtn, navDiv.children[1]);
+  const content = document.getElementById('lesson-content');
+  if (content) content.dataset.lessonId = String(lessonId);
+  const navDiv = content ? content.querySelector('.lesson-navigation') : null;
+  if (navDiv) {
+    const btns = navDiv.querySelectorAll('.nav-btn');
+    if (btns[0]) btns[0].dataset.lessonNav = 'prev';
+    if (btns[1]) btns[1].dataset.lessonNav = 'complete';
+    if (btns[2]) {
+      btns[2].dataset.lessonNav = 'next';
+      if (typeof LessonNav !== 'undefined' && LessonNav.isAvailable) {
+        const idx = lessonsData.findIndex(l => l.id === lessonId);
+        const nextLesson = idx >= 0 ? lessonsData[idx + 1] : null;
+        if (nextLesson && !LessonNav.isAvailable('lesson', nextLesson.id)) {
+          btns[2].disabled = true;
+        }
+      }
     }
+  }
+
+  // Add exercise button if available (reading lessons 22, 25, 40, 42 do not have exercises)
+  const exercise = exercisesData.find(e => e.lessonId === lessonId);
+  if (exercise && navDiv) {
+    navDiv.classList.remove('lesson-nav-reading');
+    const exerciseBtn = document.createElement('button');
+    exerciseBtn.className = 'nav-btn';
+    exerciseBtn.dataset.lessonNav = 'practice';
+    exerciseBtn.textContent = '💻 Practicar';
+    if (typeof LessonNav !== 'undefined' && LessonNav.isAvailable && !LessonNav.isAvailable('exercise', exercise.id)) {
+      exerciseBtn.disabled = true;
+    }
+    exerciseBtn.onclick = () => {
+      closeLesson();
+      setTimeout(() => openExercise(exercise.id), 300);
+    };
+    navDiv.insertBefore(exerciseBtn, navDiv.children[1]);
+  } else if (navDiv) {
+    navDiv.classList.add('lesson-nav-reading');
   }
 };
 
@@ -899,6 +956,83 @@ document.addEventListener('DOMContentLoaded', () => {
     card.appendChild(evalBtn);
   });
 
+  // Decorar tarjetas de lección (C-11b)
+  decorateLessonCards();
+
   // Check for certificate on load
   checkForCertificate();
 });
+
+// ============================================
+// C-11b: TARJETAS DE LECCIÓN CON SUS EJERCICIOS Y DISPONIBILIDAD
+// ============================================
+
+function decorateLessonCards(rootSelector) {
+  if (typeof LessonNav === 'undefined' || typeof exercisesData === 'undefined' || typeof lessonsData === 'undefined') {
+    return;
+  }
+  const readingSet = new Set(LessonNav.readingLessonIds(exercisesData, lessonsData));
+  const scope = rootSelector ? document.querySelectorAll(rootSelector + ' .lesson-card') : document.querySelectorAll('#lessons-grid .lesson-card, #modules-view .lesson-card');
+  scope.forEach((card) => {
+    const idSpan = card.querySelector('.lesson-id');
+    const lessonId = card.dataset.lessonId
+      ? Number(card.dataset.lessonId)
+      : (idSpan ? Number((idSpan.textContent || '').replace(/[^0-9]/g, '')) : 0);
+    if (!lessonId) return;
+    card.dataset.lessonId = String(lessonId);
+
+    const available = LessonNav.isAvailable('lesson', lessonId) === true;
+    card.classList.toggle('lesson-locked', !available);
+
+    const prevSummary = card.querySelector('.lesson-exercises-summary');
+    if (prevSummary) prevSummary.remove();
+
+    const summary = document.createElement('div');
+    summary.className = 'lesson-exercises-summary';
+    if (readingSet.has(lessonId)) {
+      const badge = document.createElement('span');
+      badge.className = 'lesson-reading-badge';
+      badge.textContent = '📖 Lección de lectura';
+      summary.appendChild(badge);
+    } else {
+      const list = LessonNav.getLessonExercises(exercisesData, lessonId);
+      const countEl = document.createElement('div');
+      countEl.className = 'lesson-exercises-count';
+      countEl.dataset.count = String(list.length);
+      countEl.textContent = `💻 ${list.length} ${list.length === 1 ? 'ejercicio' : 'ejercicios'}`;
+      const ul = document.createElement('ul');
+      ul.className = 'lesson-exercise-list';
+      list.forEach((ex) => {
+        const li = document.createElement('li');
+        li.textContent = ex.title;
+        ul.appendChild(li);
+      });
+      summary.appendChild(countEl);
+      summary.appendChild(ul);
+    }
+
+    const footer = card.querySelector('.lesson-footer');
+    if (footer) {
+      card.insertBefore(summary, footer);
+    } else {
+      card.appendChild(summary);
+    }
+  });
+}
+
+if (typeof window.renderLessons === 'function') {
+  const originalRenderLessons = window.renderLessons;
+  window.renderLessons = function (filterLevel) {
+    originalRenderLessons(filterLevel);
+    decorateLessonCards('#lessons-grid');
+  };
+}
+
+if (typeof window.renderModulesView === 'function') {
+  const originalRenderModulesView = window.renderModulesView;
+  window.renderModulesView = function () {
+    originalRenderModulesView();
+    decorateLessonCards('#modules-view');
+  };
+}
+

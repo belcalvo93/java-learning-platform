@@ -1,0 +1,25 @@
+{
+  "name": "java-learning-platform",
+  "version": "1.0.0",
+  "description": "> Aprende Java desde cero hasta nivel experto con explicaciones en español, ejercicios interactivos y validación en tiempo real.",
+  "main": "ai-validator.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/belcalvo93/java-learning-platform.git"
+  },
+  "keywords": [],
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/belcalvo93/java-learning-platform/issues"
+  },
+  "homepage": "https://github.com/belcalvo93/java-learning-platform#readme",
+  "devDependencies": {
+    "playwright": "^1.63.0"
+  }
+}

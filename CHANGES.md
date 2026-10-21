@@ -35,6 +35,7 @@ C-01 validator-audit                       ← PRIMERA TAREA, desbloquea todo
   │                       ├── C-08 login-persisted-design      ← FUTURO, diseño solamente
   │                       │     └── C-13 login-y-progreso-en-cuenta ← implementa C-08 (ALTO)
   │                       │           └── C-15 level-gating-exams ← gating por examen (deps C-05/C-06/C-13)
+  │                       │                 └── C-19 level-gating      ← bloqueo atado a cuentas (candidato)
   │                       └── C-09 admin-metrics-design        ← FUTURO, diseño solamente
   │                             └── C-14 panel-admin           ← implementa C-09 (ALTO)
   └── C-05 execution-alternatives
@@ -66,6 +67,7 @@ C-01 validator-audit
                     → C-13 login-y-progreso-en-cuenta ← implementa C-08 (ALTO)
                     → C-14 panel-admin               ← implementa C-09 (ALTO)
                     → C-15 level-gating-exams        ← gating por examen (diseño primero)
+                    → C-19 level-gating              ← bloqueo atado a cuentas (candidato)
 ```
 
 Regla: no empezar un change hasta que el anterior esté archivado (`openspec/changes/archive/`).
@@ -100,6 +102,7 @@ C-01 → C-02 → C-04 → C-10 → C-07 → C-08*
   17 │ C-13 login-y-progreso-en-cuenta  ← implementa C-08 (ALTO)
   18 │ C-14 panel-admin                 ← implementa C-09 (ALTO)
   19 │ C-15 level-gating-exams          ← gating por examen (diseño primero)
+  20 │ C-19 level-gating                ← bloqueo atado a cuentas (candidato)
 ```
 
 ---
@@ -302,7 +305,7 @@ C-01 → C-02 → C-04 → C-10 → C-07 → C-08*
   - `knowledge-base/02_descripcion_general.md` §Stack tecnológico (Vanilla sin framework)
 
 ### [C-18] `validator-structural`
-- **Estado**: `[ ]` pendiente
+- **Estado**: `[x]` completado y archivado (`openspec/changes/archive/2026-10-21-c-18-validator-structural/`, specs sincronizadas en `openspec/specs/validator-rules/` y `openspec/specs/validator-structural/`) — suite 2720/2720, auditoría 52/208 OK, browser-check 45/45; 1.4 y 5.2 firmados por Belén.
 - **Scope**: Validador estructural (TDD, diseño primero)
   - Comparar por tokens en vez de por texto; ignorar comentarios y formato.
   - Nombres de variable libres (equivalencia por renombrado consistente), salvo los que fija la consigna (clases, métodos, API del JDK).
@@ -322,12 +325,13 @@ C-01 → C-02 → C-04 → C-10 → C-07 → C-08*
   - `knowledge-base/06_funcionalidades.md` §US-003 (resolver ejercicios con validación inmediata)
 
 ### [C-11b] `lesson-exercise-nav`
-- **Estado**: `[ ]` pendiente
-- **Scope**: Diseño de navegación de ejercicios por lección — DOCUMENTO, sin implementar (verificación manual)
-  - Cada lección muestra la lista de sus ejercicios por nombre (en la tarjeta de lección, desplegable, y en el modal de la lección), con tilde de completado
-  - Practicar abre el ejercicio elegido; "Siguiente/Anterior Ejercicio" navega dentro de la lección (hoy navega por id global, no por lección)
-  - Motivo: hoy los ejercicios están agrupados por tema y es imposible encontrar uno concreto desde la vista grid
-  - Verificación manual: revisión del documento por Belén; explícito "sin implementar en este change"
+- **Estado**: `[x]` completado y archivado (`openspec/changes/archive/2026-10-21-c-11b-lesson-exercise-nav/`, specs sincronizadas en `openspec/specs/lesson-exercise-nav/` y `openspec/specs/exercise-mobile-layout/`) — suite 2741/2741, browser-check 147/147, invariante 52/208 PASA.
+- **Scope**: Navegación de ejercicios por lección + pantallas de ejercicio, lección y Ver Todos responsive en celular (TDD + browser-check)
+  - "Siguiente Ejercicio" y "Ejercicio Anterior" navegan dentro de la lección actual; en el último ejercicio se ofrece "Volver a Lecciones" o "Siguiente Lección →"
+  - Cada tarjeta de lección (grilla y módulos) muestra la cantidad y los nombres de sus ejercicios antes de abrirla; las lecciones 22, 25, 40 y 42 se indican como "📖 Lección de lectura"
+  - "Ver Todos los Ejercicios" agrupado por lección
+  - Única función `LessonNav.isAvailable(kind, id)` (hoy siempre `true`) consultada por "Siguiente" y por las tarjetas para activar el bloqueo futuro (C-19) en un solo lugar
+  - Ventanas de ejercicio, lección y Ver Todos responsive a ≤ 480 px y 481–768 px (acciones 1+2, navegación de ejercicio y pie de lección con orden jerárquico, botón "X" sticky sin superponerse con título ni primer párrafo, alto táctil ≥ 44 px, texto en una línea, márgenes horizontales ≥ 16 px en lectura/consigna, ≥ 12 px en pie y ≥ 8 px en editor, cajas de error y pista ≥ 85 % del ancho de la tarjeta, sin cambios a > 768 px)
 - **Dependencias**: C-11
 - **Governance**: BAJO
 - **Leer antes**:
@@ -341,6 +345,7 @@ C-01 → C-02 → C-04 → C-10 → C-07 → C-08*
   - Etapa 2 — implementación con la skill `frontend-design`: conservar la identidad actual (paleta rosa/violeta refinada, no ruptura); sin cambiar IDs ni conteos 52/208 (RN-CON-01, RN-CON-03); sin librerías ni fuentes externas; contraste accesible (WCAG AA en texto) y buen uso en celular
   - Verificación manual: capturas antes/después en móvil + desktop, checklist de contraste y de invariantes 52/208, cero errores de consola; sin tests de lógica
   - Tener en cuenta (hallazgos C-16, ver C-11): el botón "Siguiente Ejercicio" navega por id y no por lección; el mensaje de indentación fallida no distingue una llave de más
+  - Tener en cuenta (C-11b): las tarjetas de lección se enriquecen hoy desde `script-enhanced.js` envolviendo `renderLessons` y `renderModulesView`; integrarlas correctamente en el rediseño.
 - **Dependencias**: C-11
 - **Governance**: BAJO
 - **Leer antes**:
@@ -435,3 +440,18 @@ C-01 → C-02 → C-04 → C-10 → C-07 → C-08*
   - `knowledge-base/06_funcionalidades.md` §US-001, US-005 (niveles y progreso)
   - `knowledge-base/04_modelo_de_datos.md` §ProgresoLocal, §Usuario/Avance futuro
   - `knowledge-base/05_reglas_de_negocio.md` §RN-CON-01, RN-PRO-03 (invariantes, servidor fuente de verdad)
+
+### [C-19] `level-gating`
+- **Estado**: `[ ]` pendiente (candidato)
+- **Scope**: Bloqueo por nivel atado a cuentas (diseño primero)
+  - Una persona de nivel principiante no accede a los ejercicios de otro nivel hasta aprobar el examen del nivel anterior; el examen sirve también como "ya sé este nivel" para quien quiere saltear niveles
+  - Sin cuentas: el progreso vive en el navegador (localStorage) → el bloqueo es de orientación, no de seguridad. Con cuentas (C-13): el progreso se guarda en el perfil y el bloqueo sí se exige
+  - Decisiones abiertas: cómo es el examen (preguntas, cantidad, nota de aprobación), si dentro de un nivel el orden es obligatorio o libre, y cómo se muestra lo bloqueado en "Ver todos los ejercicios" (candado u oculto)
+  - Relación con C-15: el diseño del examen vive en C-15; C-19 lo conecta con cuentas/progreso y presentación
+  - Verificación: tests donde haya lógica + checklist manual (bloqueo, desbloqueo, salteo, presentación)
+- **Dependencias**: C-13, C-15
+- **Governance**: MEDIO
+- **Leer antes**:
+  - `docs/auth-db-decision.md` (progreso por usuario de C-08/C-13)
+  - `knowledge-base/03_actores_y_roles.md` §RBAC futuro
+  - `knowledge-base/06_funcionalidades.md` §US-001, US-005, US-006
