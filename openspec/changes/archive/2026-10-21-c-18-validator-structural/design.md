@@ -94,3 +94,19 @@ rompe canónicas, se revierte antes de archivar (gate: 208/208 aceptadas).
   fijos, qué nombres fijos) viven en la auditoría Fase 1 y las cierra Belén
   en la revisión. Si la revisión cambia una decisión de este documento, se
   actualiza el diseño antes de la Fase 2.
+
+### Notas / pendientes (2026-10-04, reiteradas en este change)
+
+1. Id 4: formas equivalentes (`5 > i` en lugar de `i < 5`; `0 == i % 2` en
+   lugar de `i % 2 == 0`) — pendientes de decisión, NO implementadas (ya
+   reportadas antes, se reiteran acá).
+2. Id 4: el mensaje de error habla solo de indentación pero la consigna pide
+   también los espacios — evaluar si conviene que el mensaje indique ambas
+   cosas cuando faltan las dos.
+3. Id 8: la variable `e` queda fija porque la consigna dice que ya está
+   declarada — evaluar si alcanza con aceptar cualquier variable int
+   declarada y pasada a printf con `%d`.
+4. Las 12 clases candidatas a nombre libre (Pato, Dia, Talla, Caja<T>,
+   Comparador, Punto, MiExcepcion, ErrorNegocio, MiThread, MiRunnable,
+   Singleton, AnimalFactory) se resuelven dentro de los lotes que
+   correspondan, con la regla de la clase libre.

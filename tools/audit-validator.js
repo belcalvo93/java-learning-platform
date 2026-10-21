@@ -135,6 +135,13 @@ function needsRealExecution(exercise) {
   return NEEDS_EXECUTION_MARKERS.some((m) => text.includes(m));
 }
 
+// Criterio nuevo C-18 (cierre): las variantes de forma (renombrado
+// consistente, otros textos/espacios, formas equivalentes) son VÁLIDAS y
+// se aceptan. Trampa es SOLO: (a) respuesta pegada en un comentario (el
+// código no hace nada), (b) código vacío, (c) código válido que no hace
+// lo pedido. El código muerto en una rama (`if (false)`) necesita análisis
+// de flujo, o sea ejecución real (C-05/C-06): fuera del alcance por reglas.
+
 // Sonda (a): la solución esperada aparece solo como comentario,
 // sin lógica real ejecutable.
 function commentProbe(exercise) {
@@ -148,43 +155,32 @@ function commentProbe(exercise) {
   return { name: 'comentario-con-respuesta', code };
 }
 
-// Sonda (b): el patrón buscado existe pero dentro de código muerto
-// (bloque if (false) jamás ejecutado) con semántica rota.
-function deadCodeProbe(exercise) {
+// Sonda (b): código vacío: no hay nada que validar.
+function emptyProbe() {
+  return { name: 'codigo-vacio', code: '' };
+}
+
+// Sonda (c): código válido que no hace lo pedido (declara algo ajeno e
+// imprime un texto ajeno, sin la estructura de ningún ejercicio).
+function noopProbe() {
   const code = [
-    'public class Truco {',
-    '    static void truco() {',
-    '        if (false) {',
-    String(exercise.solution),
-    '        }',
+    'public class OtraCosa {',
+    '    static void nadaQueVer() {',
+    '        int trampa = 0;',
+    '        System.out.println("nada que ver");',
     '    }',
     '}',
   ].join('\n');
-  return { name: 'codigo-muerto-con-patron', code };
-}
-
-// Sonda (c, solo reglas específicas ids 1-8): el patrón vive dentro de
-// un literal de texto, semánticamente inerte.
-function stringLiteralProbe(exercise) {
-  const flat = String(exercise.solution).replace(/"/g, "'").replace(/\s+/g, ' ').trim();
-  const code = [
-    'public class Truco {',
-    `    String archivo = "${flat}";`,
-    '}',
-  ].join('\n');
-  return { name: 'literal-con-patron', code };
+  return { name: 'codigo-que-no-hace-lo-pedido', code };
 }
 
 function buildProbes(exercise) {
-  const probes = [commentProbe(exercise), deadCodeProbe(exercise)];
-  if (exercise.id >= 1 && exercise.id <= 8) probes.push(stringLiteralProbe(exercise));
-  return probes;
+  return [commentProbe(exercise), emptyProbe(), noopProbe()];
 }
 
 function probeFamilyCoverage() {
   return {
-    'specific-1-8': ['comentario-con-respuesta', 'codigo-muerto-con-patron', 'literal-con-patron'],
-    'default-9-208': ['comentario-con-respuesta', 'codigo-muerto-con-patron'],
+    structural: ['comentario-con-respuesta', 'codigo-vacio', 'codigo-que-no-hace-lo-pedido'],
   };
 }
 
@@ -277,10 +273,17 @@ function sanitizeCell(value) {
 function renderMarkdown(auditResult) {
   const { results, summary, findings, invariant, lessons } = auditResult;
   const lines = [];
-  lines.push('# Auditoría del validador offline (C-01)');
+  lines.push('# Auditoría del validador offline (C-01, criterio C-18)');
   lines.push('');
   lines.push('Matriz generada por `tools/audit-validator.js` (solo lectura sobre `data.js`,');
   lines.push('`validator.js` y `script.js`). No modifica contenido de lecciones/ejercicios.');
+  lines.push('');
+  lines.push('Criterio vigente (cierre C-18): las variantes de forma (renombrado consistente,');
+  lines.push('otros textos/espacios, formas equivalentes) son VÁLIDAS y se aceptan. Trampa es');
+  lines.push('SOLO: respuesta pegada en un comentario (el código no hace nada), código vacío,');
+  lines.push('o código que no hace lo pedido. El código muerto en una rama (`if (false)`)');
+  lines.push('necesita análisis de flujo, o sea ejecución real (C-05/C-06). Excepción');
+  lines.push('documentada: el id 208 pide "solo comentarios", así que su comentario SÍ aprueba.');
   lines.push('');
   lines.push('## Resumen');
   lines.push('');

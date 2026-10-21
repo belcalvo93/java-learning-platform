@@ -108,16 +108,25 @@ describe('2. Clasificador rules-only-ok / needs-real-execution / rules-cheatable
     assert.equal(audit.needsRealExecution({ ...plain(13), solution: 'int s = a + b;' }), false);
   });
 
-  test('2.3 triangula con el validator real: canónica del 9 aceptada, sonda-comentario del 9 aceptada (cheatable)', () => {
+  // Criterio nuevo C-18 (cierre): las variantes de forma (renombrado,
+  // otros textos, otros espacios, formas equivalentes) son VÁLIDAS y se
+  // aceptan. Trampa es SOLO: respuesta pegada en un comentario (el código
+  // no hace nada), código vacío, o código que no hace lo pedido. Por eso
+  // la canónica del 9 se acepta y las 3 sondas nuevas se rechazan.
+  test('2.3 triangula con el validator real: canónica del 9 aceptada y sondas nuevas rechazadas (rules-only-ok)', () => {
     const { exercises, ValidatorClass } = realHarness();
     const ex9 = exercises.find((e) => e.id === 9);
     const v = new ValidatorClass();
     assert.equal(v.validate(ex9.solution, ex9).isValid, true);
     const probes = audit.buildProbes(ex9);
-    assert.ok(probes.length >= 2);
-    const accepted = probes.filter((p) => v.validate(p.code, ex9).isValid);
-    assert.ok(accepted.length >= 1, 'la rama default por includes() debe aceptar al menos una sonda');
-    assert.equal(audit.classifyExercise(ex9, new ValidatorClass()).category, 'rules-cheatable');
+    assert.deepStrictEqual(
+      probes.map((p) => p.name).sort(),
+      ['codigo-que-no-hace-lo-pedido', 'codigo-vacio', 'comentario-con-respuesta'],
+    );
+    for (const p of probes) {
+      assert.equal(v.validate(p.code, ex9).isValid, false, `sonda ${p.name} aceptada falsamente en id 9`);
+    }
+    assert.equal(audit.classifyExercise(ex9, new ValidatorClass()).category, 'rules-only-ok');
   });
 
   test('2.3 triangula con el validator real: canónica del 1 aceptada y ejercicio Scanner 33 exige ejecución real', () => {
@@ -136,32 +145,63 @@ describe('2. Clasificador rules-only-ok / needs-real-execution / rules-cheatable
   });
 });
 
-describe('3. Sondas de engaño (≥2 por familia, ≥3 fallan hoy)', () => {
-  test('3.1 cada ejercicio 1-208 tiene ≥2 sondas y cada familia de reglas está cubierta', () => {
+describe('3. Sondas de engaño (criterio nuevo C-18: solo comentario-pegado, vacío y no-hace-lo-pedido)', () => {
+  // Razón del cambio: el motor estructural acepta variantes de forma
+  // (renombrado, textos libres, espacios, equivalencias) como VÁLIDAS, así
+  // que las familias viejas (codigo-muerto-con-patron, literal-con-patron,
+  // specific-1-8/default-9-208) quedaron obsoletas: el código muerto en
+  // una rama necesita análisis de flujo (ejecución real, C-05/C-06) y el
+  // patrón en un literal ya se rechaza como "no hace lo pedido".
+  test('3.1 cada ejercicio 1-208 tiene las 3 sondas nuevas con nombres distintos y una sola familia', () => {
     const exercises = audit.loadExercises(REPO_ROOT);
     for (const ex of exercises) {
       const probes = audit.buildProbes(ex);
-      assert.ok(probes.length >= 2, `id ${ex.id} sin ≥2 sondas`);
-      assert.ok(probes.every((p) => typeof p.code === 'string' && p.code.length > 0));
-      assert.ok(new Set(probes.map((p) => p.name)).size >= 2, `id ${ex.id} sin 2 nombres distintos`);
+      assert.deepStrictEqual(
+        probes.map((p) => p.name).sort(),
+        ['codigo-que-no-hace-lo-pedido', 'codigo-vacio', 'comentario-con-respuesta'],
+        `id ${ex.id} sin las 3 sondas nuevas`,
+      );
+      assert.ok(probes.every((p) => typeof p.code === 'string'));
     }
     const coverage = audit.probeFamilyCoverage();
-    const families = ['specific-1-8', 'default-9-208'];
-    for (const f of families) {
-      assert.ok((coverage[f] || []).length >= 2, `familia ${f} sin ≥2 plantillas`);
-    }
+    assert.deepStrictEqual(Object.keys(coverage), ['structural']);
+    assert.deepStrictEqual(
+      [...coverage['structural']].sort(),
+      ['codigo-que-no-hace-lo-pedido', 'codigo-vacio', 'comentario-con-respuesta'],
+    );
   });
 
-  test('3.2 al menos 3 sondas son aceptadas falsamente por el validator actual', () => {
+  // COMPUERTA 1: ningún ejercicio acepta la respuesta pegada solo en un
+  // comentario (el código no hace nada), salvo el id 208 cuya consigna
+  // pide "solo comentarios" (excepción documentada en D-02 del change).
+  test('3.2 compuerta comentario: solo el id 208 acepta respuesta-en-comentario', () => {
     const { exercises, ValidatorClass } = realHarness();
-    let falseAccepts = 0;
+    const accepted = [];
     for (const ex of exercises) {
       const v = new ValidatorClass();
-      for (const probe of audit.buildProbes(ex)) {
-        if (v.validate(probe.code, ex).isValid) falseAccepts += 1;
-      }
+      const probe = audit.buildProbes(ex).find((p) => p.name === 'comentario-con-respuesta');
+      if (v.validate(probe.code, ex).isValid) accepted.push(ex.id);
     }
-    assert.ok(falseAccepts >= 3, `solo ${falseAccepts} aceptaciones falsas`);
+    assert.deepStrictEqual(accepted, [208]);
+  });
+
+  // COMPUERTA 2: ningún ejercicio flexible acepta código vacío ni código
+  // que no hace lo pedido (los needs-real-execution usan presencia y
+  // también los rechazan: se verifican todos los 208).
+  test('3.2 compuerta vacío/no-op: ningún ejercicio acepta código vacío ni código que no hace lo pedido', () => {
+    const { exercises, ValidatorClass } = realHarness();
+    const emptyAccepted = [];
+    const noopAccepted = [];
+    for (const ex of exercises) {
+      const v = new ValidatorClass();
+      const probes = audit.buildProbes(ex);
+      const empty = probes.find((p) => p.name === 'codigo-vacio');
+      const noop = probes.find((p) => p.name === 'codigo-que-no-hace-lo-pedido');
+      if (v.validate(empty.code, ex).isValid) emptyAccepted.push(ex.id);
+      if (v.validate(noop.code, ex).isValid) noopAccepted.push(ex.id);
+    }
+    assert.deepStrictEqual(emptyAccepted, []);
+    assert.deepStrictEqual(noopAccepted, []);
   });
 
   test('3.3 todo id 1-208 recibe veredicto (ningún ejercicio sin categoría)', () => {

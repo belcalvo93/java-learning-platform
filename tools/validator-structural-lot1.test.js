@@ -396,6 +396,21 @@ describe('c-18 ajuste id5: print/println/printf aceptados', () => {
     assert.strictEqual(r.isValid, true, `printf rechazado: ${JSON.stringify(r.errors)}`);
   });
 
+  it('id 5: acepta printf con formato y argumentos', () => {
+    const r = check(5, 'public class Hola {\n    public static void main(String[] args) {\n        System.out.printf("%s", "Hola");\n    }\n}');
+    assert.strictEqual(r.isValid, true, `printf con formato rechazado: ${JSON.stringify(r.errors)}`);
+  });
+
+  it('id 5: acepta printf con formato y variable declarada', () => {
+    const r = check(5, 'public class Hola {\n    public static void main(String[] args) {\n        int e = 1;\n        System.out.printf("%d", e);\n    }\n}');
+    assert.strictEqual(r.isValid, true, `printf con variable rechazado: ${JSON.stringify(r.errors)}`);
+  });
+
+  it('id 5: printf sin texto entrecomillado se rechaza', () => {
+    const r = check(5, 'public class Hola {\n    public static void main(String[] args) {\n        System.out.printf(e);\n    }\n}');
+    assert.strictEqual(r.isValid, false, 'printf sin formato aceptado');
+  });
+
   it('id 5: acepta System.out.println con texto libre (sigue valiendo)', () => {
     const r = check(5, 'public class Hola {\n    public static void main(String[] args) {\n        System.out.println("hola mama");\n    }\n}');
     assert.strictEqual(r.isValid, true, `println rechazado: ${JSON.stringify(r.errors)}`);

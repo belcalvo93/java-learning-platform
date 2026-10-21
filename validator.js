@@ -17,8 +17,12 @@ class JavaValidator {
         // múltiplos de 4. Los ids 1-4 miden la indentación por estructura
         // (+4 por bloque) en su propio validador; en los ids 5-8 (lección 2)
         // el formato no es concepto y no limita el veredicto.
+        // C-18 lotes 2+: los ids migrados a validación estructural tampoco
+        // usan la puerta cruda (el formato no es concepto; solo la
+        // indentación +4/bloque de la lección 1, ya cubierta en ids 1-4).
         const skipRawIndentationIds = [1, 2, 3, 4, 5, 6, 7, 8];
-        this.checkBasicSyntax(code, skipRawIndentationIds.includes(exerciseId));
+        const structurallyMigrated = Object.prototype.hasOwnProperty.call(STRUCT_RULES, exerciseId);
+        this.checkBasicSyntax(code, skipRawIndentationIds.includes(exerciseId) || structurallyMigrated);
         this.checkBraces(code);
         this.checkSemicolons(code);
         this.checkOperators(code);
@@ -117,9 +121,23 @@ class JavaValidator {
     }
 
     checkOperators(code) {
-        // Check for assignment in conditions
-        if (code.match(/if\s*\([^)]*=[^=][^)]*\)/)) {
-            this.warnings.push('Advertencia: Posible asignación (=) en lugar de comparación (==)');
+        // C-18 fix aviso de asignación: avisar SOLO ante una asignación
+        // (= solo) dentro de la CONDICIÓN de un if/while, donde se esperaba
+        // comparar (p. ej. `if (x = 5)`). Nunca ante `==`, `<=`, `>=`, `!=`
+        // (el segundo `=` de `==` disparaba el falso aviso), ni ante el `=`
+        // del init de un `for`, ni ante `=` dentro de textos o comentarios
+        // (se buscan las condiciones sobre código sin comentarios y con
+        // textos enmascarados, con paréntesis gemelos).
+        const stripped = maskJavaStrings(stripJavaComments(code));
+        const re = /\b(?:if|while)\s*\(/g;
+        let m;
+        while ((m = re.exec(stripped)) !== null) {
+            const cond = extractParens(stripped, m.index + m[0].length - 1);
+            if (cond === null) continue;
+            if (/(?<![=!<>])=(?![=>])/.test(cond)) {
+                this.warnings.push('Advertencia: Posible asignación (=) en lugar de comparación (==)');
+                return;
+            }
         }
     }
 
@@ -168,6 +186,12 @@ class JavaValidator {
                 break;
 
             default:
+                // C-18 lotes 2+: ids migrados a validación estructural por
+                // tokens (STRUCT_RULES); el resto sigue con igualdad exacta.
+                if (Object.prototype.hasOwnProperty.call(STRUCT_RULES, exerciseId)) {
+                    isValid = this.validateStructural(code, exerciseId);
+                    break;
+                }
                 // Normalizar código y solución para comparación
                 const normalizeCode = (str) => str
                     .replace(/\r\n/g, '\n')  // Windows line endings
@@ -179,14 +203,29 @@ class JavaValidator {
 
                 isValid = userCode === expectedCode || userCode.includes(expectedCode);
                 if (exerciseId === 168) {
-                    const hasPipeline = code.includes('Files.lines') && code.includes('.filter(') && code.includes('.forEach(');
+                    // C-18: el pipeline se busca SIN comentarios (la respuesta
+                    // pegada en un comentario nunca aprueba).
+                    const noComments = stripJavaComments(code);
+                    const hasPipeline = noComments.includes('Files.lines') && noComments.includes('.filter(') && noComments.includes('.forEach(');
                     if (!hasPipeline) {
                         this.errors.push('Error: Debes usar el pipeline Files.lines(...).filter(...).forEach(...);');
                         isValid = false;
                     } else if (this.errors.length === 0) {
                         // Tolerar variaciones de formato con el pipeline
-                        // presente y chequeos generales limpios.
-                        isValid = true;
+                        // presente y chequeos generales limpios + las
+                        // vigilancias estructurales (texto sin cerrar,
+                        // paréntesis, nombres no declarados).
+                        const toks168 = normalizeStructToks(tokenizeJava(noComments));
+                        const solIds168 = new Set(tokenizeJava(stripJavaComments(exercise.solution)).filter((t) => t.k === 'id').map((t) => t.v));
+                        const bad168 = toks168.some((t) => t.k === 'bad') ? 'Hay un texto sin cerrar con comillas.'
+                            : !parensBalanced(toks168) ? 'Falta cerrar un paréntesis.'
+                            : checkNoUndeclared(toks168, solIds168, collectStudentEntities(noComments), new Set());
+                        if (bad168) {
+                            this.errors.push(bad168);
+                            isValid = false;
+                        } else {
+                            isValid = true;
+                        }
                     }
                 }
         }
@@ -490,7 +529,12 @@ class JavaValidator {
             return false;
         }
         const forMasked = maskJavaStrings(forBlock.body);
-        const mIf = new RegExp('\\bif\\s*\\(\\s*' + counter + '\\s*%\\s*2\\s*==\\s*0\\s*\\)').exec(forMasked);
+        // D-09 (cierre C-18): paréntesis de más pero válidos (`if (((k % 2 == 0)))`)
+        // se aceptan; la condición `k % 2 == 0` sigue estricta.
+        let mIf = null;
+        for (let depth = 0; depth <= 3 && !mIf; depth++) {
+            mIf = new RegExp('\\bif\\s*\\(\\s*(?:\\(\\s*){' + depth + '}' + counter + '\\s*%\\s*2\\s*==\\s*0\\s*(?:\\)\\s*){' + depth + '}\\)').exec(forMasked);
+        }
         if (!mIf) {
             this.errors.push('Falta el if que pregunta si el número es par.');
             return false;
@@ -501,7 +545,12 @@ class JavaValidator {
             return false;
         }
         const prints = findPrintCalls(ifBlock.body).filter((c) => c.method === 'println');
-        const withCounter = prints.filter((c) => c.ok && c.arg.trim() === counter);
+        const unwrapParens = (a) => {
+            let t = a.trim();
+            while (/^\(.*\)$/.test(t)) t = t.slice(1, -1).trim();
+            return t;
+        };
+        const withCounter = prints.filter((c) => c.ok && unwrapParens(c.arg) === counter);
         if (withCounter.length === 0) {
             this.errors.push('Falta imprimir el contador con System.out.println dentro del if.');
             return false;
@@ -678,7 +727,7 @@ class JavaValidator {
     // falta) y devuelve false. El código extra válido no molesta.
     _requirePrintableIn(calls, declared, missingMsg) {
         for (const c of calls) {
-            if (c.ok && c.hasSemicolon && checkPrintableArg(c.arg, declared).ok) return true;
+            if (callDefect(c, declared) === null) return true;
         }
         for (const c of calls) {
             const defect = callDefect(c, declared);
@@ -689,6 +738,232 @@ class JavaValidator {
         }
         this.errors.push(missingMsg);
         return false;
+    }
+
+    // C-18 lotes 2+: validación estructural genérica por tokens.
+    // La solución canónica debe aparecer como subsecuencia ordenada de
+    // tokens en el código del estudiante: espacios, saltos, llaves de
+    // más y código extra válido no molestan; comentarios nunca aprueban
+    // (se quitan antes); textos fijos salvo regla `strings: 'free'`;
+    // números y operadores siempre estrictos; nombres fijos salvo la
+    // lista `free` (renombrado consistente y biyectivo). Mensajes
+    // conceptuales sin la respuesta (regla `missing` + genéricos).
+    validateStructural(code, exerciseId) {
+        const rule = STRUCT_RULES[exerciseId];
+        const stripped = stripJavaComments(code);
+        if (rule.custom === 26) return this.validateEstructura26(stripped, rule);
+        if (rule.custom === 30) return this.validateEstructura30(stripped, rule);
+        if (rule.custom === 208) return this.validateEstructura208(code, stripped, rule);
+        if (!stripped.trim()) {
+            this.errors.push(rule.missing);
+            return false;
+        }
+        const stuToks = normalizeStructToks(tokenizeJava(stripped), { strictIncr: !!rule.strictIncr });
+        if (stuToks.some((t) => t.k === 'bad')) {
+            this.errors.push('Hay un texto sin cerrar con comillas.');
+            return false;
+        }
+        if (!parensBalanced(stuToks)) {
+            this.errors.push('Falta cerrar un paréntesis.');
+            return false;
+        }
+        const exercise = exercisesData.find((e) => e.id === exerciseId);
+        const solBase = normalizeStructToks(tokenizeJava(stripJavaComments(exercise.solution)), { strictIncr: !!rule.strictIncr });
+        const variants = [solBase];
+        if (rule.forInitTypeOptional) variants.push(dropForInitType(solBase));
+        // Formas alternativas que dicen lo mismo (p. ej. otro orden de
+        // atributos o de asignaciones independientes): cada una vale.
+        for (const alt of rule.alts || []) {
+            variants.push(normalizeStructToks(tokenizeJava(stripJavaComments(alt)), { strictIncr: !!rule.strictIncr }));
+        }
+        const refIds = new Set(solBase.filter((t) => t.k === 'id').map((t) => t.v));
+        const fixed = new Set([...refIds].filter((n) => !(rule.free || []).includes(n)));
+        const declared = collectStudentEntities(stripped);
+        const context = new Set(rule.ctx || []);
+        const opts = { fixed, stringsFree: rule.strings === 'free', declared, context };
+        let used = null;
+        let matchedVariant = null;
+        const ok = variants.some((v) => {
+            const m = structuralMatchTokens(stuToks, v, opts);
+            if (m.ok) { used = m.used; matchedVariant = { toks: v, align: m.align }; }
+            return m.ok;
+        });
+        if (!ok) {
+            this.errors.push(rule.missing);
+            return false;
+        }
+        const badCall = checkCallParens(stuToks, used);
+        if (badCall) {
+            this.errors.push(badCall);
+            return false;
+        }
+        const badEmpty = checkEmptyParens(stuToks, matchedVariant.toks, matchedVariant.align);
+        if (badEmpty) {
+            this.errors.push(badEmpty);
+            return false;
+        }
+        if (rule.diamond) {
+            const badDiamond = checkDiamond(stripped);
+            if (badDiamond) {
+                this.errors.push(badDiamond);
+                return false;
+            }
+        }
+        if (rule.bare) {
+            const badBare = checkBareMethods(stripped, rule.bare);
+            if (badBare) {
+                this.errors.push(badBare);
+                return false;
+            }
+        }
+        const undecl = checkNoUndeclared(stuToks, refIds, declared, context);
+        if (undecl) {
+            this.errors.push(undecl);
+            return false;
+        }
+        return true;
+    }
+
+    // C-18 lote 2, id 26 (tablas del 2 y del 3): bucles fijos por
+    // consigna + impresión en dos formas válidas: println-concat con el
+    // formato " x " / " = " y producto i*j, o printf con formato %d que
+    // incluya x/= y salto de línea, con i, j y el producto.
+    validateEstructura26(stripped, rule) {
+        if (!stripped.trim()) {
+            this.errors.push(rule.missing);
+            return false;
+        }
+        const masked = maskJavaStrings(stripped);
+        // D-09: `i++` vale igual que `i += 1` y que `i = i + 1` (la
+        // consigna dice "recorre", no nombra `++`); igual para `j`.
+        const incrI = '(?:i\\s*\\+\\+|\\+\\+\\s*i|i\\s*\\+=\\s*1|i\\s*=\\s*i\\s*\\+\\s*1)';
+        const incrJ = '(?:j\\s*\\+\\+|\\+\\+\\s*j|j\\s*\\+=\\s*1|j\\s*=\\s*j\\s*\\+\\s*1)';
+        const outer = new RegExp('\\bfor\\s*\\(\\s*int\\s+i\\s*=\\s*2\\s*;\\s*i\\s*<=\\s*3\\s*;\\s*' + incrI + '\\s*\\)').exec(masked);
+        const inner = new RegExp('\\bfor\\s*\\(\\s*int\\s+j\\s*=\\s*1\\s*;\\s*j\\s*<=\\s*5\\s*;\\s*' + incrJ + '\\s*\\)').exec(masked);
+        if (!outer || !inner || outer.index > inner.index) {
+            this.errors.push(rule.missing);
+            return false;
+        }
+        const innerBlock = extractBlock(stripped, inner.index + inner[0].length);
+        if (!innerBlock) {
+            this.errors.push('Falta cerrar alguna llave de los bucles.');
+            return false;
+        }
+        const declared = collectStudentEntities(stripped);
+        const calls = findPrintCalls(innerBlock.body);
+        let printOk = false;
+        let defect = null;
+        for (const c of calls) {
+            if (checkTablaPrint(c)) { printOk = true; break; }
+            if (defect === null) defect = tablaPrintDefect(c);
+        }
+        if (!printOk) {
+            this.errors.push(defect || rule.missing);
+            return false;
+        }
+        const exercise = exercisesData.find((e) => e.id === 26);
+        const refIds = new Set(tokenizeJava(stripJavaComments(exercise.solution)).filter((t) => t.k === 'id').map((t) => t.v));
+        const stuToks = stripTernaryParens(tokenizeJava(stripped));
+        if (stuToks.some((t) => t.k === 'bad')) {
+            this.errors.push('Hay un texto sin cerrar con comillas.');
+            return false;
+        }
+        if (!parensBalanced(stuToks)) {
+            this.errors.push('Falta cerrar un paréntesis.');
+            return false;
+        }
+        const undecl = checkNoUndeclared(stuToks, refIds, declared, new Set());
+        if (undecl) {
+            this.errors.push(undecl);
+            return false;
+        }
+        return true;
+    }
+
+    // C-18 lote 15, id 208 (cobertura): la solución SON comentarios
+    // ("solo comentarios" dice la consigna, sin código). Se verifican
+    // 4 ideas en el código crudo (los comentarios cuentan acá) en vez
+    // del texto exacto; un pegado sin ideas se rechaza. Si además hay
+    // código, pasa las vigilancias básicas (comillas, paréntesis,
+    // nombres declarados).
+    validateEstructura208(raw, stripped, rule) {
+        void rule;
+        const dims = [/\bl[ií]neas?\b/i, /\bramas?\b/i, /\bm[eé]todos?\b/i]
+            .filter((re) => re.test(raw)).length;
+        const missing = !/jacoco/i.test(raw) ? 'Falta nombrar la herramienta con la que se mide la cobertura.'
+            : !/80/.test(raw) ? 'Falta el objetivo de cobertura.'
+            : dims < 2 ? 'Faltan las partes que se cubren (líneas, ramas, métodos).'
+            : !/mvn\s+test\s+jacoco:report/.test(raw) ? 'Falta el comando para generar el informe.'
+            : null;
+        if (missing) {
+            this.errors.push(missing);
+            return false;
+        }
+        const toks = normalizeStructToks(tokenizeJava(stripped));
+        if (toks.length === 0) return true;
+        if (toks.some((t) => t.k === 'bad')) {
+            this.errors.push('Hay un texto sin cerrar con comillas.');
+            return false;
+        }
+        if (!parensBalanced(toks)) {
+            this.errors.push('Falta cerrar un paréntesis.');
+            return false;
+        }
+        const undecl = checkNoUndeclared(toks, new Set(), collectStudentEntities(stripped), new Set());
+        if (undecl) {
+            this.errors.push(undecl);
+            return false;
+        }
+        return true;
+    }
+
+    // C-18 lote 2, id 30 (switch con fall-through): estructura genérica
+    // + bloque COMPARTIDO exigido: los casos 12, 1 y 2 van seguidos, en
+    // ese orden, sin código ni break entre ellos.
+    validateEstructura30(stripped, rule) {
+        if (!stripped.trim()) {
+            this.errors.push(rule.missing);
+            return false;
+        }
+        const masked = maskJavaStrings(stripped);
+        if (!/\bcase\s+12\s*:\s*case\s+1\s*:\s*case\s+2\s*:/.test(masked)) {
+            this.errors.push('Los tres casos tienen que compartir la misma impresión, sin código entre ellos.');
+            return false;
+        }
+        const exercise = exercisesData.find((e) => e.id === 30);
+        const solBase = normalizeStructToks(tokenizeJava(stripJavaComments(exercise.solution)));
+        const stuToks = normalizeStructToks(tokenizeJava(stripped));
+        if (stuToks.some((t) => t.k === 'bad')) {
+            this.errors.push('Hay un texto sin cerrar con comillas.');
+            return false;
+        }
+        if (!parensBalanced(stuToks)) {
+            this.errors.push('Falta cerrar un paréntesis.');
+            return false;
+        }
+        const refIds = new Set(solBase.filter((t) => t.k === 'id').map((t) => t.v));
+        const opts = { fixed: refIds, stringsFree: false, declared: collectStudentEntities(stripped), context: new Set() };
+        const m = structuralMatchTokens(stuToks, solBase, opts);
+        if (!m.ok) {
+            this.errors.push(rule.missing);
+            return false;
+        }
+        const badCall = checkCallParens(stuToks, m.used);
+        if (badCall) {
+            this.errors.push(badCall);
+            return false;
+        }
+        const badEmpty = checkEmptyParens(stuToks, solBase, m.align);
+        if (badEmpty) {
+            this.errors.push(badEmpty);
+            return false;
+        }
+        const undecl = checkNoUndeclared(stuToks, refIds, opts.declared, opts.context);
+        if (undecl) {
+            this.errors.push(undecl);
+            return false;
+        }
+        return true;
     }
 }
 
@@ -750,11 +1025,18 @@ function stripJavaComments(code) {
     let out = '';
     let inSingle = false;
     let inDouble = false;
+    let inTextBlock = false;
     let inLine = false;
     let inBlock = false;
     for (let i = 0; i < code.length; i++) {
         const ch = code[i];
         const next = i + 1 < code.length ? code[i + 1] : '';
+        if (inTextBlock) {
+            out += ch;
+            if (ch === '\\') { out += next; i++; continue; }
+            if (ch === '"' && next === '"' && code[i + 2] === '"') { out += '""'; i += 2; inTextBlock = false; }
+            continue;
+        }
         if (inLine) {
             if (ch === '\n') { inLine = false; out += '\n'; }
             else out += ' ';
@@ -780,6 +1062,7 @@ function stripJavaComments(code) {
         if (ch === '/' && next === '/') { inLine = true; out += '  '; i++; continue; }
         if (ch === '/' && next === '*') { inBlock = true; out += '  '; i++; continue; }
         if (ch === "'") { inSingle = true; out += ch; continue; }
+        if (ch === '"' && next === '"' && code[i + 2] === '"') { inTextBlock = true; out += '"""'; i += 2; continue; }
         if (ch === '"') { inDouble = true; out += ch; continue; }
         out += ch;
     }
@@ -1017,6 +1300,20 @@ function callDefect(call, declared) {
     // Primer defecto de una llamada (null si está completa y válida).
     if (!call.ok) return 'Falta cerrar el paréntesis de la impresión.';
     if (!call.hasSemicolon) return 'Falta el punto y coma (;) al final de la instrucción.';
+    // printf lleva formato + argumentos: el primero es el texto
+    // entrecomillado (vale con %s/%d), el resto vale como en print.
+    if (call.method === 'printf') {
+        const parts = splitTopLevel(call.arg, ',').map((p) => p.trim()).filter((p) => p.length > 0);
+        if (parts.length === 0) return 'Falta escribir algo para imprimir dentro del paréntesis.';
+        if (!/^"([^"\\\n]|\\.)*"$/.test(parts[0]) || parts[0].length === 2) {
+            return 'El texto que querés imprimir va entre comillas dobles.';
+        }
+        for (const part of parts.slice(1)) {
+            const verdict = checkPrintableArg(part, declared);
+            if (!verdict.ok) return verdict.message;
+        }
+        return null;
+    }
     const verdict = checkPrintableArg(call.arg, declared);
     return verdict.ok ? null : verdict.message;
 }
@@ -1122,6 +1419,799 @@ function structuralIndentMessage(stripped) {
     }
     return null;
 }
+
+// ============================================
+// C-18 lotes 2+: motor estructural por tokens
+// ============================================
+// Todo el análisis se hace sobre código SIN comentarios (la respuesta
+// pegada en un comentario nunca aprueba). El tokenizer emite tokens
+// {k, v} con k en: kw (palabra reservada/tipo primitivo), id, num,
+// str (texto entre comillas, contenido exacto), chr (carácter),
+// op (operador), sym (símbolo), bad (texto sin cerrar: nunca iguala).
+
+const JAVA_KEYWORDS = new Set((
+    'abstract assert boolean break byte case catch char class const continue ' +
+    'default do double else enum extends final finally float for goto if ' +
+    'implements import instanceof int interface long module native new package ' +
+    'permits private protected public record return sealed short static strictfp ' +
+    'super switch synchronized this throw throws transient try var void volatile ' +
+    'while yield true false null'
+).split(' '));
+
+const STRUCT_MULTI_OPS_4 = ['>>>='];
+const STRUCT_MULTI_OPS_3 = ['>>>', '>>=', '<<=', '...'];
+const STRUCT_MULTI_OPS_2 = [
+    '==', '!=', '<=', '>=', '&&', '||', '++', '--', '+=', '-=', '*=',
+    '/=', '%=', '&=', '|=', '^=', '<<', '>>', '->', '::'
+];
+
+function tokenizeJava(code) {
+    const toks = [];
+    let i = 0;
+    const n = code.length;
+    // Letras Unicode (p. ej. ñ en `tamaño`): un identificador Java
+    // puede llevarlas; el tokenizer las trata como una sola palabra.
+    const isIdStart = (ch) => /[\p{L}_$]/u.test(ch);
+    const isIdPart = (ch) => /[\p{L}\p{N}_$]/u.test(ch);
+    while (i < n) {
+        const ch = code[i];
+        if (/\s/.test(ch)) { i++; continue; }
+        // Bloque de texto """ ... """ (id 99): un solo token str con el
+        // contenido normalizado (cada línea recortada: el indentado
+        // interno es formato, el contenido es concepto).
+        if (ch === '"' && code[i + 1] === '"' && code[i + 2] === '"') {
+            const end = code.indexOf('"""', i + 3);
+            if (end === -1) { toks.push({ k: 'bad', v: 'str' }); i = n; continue; }
+            const raw = code.slice(i + 3, end);
+            toks.push({ k: 'str', v: raw.split('\n').map((l) => l.trim()).join('\n') });
+            i = end + 3;
+            continue;
+        }
+        if (ch === '"') {
+            let j = i + 1;
+            let closed = false;
+            while (j < n) {
+                if (code[j] === '\\') { j += 2; continue; }
+                if (code[j] === '"') { closed = true; break; }
+                if (code[j] === '\n') break;
+                j++;
+            }
+            if (!closed) { toks.push({ k: 'bad', v: 'str' }); i = j + (code[j] === '\n' ? 0 : 1); continue; }
+            toks.push({ k: 'str', v: code.slice(i + 1, j) });
+            i = j + 1;
+            continue;
+        }
+        if (ch === "'") {
+            let j = i + 1;
+            let closed = false;
+            while (j < n) {
+                if (code[j] === '\\') { j += 2; continue; }
+                if (code[j] === "'") { closed = true; break; }
+                if (code[j] === '\n') break;
+                j++;
+            }
+            if (!closed) { toks.push({ k: 'bad', v: 'str' }); i = j + (code[j] === '\n' ? 0 : 1); continue; }
+            toks.push({ k: 'chr', v: code.slice(i + 1, j) });
+            i = j + 1;
+            continue;
+        }
+        if (/[0-9]/.test(ch)) {
+            const m = /^(?:0[xX][0-9a-fA-F_]+|\d[\d_]*(\.\d+)?([eE][+-]?\d+)?[fFdDlL]?)/.exec(code.slice(i));
+            toks.push({ k: 'num', v: m[0] });
+            i += m[0].length;
+            continue;
+        }
+        if (isIdStart(ch)) {
+            let j = i + 1;
+            while (j < n && isIdPart(code[j])) j++;
+            const w = code.slice(i, j);
+            toks.push({ k: JAVA_KEYWORDS.has(w) ? 'kw' : 'id', v: w });
+            i = j;
+            continue;
+        }
+        const rest4 = code.slice(i, i + 4);
+        const rest3 = code.slice(i, i + 3);
+        const rest2 = code.slice(i, i + 2);
+        if (STRUCT_MULTI_OPS_4.includes(rest4)) { toks.push({ k: 'op', v: rest4 }); i += 4; continue; }
+        if (STRUCT_MULTI_OPS_3.includes(rest3)) { toks.push({ k: 'op', v: rest3 }); i += 3; continue; }
+        if (STRUCT_MULTI_OPS_2.includes(rest2)) { toks.push({ k: 'op', v: rest2 }); i += 2; continue; }
+        if ('{}()[];,.'.includes(ch)) { toks.push({ k: 'sym', v: ch }); i++; continue; }
+        toks.push({ k: 'op', v: ch });
+        i++;
+    }
+    return toks;
+}
+
+// Quita los paréntesis que envuelven justo la condición de un ternario
+// (`(e >= 18) ? ...` vale igual que `e >= 18 ? ...`, decisión id 16).
+// Se aplica a ambos lados, hasta punto fijo. Solo afecta a `( ... ) ?`.
+function stripTernaryParens(toks) {
+    let cur = toks;
+    for (let round = 0; round < 10; round++) {
+        let changed = false;
+        const out = [];
+        let i = 0;
+        while (i < cur.length) {
+            const t = cur[i];
+            if (t.k === 'sym' && t.v === '(') {
+                let depth = 0;
+                let j = i;
+                let ok = true;
+                for (; j < cur.length; j++) {
+                    const u = cur[j];
+                    if (u.k === 'sym' && u.v === '(') depth++;
+                    else if (u.k === 'sym' && u.v === ')') {
+                        depth--;
+                        if (depth === 0) break;
+                    } else if (depth === 1 && u.k !== 'bad' &&
+                        ((u.k === 'op' && (u.v === '?' || u.v === ':')) ||
+                         (u.k === 'sym' && (u.v === ';' || u.v === ',')))) {
+                        ok = false;
+                        break;
+                    }
+                }
+                const after = cur[j + 1];
+                if (ok && j < cur.length && after && after.k === 'op' && after.v === '?') {
+                    for (let k = i + 1; k < j; k++) out.push(cur[k]);
+                    i = j + 1;
+                    changed = true;
+                    continue;
+                }
+            }
+            out.push(t);
+            i++;
+        }
+        cur = out;
+        if (!changed) break;
+    }
+    return cur;
+}
+
+// Quita el tipo del init de un for (`for (int i = ...` → `for (i = ...`).
+// Solo para reglas con forInitTypeOptional (id 22: `i` predeclarada).
+function dropForInitType(toks) {
+    const out = toks.slice();
+    const types = new Set(['int', 'long', 'short', 'byte', 'var']);
+    for (let i = 0; i + 4 < out.length; i++) {
+        if (out[i].k === 'kw' && out[i].v === 'for' &&
+            out[i + 1].k === 'sym' && out[i + 1].v === '(' &&
+            (out[i + 2].k === 'kw') && types.has(out[i + 2].v) &&
+            out[i + 3].k === 'id' &&
+            out[i + 4].k === 'op' && out[i + 4].v === '=') {
+            out.splice(i + 2, 1);
+        }
+    }
+    return out;
+}
+
+// Llaves opcionales de una sola instrucción (`if (c) x();` vale igual
+// que `if (c) { x(); }`): se quitan en ambos lados antes de comparar.
+// Solo cuerpos de if/else/while/for vacíos o de una sola instrucción
+// terminada en `;` y sin llaves adentro. Nunca métodos, clases,
+// try/catch, do-while, switch, lambdas ni cuerpos con varias
+// instrucciones.
+function stripOptionalBraces(toks) {
+    const findClose = (open) => {
+        let depth = 0;
+        for (let j = open; j < toks.length; j++) {
+            if (toks[j].k === 'sym' && toks[j].v === '{') depth++;
+            else if (toks[j].k === 'sym' && toks[j].v === '}') {
+                depth--;
+                if (depth === 0) return j;
+            }
+        }
+        return -1;
+    };
+    const matchParen = (closeIdx) => {
+        let depth = 0;
+        for (let j = closeIdx; j >= 0; j--) {
+            if (toks[j].k === 'sym' && toks[j].v === ')') depth++;
+            else if (toks[j].k === 'sym' && toks[j].v === '(') {
+                depth--;
+                if (depth === 0) return j;
+            }
+        }
+        return -1;
+    };
+    const removable = new Set();
+    for (let i = 0; i < toks.length; i++) {
+        if (!(toks[i].k === 'sym' && toks[i].v === '{')) continue;
+        const prev = i > 0 ? toks[i - 1] : null;
+        let allowed = false;
+        if (prev && prev.k === 'kw' && prev.v === 'else') allowed = true;
+        else if (prev && prev.k === 'sym' && prev.v === ')') {
+            const open = matchParen(i - 1);
+            const before = open > 0 ? toks[open - 1] : null;
+            if (before && before.k === 'kw' && (before.v === 'if' || before.v === 'while' || before.v === 'for')) allowed = true;
+        }
+        if (!allowed) continue;
+        const close = findClose(i);
+        if (close === -1) continue;
+        const inner = toks.slice(i + 1, close);
+        if (inner.some((t) => t.k === 'sym' && (t.v === '{' || t.v === '}'))) continue;
+        if (inner.filter((t) => t.k === 'sym' && t.v === ';').length > 1) continue;
+        removable.add(i);
+        removable.add(close);
+    }
+    if (removable.size === 0) return toks;
+    return toks.filter((_, idx) => !removable.has(idx));
+}
+
+// Tras un match: un nombre usado por la solución seguido de un `(` de
+// llamada no consumido es una llamada que no existe así (p. ej.
+// `nums.length()` donde se pedía `nums.length`): se rechaza.
+function checkCallParens(stuToks, usedIdx) {
+    for (const j of usedIdx) {
+        if (stuToks[j].k !== 'id') continue;
+        const next = j + 1 < stuToks.length ? stuToks[j + 1] : null;
+        if (next && next.k === 'sym' && next.v === '(' && !usedIdx.has(j + 1)) {
+            return 'Revisá los paréntesis: hay una llamada que no coincide con lo pedido.';
+        }
+    }
+    return null;
+}
+
+// Paréntesis vacíos de la solución (`()`, como en `() ->` o
+// `println()`): en el código del estudiante van vacíos también
+// (una `x` adentro cambia la aridad o la salida y se rechaza).
+function checkEmptyParens(stuToks, solToks, align) {
+    for (let si = 0; si + 1 < solToks.length; si++) {
+        const a = solToks[si];
+        const b = solToks[si + 1];
+        if (a.k === 'sym' && a.v === '(' && b.k === 'sym' && b.v === ')') {
+            if (align.get(si + 1) !== align.get(si) + 1) {
+                return 'Revisá los paréntesis: van vacíos donde no hay nada que pasar.';
+            }
+        }
+    }
+    return null;
+}
+
+// `X++` vale igual que `X += 1` y que `X = X + 1`, pero SOLO con el 1
+// literal (D-09, cierre C-18): se normalizan las tres formas a `X++` en
+// ambos lados antes de comparar. `A += B` con otro valor NO se toca
+// (`suma = suma + i` sigue exigiendo `+=`: decisión del lote 2). El `--`
+// queda fuera (ninguna equivalencia para decremento). Solo aplica cuando
+// al 1 le sigue fin de instrucción (;) , `)`, `,`, `}` o fin del código.
+// Las reglas con `strictIncr` (la consigna exige la forma `++`/`--`:
+// ids 21, 22, 23) no usan esta normalización.
+function normalizeIncrements(toks) {
+    const out = [];
+    const isEnd = (t) => !t || (t.k === 'sym' && (t.v === ';' || t.v === ')' || t.v === ',' || t.v === '}'));
+    for (let i = 0; i < toks.length; i++) {
+        const t = toks[i];
+        const a = toks[i + 1];
+        const b = toks[i + 2];
+        const c = toks[i + 3];
+        const d = toks[i + 4];
+        const e = toks[i + 5];
+        if (t.k === 'id' && a && a.k === 'op' && a.v === '=' &&
+            b && b.k === 'id' && b.v === t.v &&
+            c && c.k === 'op' && c.v === '+' &&
+            d && d.k === 'num' && d.v === '1' && isEnd(e)) {
+            out.push(t, { k: 'op', v: '++' });
+            i += 4;
+            continue;
+        }
+        if (t.k === 'id' && a && a.k === 'op' && a.v === '+=' &&
+            b && b.k === 'num' && b.v === '1' && isEnd(c)) {
+            out.push(t, { k: 'op', v: '++' });
+            i += 2;
+            continue;
+        }
+        out.push(t);
+    }
+    return out;
+}
+
+// Quita capas externas de paréntesis que envuelven todo el texto
+// (`((k))` → `k`): solo cuando el primer `(` cierra justo al final, así
+// los paréntesis con significado (`(a) + (b)`) quedan intactos. Si hay
+// paréntesis dentro de un texto se prefiere no quitar (seguro).
+function stripOuterParens(s) {
+    let t = s.trim();
+    for (let round = 0; round < 10; round++) {
+        if (t.length < 2 || t[0] !== '(' || t[t.length - 1] !== ')') break;
+        let depth = 0;
+        let closesAtEnd = false;
+        for (let i = 0; i < t.length; i++) {
+            if (t[i] === '(') depth++;
+            else if (t[i] === ')') {
+                depth--;
+                if (depth === 0) { closesAtEnd = (i === t.length - 1); break; }
+            }
+        }
+        if (!closesAtEnd) break;
+        t = t.slice(1, -1).trim();
+    }
+    return t;
+}
+
+function normalizeStructToks(toks, flags) {
+    const base = (flags && flags.strictIncr) ? toks : normalizeIncrements(toks);
+    return sortModifierRuns(stripTernaryParens(stripOptionalBraces(base)));
+}
+
+// El orden de los modificadores no es concepto (`static public final`
+// dice lo mismo que `public static final`): rachas de 2+ modificadores
+// seguidos se ordenan igual en ambos lados antes de comparar.
+const MODIFIER_RANK = {
+    public: 0, private: 1, protected: 2, static: 3, final: 4, abstract: 5,
+    synchronized: 6, transient: 7, volatile: 8, native: 9, strictfp: 10, default: 11,
+};
+
+function sortModifierRuns(toks) {
+    const out = toks.slice();
+    let i = 0;
+    while (i < out.length) {
+        if (out[i].k === 'kw' && Object.prototype.hasOwnProperty.call(MODIFIER_RANK, out[i].v)) {
+            let j = i;
+            while (j < out.length && out[j].k === 'kw' &&
+                Object.prototype.hasOwnProperty.call(MODIFIER_RANK, out[j].v)) j++;
+            if (j - i >= 2) {
+                const run = out.slice(i, j).sort((a, b) => MODIFIER_RANK[a.v] - MODIFIER_RANK[b.v]);
+                for (let k = 0; k < run.length; k++) out[i + k] = run[k];
+            }
+            i = j;
+        } else i++;
+    }
+    return out;
+}
+// Subsecuencia ordenada con renombrado consistente y biyectivo:
+// cada token de `sol` debe aparecer en orden en `stu`; los nombres no
+// fijos se ligan al primer candidato válido (declarado o de contexto,
+// nunca un nombre fijo ni uno ya ligado) y después exigen el mismo.
+// Los textos comparan exacto salvo stringsFree (cualquier texto vale,
+// pero tiene que haber texto entre comillas). Devuelve los índices
+// usados, para la vigilancia de paréntesis de llamada.
+function structuralMatchTokens(stu, sol, opts) {
+    const findNext = (from, pred) => {
+        for (let k = from; k < stu.length; k++) {
+            if (pred(stu[k])) return k;
+        }
+        return -1;
+    };
+    const bound = new Map();
+    const used = new Set();
+    const usedIdx = new Set();
+    const align = new Map();
+    const take = (k, si) => { usedIdx.add(k); align.set(si, k); return k; };
+    let j = 0;
+    let si = 0;
+    for (const t of sol) {
+        if (t.k === 'str') {
+            if (opts.stringsFree) j = findNext(j, (s) => s.k === 'str' || s.k === 'chr');
+            else j = findNext(j, (s) => s.k === 'str' && s.v === t.v);
+            if (j === -1) return { ok: false };
+            j = take(j, si) + 1;
+        } else if (t.k === 'id') {
+            if (opts.fixed.has(t.v)) {
+                j = findNext(j, (s) => s.k === 'id' && s.v === t.v);
+                if (j === -1) return { ok: false };
+                used.add(t.v);
+                j = take(j, si) + 1;
+            } else if (bound.has(t.v)) {
+                const want = bound.get(t.v);
+                j = findNext(j, (s) => s.k === 'id' && s.v === want);
+                if (j === -1) return { ok: false };
+                j = take(j, si) + 1;
+            } else {
+                let found = -1;
+                for (let k = j; k < stu.length; k++) {
+                    const s = stu[k];
+                    if (s.k !== 'id') continue;
+                    if (opts.fixed.has(s.v)) continue;
+                    if (used.has(s.v)) continue;
+                    if (!opts.declared.has(s.v) && !opts.context.has(s.v)) continue;
+                    found = k;
+                    break;
+                }
+                if (found === -1) return { ok: false };
+                bound.set(t.v, stu[found].v);
+                used.add(stu[found].v);
+                j = take(found, si) + 1;
+            }
+        } else {
+            j = findNext(j, (s) => s.k === t.k && s.v === t.v);
+            if (j === -1) return { ok: false };
+            j = take(j, si) + 1;
+        }
+        si++;
+    }
+    return { ok: true, used: usedIdx, align };
+}
+
+// Nombres que el estudiante declara: variables (reutiliza
+// collectDeclaredVars) + clases/interfaces/enums/records del código +
+// declaraciones `Tipo nombre` de cualquier tipo (p. ej. `Runnable r`,
+// `Persona otra`, `T item`: el primer nombre no puede ser palabra de
+// control, para no tragar `return x` o `new Y`).
+const STRUCT_NONTYPE_WORDS = new Set((
+    'if else for while do switch case default break continue return new ' +
+    'throw throws try catch finally class interface enum record extends ' +
+    'implements import package instanceof assert synchronized super this ' +
+    'void goto const'
+).split(' '));
+
+function collectStudentEntities(stripped) {
+    const set = collectDeclaredVars(stripped);
+    const masked = maskJavaStrings(stripped);
+    let m;
+    let guard = 0;
+    const reClass = /\b(?:class|interface|enum|record)\s+([A-Za-z_$][\w$]*)/g;
+    while ((m = reClass.exec(masked)) !== null && guard++ < 500) set.add(m[1]);
+    const reDecl = /\b([A-Za-z_$][\w$]*)\s+([A-Za-z_$][\w$]*)\s*(?=[=;,:)\]])/g;
+    while ((m = reDecl.exec(masked)) !== null && guard++ < 2000) {
+        if (!STRUCT_NONTYPE_WORDS.has(m[1])) set.add(m[2]);
+    }
+    // Parámetros de lambda (`s ->`, `(a, b) ->`): nombres declarados
+    // donde aparecen, para el renombrado y la vigilancia.
+    const reLambda1 = /(?:^|[^A-Za-z_$0-9])([A-Za-z_$][\w$]*)\s*->/g;
+    while ((m = reLambda1.exec(masked)) !== null && guard++ < 2000) set.add(m[1]);
+    const reLambdaN = /\(([^()@]*)\)\s*->/g;
+    while ((m = reLambdaN.exec(masked)) !== null && guard++ < 2000) {
+        for (const item of m[1].split(',')) {
+            const name = item.trim().split(/\s+/).pop();
+            if (/^[A-Za-z_$][\w$]*$/.test(name)) set.add(name);
+        }
+    }
+    return set;
+}
+
+// Métodos que van sin modificador de visibilidad (p. ej. setUp con
+// visibilidad de paquete): si aparece `public/protected/... void
+// nombre(`, se rechaza aunque el resto esté bien.
+function checkBareMethods(stripped, names) {
+    if (!names || names.length === 0) return null;
+    const masked = maskJavaStrings(stripped);
+    for (const name of names) {
+        const re = new RegExp('\\b(?:public|private|protected|static|final|synchronized|native|transient|volatile|abstract)\\s+void\\s+' + name + '\\s*\\(');
+        if (re.test(masked)) {
+            return 'El método va sin modificador de visibilidad.';
+        }
+    }
+    return null;
+}
+// El diamante `<>` vacío en el `new` es concepto (no vale repetir el
+// tipo: `new ArrayList<String>()`): si la regla lo exige, todo
+// `new Tipo<...>` con argumentos explícitos se rechaza.
+function checkDiamond(stripped) {
+    const masked = maskJavaStrings(stripped);
+    const re = /\bnew\s+[A-Za-z_$][\w$]*\s*</g;
+    let m;
+    let guard = 0;
+    while ((m = re.exec(masked)) !== null && guard++ < 200) {
+        const after = masked.slice(m.index + m[0].length).replace(/^\s+/, '');
+        if (!after.startsWith('>')) {
+            return 'Usá el diamante <> vacío en el new, sin repetir el tipo.';
+        }
+    }
+    return null;
+}
+// Nombres propios de la plataforma/JDK y de frameworks de test: nunca
+// cuentan como estrictura ni como "no declarado".
+const COMMON_NAMES = new Set((
+    'String System out err in Math Object Class Integer Long Double Float ' +
+    'Boolean Character Byte Short Void StringBuilder StringBuffer ArrayList ' +
+    'LinkedList HashSet TreeSet HashMap TreeMap LinkedHashMap ConcurrentHashMap ' +
+    'CopyOnWriteArrayList List Set Map Collection Collections Arrays Optional ' +
+    'Stream Collectors Files Path Paths Scanner Random Thread Runnable Callable ' +
+    'Future CompletableFuture ExecutorService Executors CountDownLatch CyclicBarrier ' +
+    'Semaphore BlockingQueue ArrayBlockingQueue ReentrantLock ReadWriteLock ' +
+    'ReentrantReadWriteLock AtomicInteger AtomicBoolean Predicate Function Consumer ' +
+    'Supplier Comparator Comparable Iterable Iterator Exception RuntimeException ' +
+    'IOException SQLException NumberFormatException NullPointerException ' +
+    'ArrayIndexOutOfBoundsException IllegalArgumentException IllegalStateException ' +
+    'InterruptedException Override Test BeforeEach AfterEach ParameterizedTest ' +
+    'ValueSource MethodSource assertEquals assertNotEquals assertTrue assertFalse ' +
+    'assertNull assertNotNull assertThrows assertDoesNotThrow assertThat isNotNull ' +
+    'isNull startsWith endsWith hasSize contains isEqualTo mock when verify ' +
+    'thenReturn given any eq PrintStream BufferedReader BufferedWriter FileReader ' +
+    'FileWriter InputStream OutputStream Serializable Cloneable'
+).split(' '));
+
+// Tras un match exitoso: todo nombre pelado del estudiante (no tras `.`,
+// no llamada ni declaración `nombre(`) tiene que venir de la solución,
+// estar declarado, venir del contexto o ser API conocida. Así un nombre
+// inventado y sin declarar (p. ej. `println(zz)`) se rechaza aunque el
+// resto de la estructura esté presente.
+function checkNoUndeclared(stuToks, solIds, declared, context) {
+    let inImport = false;
+    for (let p = 0; p < stuToks.length; p++) {
+        const t = stuToks[p];
+        if (t.k === 'kw' && (t.v === 'import' || t.v === 'package')) { inImport = true; continue; }
+        if (inImport) {
+            if (t.k === 'sym' && t.v === ';') inImport = false;
+            continue;
+        }
+        if (t.k !== 'id') continue;
+        const prev = p > 0 ? stuToks[p - 1] : null;
+        const next = p + 1 < stuToks.length ? stuToks[p + 1] : null;
+        if (prev && prev.k === 'sym' && prev.v === '.') continue;
+        if (next && next.k === 'sym' && next.v === '(') continue;
+        if (solIds.has(t.v)) continue;
+        if (declared.has(t.v)) continue;
+        if (context.has(t.v)) continue;
+        if (COMMON_NAMES.has(t.v)) continue;
+        return 'Esa variable no está declarada antes de usarla. Si querías mostrar un texto, va entre comillas dobles.';
+    }
+    return null;
+}
+
+function parensBalanced(toks) {
+    let d = 0;
+    for (const t of toks) {
+        if (t.k === 'sym' && t.v === '(') d++;
+        else if (t.k === 'sym' && t.v === ')') {
+            d--;
+            if (d < 0) return false;
+        }
+    }
+    return d === 0;
+}
+
+// Impresión de la tabla del id 26: println-concat con formato " x " /
+// " = " y producto i*j, o printf con formato %d que incluya x/= y salto
+// de línea, con i, j y el producto entre los argumentos.
+function checkTablaPrint(c) {
+    if (!c.ok || !c.hasSemicolon) return false;
+    if (c.method === 'println') {
+        const toks = tokenizeJava(c.arg);
+        const has = (pred) => toks.some(pred);
+        if (!has((t) => t.k === 'id' && t.v === 'i')) return false;
+        if (!has((t) => t.k === 'id' && t.v === 'j')) return false;
+        if (!has((t) => t.k === 'str' && t.v === ' x ')) return false;
+        if (!has((t) => t.k === 'str' && t.v === ' = ')) return false;
+        for (let k = 0; k + 2 < toks.length; k++) {
+            if (toks[k].k === 'id' && toks[k].v === 'i' &&
+                toks[k + 1].k === 'op' && toks[k + 1].v === '*' &&
+                toks[k + 2].k === 'id' && toks[k + 2].v === 'j') return true;
+        }
+        return false;
+    }
+    if (c.method === 'printf') {
+        const parts = splitTopLevel(c.arg, ',').map((p) => p.trim());
+        if (parts.length < 2) return false;
+        const fmt = parts[0];
+        if (!/^"([^"\\\n]|\\.)*"$/.test(fmt)) return false;
+        if (!fmt.includes('%d') || !fmt.includes('x') || !fmt.includes('=')) return false;
+        if (!/\\n|%n/.test(fmt)) return false;
+        const rest = tokenizeJava(parts.slice(1).join(','));
+        if (!rest.some((t) => t.k === 'id' && t.v === 'i')) return false;
+        if (!rest.some((t) => t.k === 'id' && t.v === 'j')) return false;
+        if (!rest.some((t) => t.k === 'op' && t.v === '*')) return false;
+        return true;
+    }
+    return false;
+}
+
+function tablaPrintDefect(c) {
+    if (!c.ok) return 'Falta cerrar el paréntesis de la impresión.';
+    if (!c.hasSemicolon) return 'Falta el punto y coma (;) al final de la instrucción.';
+    return null;
+}
+
+// Reglas estructurales por ejercicio (lotes 2+):
+// ctx = nombres que da el contexto (la consigna dice "ya está…");
+// free = nombres libres (renombrado consistente; el resto es fijo);
+// strings = 'fixed' (textos exactos) o 'free' (cualquier texto);
+// forInitTypeOptional = el for vale con o sin tipo en el init;
+// strictIncr = la consigna exige la forma `++`/`--` (ids 21, 22, 23):
+//   no aplica la equivalencia `X++` = `X += 1` = `X = X + 1`;
+// custom = validador propio (26: printf alternativo; 30: bloque común);
+// missing = mensaje conceptual ante estructura ausente (sin respuesta).
+const STRUCT_RULES = {
+    9: { ctx: [], free: [], strings: 'fixed', missing: 'Falta declarar la variable con su tipo y su valor.' },
+    10: { ctx: [], free: [], strings: 'fixed', missing: 'Falta declarar la variable de texto con su valor.' },
+    11: { ctx: ['d'], free: [], strings: 'fixed', missing: 'Falta declarar la variable convirtiendo el valor con (int).' },
+    12: { ctx: [], free: [], strings: 'fixed', missing: 'Falta declarar la constante con final, su tipo y su valor.' },
+    13: { ctx: ['a', 'b'], free: [], strings: 'fixed', missing: 'Falta declarar la variable con la suma de los dos valores usando +.' },
+    14: { ctx: [], free: [], strings: 'fixed', missing: 'Falta declarar la variable con el resto de la división usando %.' },
+    15: { ctx: ['a', 'b'], free: [], strings: 'fixed', missing: 'Falta declarar la variable combinando los dos valores con AND (&&).' },
+    16: { ctx: ['e'], free: [], strings: 'fixed', missing: 'Falta declarar la variable eligiendo entre los dos valores con el operador ternario.' },
+    17: { ctx: ['x'], free: [], strings: 'fixed', missing: 'Falta el if con su condición y la impresión adentro.' },
+    18: { ctx: ['n'], free: [], strings: 'fixed', missing: 'Falta el if-else que distingue los dos casos, con su impresión cada uno.' },
+    19: { ctx: ['n', 's'], free: [], strings: 'fixed', missing: 'Falta la cadena if / else if / else con los tres resultados.' },
+    20: { ctx: ['a', 'b', 'c'], free: [], strings: 'fixed', missing: 'Falta el if con la condición combinada usando &&, || y paréntesis.' },
+    // D-09 estrictos (la consigna nombra la forma exacta como parte de lo
+    // pedido: 21 "lo incremente con `i++`", 22 "baja con `i--`", 23
+    // "súmale 1 con `i++`"). El resto de los `++` acepta `+= 1` y `= + 1`.
+    21: { ctx: ['i'], free: [], strings: 'fixed', strictIncr: true, missing: 'Falta el while con su condición, la impresión y el incremento.' },
+    22: { ctx: [], free: [], strings: 'fixed', forInitTypeOptional: true, strictIncr: true, missing: 'Falta el for descendente con sus límites y la impresión.' },
+    23: { ctx: [], free: [], strings: 'fixed', strictIncr: true, missing: 'Falta el do-while con la inicialización, la impresión, el incremento y la condición.' },
+    24: { ctx: [], free: [], strings: 'fixed', missing: 'Falta el for con el if que sale con break y la impresión después.' },
+    25: { ctx: [], free: [], strings: 'fixed', missing: 'Falta el for con el if que salta la vuelta con continue y la impresión.' },
+    26: { ctx: [], free: [], strings: 'fixed', custom: 26, missing: 'Faltan los dos bucles anidados con la impresión de cada cuenta.' },
+    27: { ctx: [], free: [], strings: 'fixed', missing: 'Falta el while que acumula con +=, incrementa y después imprime el total.' },
+    28: { ctx: ['nums'], free: [], strings: 'fixed', missing: 'Falta recorrer cada elemento con for-each y la impresión.' },
+    29: { ctx: ['dia'], free: [], strings: 'fixed', missing: 'Falta el switch con sus casos, cada impresión y su break.' },
+    30: { ctx: [], free: [], strings: 'fixed', custom: 30, missing: 'Falta el switch con los casos compartidos, su impresión y el break.' },
+    31: { ctx: ['color'], free: [], strings: 'fixed', missing: 'Falta el switch sobre el texto con sus casos, cada impresión y su break.' },
+    32: { ctx: ['nota'], free: [], strings: 'fixed', missing: 'Falta la switch expression con flechas, sus casos y el punto y coma final.' },
+    33: { ctx: [], free: [], strings: 'fixed', missing: 'Falta crear el lector, mostrar el texto y leer el número con nextInt.' },
+    34: { ctx: [], free: [], strings: 'fixed', missing: 'Falta crear el lector, mostrar el texto y leer la línea con nextLine.' },
+    35: { ctx: [], free: [], strings: 'fixed', missing: 'Falta pedir primero el nombre y después la edad, cada uno con su lectura.' },
+    36: { ctx: [], free: [], strings: 'fixed', missing: 'Falta el if con hasNextInt, la lectura en un caso y el aviso en el otro.' },
+    37: { ctx: [], free: [], strings: 'fixed', missing: 'Falta el do-while que pide y lee hasta que el número sea cero.' },
+    38: { ctx: [], free: [], strings: 'fixed', missing: 'Falta cerrar el lector con close al final.' },
+    39: { ctx: [], free: [], strings: 'fixed', missing: 'Falta el try-with-resources con el lector, la lectura y la impresión.' },
+    40: { ctx: [], free: [], strings: 'fixed', missing: 'Falta crear el lector, mostrar el texto y leer el decimal con nextDouble.' },
+    41: { ctx: [], free: [], strings: 'fixed', missing: 'Falta declarar el array con new y su tamaño.' },
+    42: { ctx: [], free: [], strings: 'fixed', missing: 'Falta declarar el array inicializado con los tres valores entre llaves.' },
+    43: { ctx: ['nums'], free: [], strings: 'fixed', missing: 'Falta imprimir el primer elemento usando su índice.' },
+    44: { ctx: ['nums'], free: [], strings: 'fixed', missing: 'Falta cambiar el segundo elemento por el valor pedido usando su índice.' },
+    45: { ctx: ['nums'], free: [], strings: 'fixed', missing: 'Falta imprimir cuántos elementos tiene usando length sin paréntesis.' },
+    46: { ctx: ['nums'], free: [], strings: 'fixed', missing: 'Falta el for con length que imprime cada elemento.' },
+    47: { ctx: ['nums'], free: ['n'], strings: 'fixed', missing: 'Falta acumular cada elemento con += e imprimir el total.' },
+    48: { ctx: ['nums'], free: ['n'], strings: 'fixed', missing: 'Falta buscar el mayor comparando cada elemento e imprimirlo.' },
+    49: { ctx: [], free: [], strings: 'fixed', missing: 'Falta declarar la matriz de 2x2 con new.' },
+    50: { ctx: [], free: [], strings: 'fixed', missing: 'Falta declarar la matriz con las dos filas entre llaves anidadas.' },
+    51: { ctx: ['m'], free: [], strings: 'fixed', missing: 'Falta imprimir el elemento de la fila y columna pedidas con dos índices.' },
+    52: { ctx: ['m'], free: [], strings: 'fixed', missing: 'Falta recorrer filas y columnas imprimiendo cada número con print y el salto por fila.' },
+    53: { ctx: ['texto'], free: [], strings: 'fixed', missing: 'Falta imprimir la cantidad de caracteres usando length con paréntesis.' },
+    54: { ctx: ['a', 'b'], free: [], strings: 'fixed', missing: 'Falta unir los dos textos con un espacio en el medio e imprimir.' },
+    55: { ctx: ['texto'], free: [], strings: 'fixed', missing: 'Falta pasar el texto a mayúsculas con toUpperCase e imprimir.' },
+    56: { ctx: ['texto'], free: [], strings: 'fixed', missing: 'Falta tomar la parte del texto con substring y el rango pedido.' },
+    57: { ctx: ['a', 'b'], free: [], strings: 'fixed', missing: 'Falta el if que compara los textos con equals y su impresión.' },
+    58: { ctx: [], free: [], strings: 'fixed', missing: 'Faltan las tres llamadas a append en orden y la impresión con toString.' },
+    59: { ctx: [], free: [], strings: 'fixed', missing: 'Falta el método sin retorno que imprime el texto.' },
+    60: { ctx: [], free: [], strings: 'fixed', missing: 'Falta el método con sus dos parámetros y el return de la suma.' },
+    61: { ctx: [], free: [], strings: 'fixed', missing: 'Falta la clase con sus dos atributos y sus tipos.', alts: ['public class Persona {\n    int edad;\n    String nombre;\n}'] },
+    62: { ctx: [], free: [], strings: 'fixed', missing: 'Falta el constructor con sus parámetros y las asignaciones con this.', alts: ['public Persona(String nombre, int edad) {\n    this.edad = edad;\n    this.nombre = nombre;\n}'] },
+    63: { ctx: [], free: [], strings: 'fixed', missing: 'Falta crear el objeto con new y los dos valores en la variable.' },
+    64: { ctx: ['p'], free: [], strings: 'fixed', missing: 'Falta imprimir el atributo accediendo con el punto.' },
+    65: { ctx: [], free: [], strings: 'fixed', missing: 'Falta el método que imprime el texto junto al atributo.' },
+    66: { ctx: ['p'], free: [], strings: 'fixed', missing: 'Falta llamar al método sobre el objeto con el punto.' },
+    67: { ctx: [], free: [], strings: 'fixed', missing: 'Falta declarar el atributo como privado.' },
+    68: { ctx: [], free: [], strings: 'fixed', missing: 'Falta el método que devuelve el atributo con return.' },
+    69: { ctx: [], free: [], strings: 'fixed', missing: 'Falta el método que guarda el parámetro en el atributo con this.' },
+    70: { ctx: [], free: [], strings: 'fixed', missing: 'Falta el método con el if que solo asigna cuando el valor no es negativo.' },
+    71: { ctx: [], free: [], strings: 'fixed', missing: 'Falta la clase hija con extends y su atributo.' },
+    72: { ctx: [], free: [], strings: 'fixed', missing: 'Falta el constructor con super en la primera línea y la asignación.' },
+    73: { ctx: [], free: [], strings: 'fixed', missing: 'Falta el método con @Override que devuelve el texto junto al atributo.' },
+    74: { ctx: [], free: [], strings: 'fixed', missing: 'Falta guardar el objeto hijo en la variable de tipo padre.' },
+    75: { ctx: [], free: [], strings: 'fixed', missing: 'Falta la clase abstracta con su método sin cuerpo.' },
+    76: { ctx: [], free: [], strings: 'fixed', missing: 'Falta la clase hija con @Override que imprime el texto.' },
+    77: { ctx: [], free: [], strings: 'fixed', missing: 'Falta la interfaz con su método sin cuerpo.' },
+    78: { ctx: [], free: [], strings: 'fixed', missing: 'Falta la clase con implements, @Override y la impresión.' },
+    79: { ctx: [], free: [], strings: 'fixed', missing: 'Falta la clase con las dos interfaces y sus dos métodos.', alts: ['public class Pato implements Volador, Nadador {\n    public void nadar() { }\n    public void volar() { }\n}'] },
+    80: { ctx: [], free: [], strings: 'fixed', missing: 'Falta el método default con cuerpo y su impresión.' },
+    81: { ctx: [], free: [], strings: 'fixed', missing: 'Falta el atributo estático con su valor inicial.' },
+    82: { ctx: [], free: [], strings: 'fixed', missing: 'Falta el método de clase con sus parámetros y el return.' },
+    83: { ctx: [], free: [], strings: 'fixed', missing: 'Falta la constante de clase con sus modificadores y su valor.' },
+    84: { ctx: [], free: [], strings: 'fixed', missing: 'Falta el bloque static que asigna el texto.' },
+    85: { ctx: [], free: [], strings: 'fixed', missing: 'Falta la clase interna con su método vacío.' },
+    86: { ctx: [], free: [], strings: 'fixed', missing: 'Falta la clase anónima con @Override que imprime el texto.' },
+    87: { ctx: [], free: [], strings: 'fixed', missing: 'Falta el enum con sus tres constantes en orden.' },
+    88: { ctx: [], free: [], strings: 'fixed', missing: 'Falta el enum con sus valores, el atributo privado y el constructor con this.' },
+    89: { ctx: [], free: [], strings: 'fixed', missing: 'Falta el equals con @Override, instanceof, la comparación y el false.' },
+    90: { ctx: [], free: [], strings: 'fixed', missing: 'Falta el hashCode con @Override que devuelve el del atributo.' },
+    91: { ctx: [], free: [], strings: 'fixed', missing: 'Falta el compareTo con @Override que compara con Integer.compare.' },
+    92: { ctx: [], free: [], strings: 'fixed', missing: 'Falta la clase genérica con su atributo y el método que guarda.' },
+    93: { ctx: [], free: [], strings: 'fixed', missing: 'Falta el método genérico con su parámetro de tipo y la impresión.' },
+    94: { ctx: [], free: [], strings: 'fixed', missing: 'Falta la clase con la cota, el método mayor y el ternario con compareTo.' },
+    95: { ctx: [], free: [], strings: 'fixed', missing: 'Falta el método con wildcard que recorre e imprime cada elemento.' },
+    96: { ctx: [], free: [], strings: 'fixed', missing: 'Falta el record con sus dos componentes en orden.' },
+    97: { ctx: [], free: [], strings: 'fixed', missing: 'Falta la clase sellada con sealed y los permitidos.' },
+    98: { ctx: ['obj'], free: [], strings: 'fixed', missing: 'Falta el if con pattern matching y la impresión en mayúsculas.' },
+    99: { ctx: [], free: [], strings: 'fixed', missing: 'Falta la variable con el bloque de texto de tres líneas.' },
+    100: { ctx: ['dia'], free: [], strings: 'fixed', missing: 'Falta la switch expression con sus casos, el bloque con yield y el default.' },
+    101: { ctx: [], free: [], strings: 'fixed', diamond: true, missing: 'Falta declarar la lista con su tipo y el new vacío.' },
+    102: { ctx: ['lista'], free: [], strings: 'fixed', missing: 'Faltan los dos add en orden con sus textos.' },
+    103: { ctx: ['lista'], free: [], strings: 'fixed', missing: 'Falta guardar el elemento de la posición 0 con get.' },
+    104: { ctx: ['lista'], free: [], strings: 'fixed', missing: 'Falta eliminar el primer elemento con remove(0).' },
+    105: { ctx: ['nums'], free: [], strings: 'fixed', missing: 'Falta guardar la cantidad de elementos con size().' },
+    106: { ctx: ['lista'], free: [], strings: 'fixed', missing: 'Falta recorrer con for-each e imprimir cada elemento.' },
+    107: { ctx: [], free: [], strings: 'fixed', diamond: true, missing: 'Falta declarar el conjunto con su tipo y el new vacío.' },
+    108: { ctx: ['set'], free: [], strings: 'fixed', missing: 'Faltan los dos add iguales y la impresión del tamaño.' },
+    109: { ctx: ['set'], free: [], strings: 'fixed', missing: 'Falta guardar si contiene el texto usando contains.' },
+    110: { ctx: [], free: [], strings: 'fixed', diamond: true, missing: 'Falta declarar el mapa con sus tipos y el new vacío.' },
+    111: { ctx: ['edades'], free: [], strings: 'fixed', missing: 'Faltan los dos put con sus pares.', alts: ['edades.put("Luis", 30);\nedades.put("Ana", 25);'] },
+    112: { ctx: ['edades'], free: [], strings: 'fixed', missing: 'Falta guardar el valor de la clave usando get.' },
+    113: { ctx: ['mapa'], free: [], strings: 'fixed', missing: 'Falta el if con containsKey y su impresión.' },
+    114: { ctx: ['edades'], free: [], strings: 'fixed', missing: 'Falta recorrer con entrySet e imprimir cada par con getKey y getValue.' },
+    115: { ctx: [], free: [], strings: 'fixed', diamond: true, missing: 'Falta declarar la lista enlazada con su tipo y el new vacío.' },
+    116: { ctx: ['lista'], free: [], strings: 'fixed', missing: 'Falta agregar al inicio con addFirst y al final con addLast.' },
+    117: { ctx: [], free: [], strings: 'fixed', diamond: true, missing: 'Falta declarar el conjunto ordenado y agregar los tres números en orden.' },
+    118: { ctx: ['nums'], free: [], strings: 'fixed', missing: 'Falta ordenar de menor a mayor con sort.' },
+    119: { ctx: ['lista'], free: [], strings: 'fixed', missing: 'Falta invertir el orden con reverse.' },
+    120: { ctx: ['nums'], free: [], strings: 'fixed', missing: 'Falta guardar el mayor con max.' },
+    121: { ctx: [], free: [], strings: 'fixed', missing: 'Falta el try con la línea dada y el catch del tipo pedido con su impresión.' },
+    122: { ctx: [], free: [], strings: 'fixed', missing: 'Faltan los dos catch en orden con sus impresiones.' },
+    123: { ctx: [], free: [], strings: 'fixed', missing: 'Falta el try con catch y el finally con su impresión.' },
+    124: { ctx: ['edad'], free: [], strings: 'fixed', missing: 'Falta el if que lanza la excepción con su mensaje.' },
+    125: { ctx: [], free: [], strings: 'fixed', missing: 'Falta el método con throws en la firma.' },
+    126: { ctx: [], free: [], strings: 'fixed', missing: 'Falta la clase con extends, el constructor y el super con el mensaje.' },
+    127: { ctx: [], free: [], strings: 'fixed', missing: 'Falta la clase con extends, el constructor y el super con el mensaje.' },
+    128: { ctx: [], free: [], strings: 'fixed', missing: 'Falta el try-with-resources con la lectura y el catch que muestra la traza.' },
+    129: { ctx: [], free: [], strings: 'fixed', missing: 'Falta el multi-catch con | y su impresión.' },
+    130: { ctx: ['e'], free: [], strings: 'fixed', missing: 'Falta guardar el mensaje en la variable e imprimirla.' },
+    131: { ctx: ['e'], free: [], strings: 'fixed', missing: 'Falta la llamada que muestra la traza.' },
+    132: { ctx: [], free: [], strings: 'fixed', missing: 'Falta el catch que lanza la nueva excepción con mensaje y causa.' },
+    133: { ctx: ['edad'], free: [], strings: 'fixed', missing: 'Falta la aserción con su condición, los dos puntos y el mensaje.' },
+    134: { ctx: ['texto'], free: [], strings: 'fixed', missing: 'Falta el try con la lectura, el catch del tipo pedido y su impresión.' },
+    135: { ctx: [], free: [], strings: 'fixed', missing: 'Falta declarar el Optional vacío con empty.' },
+    136: { ctx: [], free: [], strings: 'fixed', missing: 'Falta declarar el Optional con el texto usando of.' },
+    137: { ctx: ['texto'], free: [], strings: 'fixed', missing: 'Falta crear el Optional desde la variable con ofNullable.' },
+    138: { ctx: ['opt'], free: [], strings: 'fixed', missing: 'Falta el if con isPresent y la impresión con get.' },
+    139: { ctx: ['opt'], free: [], strings: 'fixed', missing: 'Falta declarar la variable con orElse y su texto.' },
+    140: { ctx: ['opt'], free: [], strings: 'fixed', missing: 'Falta el ifPresent con la lambda que imprime.' },
+    141: { ctx: [], free: [], strings: 'fixed', missing: 'Falta la lambda sin parámetros que imprime el texto.' },
+    142: { ctx: [], free: [], strings: 'fixed', missing: 'Falta la lambda de un parámetro que lo imprime.' },
+    143: { ctx: [], free: [], strings: 'fixed', missing: 'Falta la lambda de dos parámetros que devuelve la suma.' },
+    144: { ctx: [], free: [], strings: 'fixed', missing: 'Falta la lambda con bloque, la intermedia en mayúsculas y la impresión.' },
+    145: { ctx: [], free: [], strings: 'fixed', missing: 'Falta el Predicate par y la prueba con test.' },
+    146: { ctx: [], free: [], strings: 'fixed', missing: 'Falta la Function longitud y su aplicación con apply.' },
+    147: { ctx: [], free: [], strings: 'fixed', missing: 'Falta el Consumer que imprime y su llamada con accept.' },
+    148: { ctx: [], free: [], strings: 'fixed', missing: 'Falta el Supplier con Math.random y su lectura con get.' },
+    149: { ctx: [], free: [], strings: 'fixed', missing: 'Falta la referencia al método estático con ::.' },
+    150: { ctx: [], free: [], strings: 'fixed', missing: 'Falta la referencia al método de instancia con ::.' },
+    151: { ctx: [], free: [], strings: 'fixed', missing: 'Falta la referencia al constructor con ::new.' },
+    152: { ctx: ['nums'], free: ['n'], strings: 'fixed', missing: 'Falta el pipeline con filter de pares y collect.' },
+    153: { ctx: ['nombres'], free: ['s'], strings: 'fixed', missing: 'Falta el pipeline con map a longitudes y collect.' },
+    154: { ctx: ['lista'], free: ['s'], strings: 'fixed', missing: 'Falta el forEach con la lambda que imprime.' },
+    155: { ctx: ['nums'], free: [], strings: 'fixed', missing: 'Falta contar los elementos con stream y count.' },
+    156: { ctx: ['nums'], free: [], strings: 'fixed', missing: 'Falta el reduce con valor inicial y la lambda que suma.' },
+    157: { ctx: ['nums'], free: [], strings: 'fixed', missing: 'Falta el pipeline con sorted y collect.' },
+    158: { ctx: ['nums'], free: [], strings: 'fixed', missing: 'Falta el pipeline con distinct y collect.' },
+    159: { ctx: ['nums'], free: [], strings: 'fixed', missing: 'Falta el pipeline con limit y su número.' },
+    160: { ctx: ['nums'], free: ['n'], strings: 'fixed', missing: 'Falta el anyMatch con la condición de par.' },
+    161: { ctx: ['nums'], free: ['n'], strings: 'fixed', missing: 'Falta el allMatch con la condición de par.' },
+    162: { ctx: [], free: [], strings: 'fixed', missing: 'Falta declarar el texto y escribirlo en el archivo.' },
+    163: { ctx: [], free: [], strings: 'fixed', missing: 'Falta leer todo el archivo en la variable.' },
+    164: { ctx: [], free: [], strings: 'fixed', missing: 'Falta guardar si el archivo existe.' },
+    165: { ctx: [], free: [], strings: 'fixed', missing: 'Falta borrar el archivo si existe.' },
+    166: { ctx: [], free: [], strings: 'fixed', missing: 'Falta el try con el lector, el bucle hasta null y la impresión.' },
+    167: { ctx: [], free: [], strings: 'fixed', missing: 'Falta el try con el escritor, las dos líneas y el salto en el medio.' },
+    169: { ctx: [], free: [], strings: 'fixed', missing: 'Falta la clase que extiende con el método que imprime.' },
+    170: { ctx: [], free: [], strings: 'fixed', missing: 'Falta la clase que implementa con el método que imprime.' },
+    171: { ctx: ['t'], free: [], strings: 'fixed', missing: 'Falta iniciar el hilo con start (no con run).' },
+    172: { ctx: [], free: [], strings: 'fixed', missing: 'Falta el try con sleep, el catch de interrupción y la traza.' },
+    173: { ctx: ['t'], free: [], strings: 'fixed', missing: 'Falta iniciar el hilo y esperarlo con join dentro del try.' },
+    174: { ctx: ['contador'], free: [], strings: 'fixed', missing: 'Falta el método synchronized que incrementa.' },
+    175: { ctx: ['lock'], free: [], strings: 'fixed', missing: 'Falta el bloque synchronized con el candado dado.' },
+    176: { ctx: [], free: [], strings: 'fixed', missing: 'Falta declarar la variable con volatile y su valor.' },
+    177: { ctx: [], free: [], strings: 'fixed', missing: 'Falta declarar el contador atómico e incrementarlo con su método.' },
+    178: { ctx: [], free: [], strings: 'fixed', missing: 'Falta crear el pool, enviar la tarea y apagarlo con shutdown.' },
+    179: { ctx: ['executor'], free: [], strings: 'fixed', missing: 'Falta la tarea, enviarla guardando el futuro y leer con get.' },
+    180: { ctx: [], free: ['s'], strings: 'fixed', missing: 'Falta la cadena con supplyAsync, thenApply, thenAccept y sus textos.' },
+    181: { ctx: [], free: [], strings: 'fixed', missing: 'Falta el latch con su cuenta y la espera con await.' },
+    182: { ctx: [], free: [], strings: 'fixed', missing: 'Falta la barrera para los hilos indicados.' },
+    183: { ctx: [], free: [], strings: 'fixed', missing: 'Falta el semáforo con acquire, el try y el release en finally.' },
+    184: { ctx: [], free: [], strings: 'fixed', diamond: true, missing: 'Falta el mapa concurrente con su entrada.' },
+    185: { ctx: [], free: [], strings: 'fixed', diamond: true, missing: 'Falta la lista concurrente con su elemento.' },
+    186: { ctx: [], free: [], strings: 'fixed', diamond: true, missing: 'Falta la cola con capacidad, put, take y su variable.' },
+    187: { ctx: [], free: [], strings: 'fixed', missing: 'Falta el candado tomado con lock y liberado en finally.' },
+    188: { ctx: [], free: [], strings: 'fixed', missing: 'Falta el candado de lectura tomado y liberado en finally.' },
+    189: { ctx: [], free: [], strings: 'fixed', missing: 'Falta la clase con el campo estático, el constructor privado y el método con la guarda null.' },
+    190: { ctx: [], free: [], strings: 'fixed', missing: 'Falta la fábrica con sus ramas por texto y el null final.' },
+    191: { ctx: [], free: [], strings: 'fixed', missing: 'Falta la clase con su Builder, el return this y el build.' },
+    192: { ctx: [], free: ['o'], strings: 'fixed', missing: 'Falta la interfaz, la lista con agregar y el notificar con forEach.' },
+    193: { ctx: [], free: [], strings: 'fixed', missing: 'Faltan los tres tipos con la suma y el setter del algoritmo.' },
+    194: { ctx: [], free: ['c'], strings: 'fixed', missing: 'Falta la interfaz, el decorador con su constructor y el texto decorado.' },
+    195: { ctx: [], free: [], strings: 'fixed', missing: 'Faltan las tres clases separadas.' },
+    196: { ctx: [], free: [], strings: 'fixed', missing: 'Falta la jerarquía abstracta con la fórmula del área.' },
+    197: { ctx: [], free: [], strings: 'fixed', missing: 'Falta la clase con su método vacío.' },
+    198: { ctx: [], free: [], strings: 'fixed', missing: 'Faltan las dos interfaces pequeñas con su método.', alts: ['interface Escaneable {\n    void escanear();\n}\ninterface Imprimible {\n    void imprimir();\n}'] },
+    199: { ctx: [], free: [], strings: 'fixed', missing: 'Falta la interfaz, el servicio con su campo y la asignación por constructor.' },
+    200: { ctx: [], free: [], strings: 'fixed', missing: 'Falta el test con el cálculo y la comprobación con el esperado primero.' },
+    201: { ctx: [], free: [], strings: 'fixed', bare: ['setUp'], missing: 'Falta el método anotado sin retorno.' },
+    202: { ctx: [], free: [], strings: 'fixed', missing: 'Falta el test con assertThrows, el tipo y el bloque que lanza.' },
+    203: { ctx: [], free: [], strings: 'fixed', missing: 'Falta el mock con su configuración de when y thenReturn.' },
+    204: { ctx: [], free: [], strings: 'fixed', missing: 'Falta el mock, la llamada y después la verificación.' },
+    205: { ctx: [], free: [], strings: 'fixed', missing: 'Falta el test en rojo y el método mínimo que lo hace pasar.' },
+    206: { ctx: [], free: [], strings: 'fixed', missing: 'Falta la cadena de aserciones con sus tres eslabones.' },
+    207: { ctx: [], free: [], strings: 'fixed', missing: 'Falta el test parametrizado con sus valores y la comprobación.' },
+    208: { ctx: [], free: [], strings: 'fixed', custom: 208, missing: 'Faltan las ideas de cobertura.' },
+};
+
+// Exposición para tests (patrón C-10: la clase se carga con vm).
+JavaValidator._struct = {
+    tokenizeJava, stripTernaryParens, stripOptionalBraces, sortModifierRuns,
+    normalizeStructToks, dropForInitType, structuralMatchTokens,
+    collectStudentEntities, checkNoUndeclared, checkCallParens, checkDiamond,
+    checkEmptyParens, parensBalanced, STRUCT_RULES, COMMON_NAMES,
+};
 
 // Create global validator instance
 const javaValidator = new JavaValidator();
