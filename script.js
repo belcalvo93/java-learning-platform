@@ -3690,31 +3690,64 @@ const progressManager = new ProgressManager();
 
 let currentLessonIndex = -1;
 
+function isLessonCardAvailable(lesson) {
+  if (typeof LessonNav !== 'undefined') {
+    if (typeof LessonNav.isAvailable === 'function' && LessonNav.isAvailable('lesson', lesson.id, { level: lesson.level }) !== true) {
+      return false;
+    }
+    if (typeof LessonNav.isLevelAvailable === 'function' && lesson.level && LessonNav.isLevelAvailable(lesson.level) !== true) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function buildLessonExercisesSummaryHtml(lesson) {
+  if (typeof exercisesData === 'undefined' || !Array.isArray(exercisesData)) return '';
+  const list = (typeof LessonNav !== 'undefined' && typeof LessonNav.getLessonExercises === 'function')
+    ? LessonNav.getLessonExercises(exercisesData, lesson.id)
+    : exercisesData.filter(e => e.lessonId === lesson.id);
+  if (list.length === 0) {
+    return '<div class="lesson-exercises-summary"><span class="lesson-reading-badge">📖 Lección de lectura</span></div>';
+  }
+  const items = list.map(ex =>
+    `<li class="lesson-exercise-link" data-exercise-id="${ex.id}" onclick="event.stopPropagation(); if (typeof openExercise === 'function') openExercise(${ex.id});">${ex.title}</li>`
+  ).join('');
+  return `<div class="lesson-exercises-summary">`
+    + `<div class="lesson-exercises-count" data-count="${list.length}">💻 ${list.length} ${list.length === 1 ? 'ejercicio' : 'ejercicios'}</div>`
+    + `<ul class="lesson-exercise-list">${items}</ul>`
+    + `</div>`;
+}
+
 function renderLessons(filterLevel) {
   const container = document.getElementById('lessons-grid');
   if (!container) return;
 
   container.innerHTML = '';
 
-  const filtered = filterLevel === 'all'
+  const filtered = (!filterLevel || filterLevel === 'all')
     ? lessonsData
     : lessonsData.filter(l => l.level === filterLevel);
 
   filtered.forEach(lesson => {
     const isCompleted = progressManager.isCompleted(lesson.id);
+    const available = isLessonCardAvailable(lesson);
     const card = document.createElement('div');
-    card.className = `lesson-card ${isCompleted ? 'completed' : ''}`;
+    card.className = `lesson-card level-${lesson.level} ${isCompleted ? 'completed' : ''}${!available ? ' lesson-locked' : ''}`.trim();
+    card.dataset.lessonId = String(lesson.id);
+    card.dataset.level = lesson.level;
     card.onclick = () => openLesson(lesson.id);
 
     card.innerHTML = `
       <div class="lesson-meta">
         <span class="lesson-id">#${lesson.id}</span>
-        <span class="lesson-duration">⏱ ${lesson.duration}</span>
+        <span class="lesson-duration">⏱️ ${lesson.duration}</span>
       </div>
       <h3 class="lesson-title">${lesson.title}</h3>
       <p class="lesson-desc">${lesson.description}</p>
+      ${buildLessonExercisesSummaryHtml(lesson)}
       <div class="lesson-footer">
-        ${isCompleted ? '<span class="status-badge">✅ Completada</span>' : '<span class="status-btn">Empezar</span>'}
+        ${isCompleted ? '<span class="status-badge">✓ Completada</span>' : '<span class="status-btn">Empezar →</span>'}
       </div>
     `;
     container.appendChild(card);
@@ -3748,6 +3781,7 @@ function openLesson(lessonId) {
   `;
 
   viewer.classList.add('active');
+  viewer.scrollTop = 0;
   document.body.style.overflow = 'hidden';
 }
 
@@ -3804,8 +3838,10 @@ function renderModulesView() {
     const completedCount = levelLessons.filter(l => progressManager.isCompleted(l.id)).length;
     const totalCount = levelLessons.length;
     const percentage = Math.round((completedCount / totalCount) * 100) || 0;
+    const levelAvailable = (typeof LessonNav !== 'undefined' && typeof LessonNav.isLevelAvailable === 'function')
+      ? LessonNav.isLevelAvailable(level.name) === true
+      : true;
 
-    // Agrupar por módulos
     const moduleGroups = {};
     levelLessons.forEach(lesson => {
       if (!moduleGroups[lesson.module]) {
@@ -3815,7 +3851,8 @@ function renderModulesView() {
     });
 
     const levelSection = document.createElement('div');
-    levelSection.className = `level-section ${level.name}`;
+    levelSection.className = `level-section ${level.name}${!levelAvailable ? ' level-locked' : ''}`;
+    levelSection.dataset.level = level.name;
 
     levelSection.innerHTML = `
       <div class="level-section-header" onclick="toggleLevelSection(this)">
@@ -3830,7 +3867,7 @@ function renderModulesView() {
             </div>
           </div>
         </div>
-        <span class="expand-icon">▼</span>
+        <span class="expand-icon">▾</span>
       </div>
       <div class="level-section-content">
         ${Object.keys(moduleGroups).sort((a, b) => a - b).map(moduleNum => {
@@ -3845,16 +3882,18 @@ function renderModulesView() {
               <div class="module-lessons">
                 ${moduleLessons.map(lesson => {
         const isCompleted = progressManager.isCompleted(lesson.id);
+        const available = isLessonCardAvailable(lesson);
         return `
-                    <div class="lesson-card ${isCompleted ? 'completed' : ''}" onclick="openLesson(${lesson.id})">
+                    <div class="lesson-card level-${lesson.level} ${isCompleted ? 'completed' : ''}${!available ? ' lesson-locked' : ''}" data-lesson-id="${lesson.id}" data-level="${lesson.level}" onclick="openLesson(${lesson.id})">
                       <div class="lesson-meta">
                         <span class="lesson-id">#${lesson.id}</span>
-                        <span class="lesson-duration">⏱ ${lesson.duration}</span>
+                        <span class="lesson-duration">⏱️ ${lesson.duration}</span>
                       </div>
                       <h3 class="lesson-title">${lesson.title}</h3>
                       <p class="lesson-desc">${lesson.description}</p>
+                      ${buildLessonExercisesSummaryHtml(lesson)}
                       <div class="lesson-footer">
-                        ${isCompleted ? '<span class="status-badge">✅ Completada</span>' : '<span class="status-btn">Empezar</span>'}
+                        ${isCompleted ? '<span class="status-badge">✓ Completada</span>' : '<span class="status-btn">Empezar →</span>'}
                       </div>
                     </div>
                   `;

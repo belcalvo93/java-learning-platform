@@ -339,13 +339,16 @@ C-01 → C-02 → C-04 → C-10 → C-07 → C-08*
   - `knowledge-base/04_modelo_de_datos.md` §ProgresoLocal (tilde de completado)
 
 ### [C-12] `ui-redesign`
-- **Estado**: `[ ]` pendiente
+- **Estado**: `[x]` completado y archivado (`openspec/changes/archive/2026-10-21-c-12-ui-redesign/`, spec sincronizada en `openspec/specs/ui-redesign/`) — Dirección A *Atelier Nocturno Editorial*, suite 2746/2746, browser-check 153/153, invariante 52/208 PASA, 0 errores de consola.
 - **Scope**: Rediseño visual del frontend en dos etapas (verificación manual con capturas antes/después — visual, sin lógica de negocio nueva)
   - Etapa 1 — dirección visual definida con la autora ANTES de escribir código: público, tono, paleta, tipografía y componentes; se documenta y Belén la aprueba; sin código hasta el OK
   - Etapa 2 — implementación con la skill `frontend-design`: conservar la identidad actual (paleta rosa/violeta refinada, no ruptura); sin cambiar IDs ni conteos 52/208 (RN-CON-01, RN-CON-03); sin librerías ni fuentes externas; contraste accesible (WCAG AA en texto) y buen uso en celular
   - Verificación manual: capturas antes/después en móvil + desktop, checklist de contraste y de invariantes 52/208, cero errores de consola; sin tests de lógica
   - Tener en cuenta (hallazgos C-16, ver C-11): el botón "Siguiente Ejercicio" navega por id y no por lección; el mensaje de indentación fallida no distingue una llave de más
   - Tener en cuenta (C-11b): las tarjetas de lección se enriquecen hoy desde `script-enhanced.js` envolviendo `renderLessons` y `renderModulesView`; integrarlas correctamente en el rediseño.
+  - Pendientes visuales a incluir en C-12:
+    1. Márgenes laterales del texto de lectura en móvil (≤ 480 px): mejoraron en C-11b pero siguen justos a criterio de la usuaria; revisar espaciado y tipografía en conjunto.
+    2. La sección "Mi progreso" del final de la página queda muy pegada al desplegable de "Nivel experto"; separarla y mejorar el diseño de esa zona.
 - **Dependencias**: C-11
 - **Governance**: BAJO
 - **Leer antes**:

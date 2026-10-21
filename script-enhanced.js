@@ -77,6 +77,7 @@ function openExercise(exerciseId) {
   `;
 
   viewer.classList.add('active');
+  viewer.scrollTop = 0;
   document.body.style.overflow = 'hidden';
 
   // Enable tab key in textarea + gutter de números sincronizado (c-11)
@@ -314,19 +315,16 @@ function validateByRules(userCode, exercise) {
 function displayValidationResult(validation, execution, exerciseId, options = {}) {
   const resultDiv = document.getElementById('exercise-result');
 
-  // Aviso de degradación honesta (sin backend en v1.0)
+  // C-12 Pendiente 4: aviso discreto en vez del banner azul llamativo, manteniendo contrato C-04
   let noticeHtml = '';
   if (options.notice) {
     noticeHtml = `
-      <div style="background: #ebf8ff; border-left: 4px solid #3182ce; padding: 0.75rem; border-radius: 4px; margin-top: 1rem;">
-        <p style="margin: 0; color: #2a4365; font-size: 0.9rem;">
-          ℹ️ ${options.notice}
-        </p>
+      <div class="validation-mode-note" data-notice="${options.notice}" title="${options.notice}">
+        <span>✓ Validado en tu navegador</span>
       </div>
     `;
   }
 
-  // Construir HTML de errores
   let errorsHtml = '';
   if (validation.errors && validation.errors.length > 0) {
     const criticalErrors = validation.errors.filter(e => e.severity === 'error');
@@ -334,9 +332,9 @@ function displayValidationResult(validation, execution, exerciseId, options = {}
 
     if (criticalErrors.length > 0) {
       errorsHtml += `
-        <div style="background: #fff5f5; border-left: 4px solid #e53e3e; padding: 1rem; border-radius: 4px; margin-top: 1rem;">
-          <strong style="color: #742a2a;">❌ Errores Encontrados:</strong>
-          <ul style="margin: 0.5rem 0 0 1.5rem; color: #742a2a; font-size: 0.9rem;">
+        <div class="result-card result-errors-list">
+          <strong>✗ Errores Encontrados:</strong>
+          <ul>
             ${criticalErrors.map(e => `<li>${e.message}${e.line ? ` (Línea ${e.line})` : ''}</li>`).join('')}
           </ul>
         </div>
@@ -345,9 +343,9 @@ function displayValidationResult(validation, execution, exerciseId, options = {}
 
     if (warnings.length > 0) {
       errorsHtml += `
-        <div style="background: #fffaf0; border-left: 4px solid #ed8936; padding: 0.75rem; border-radius: 4px; margin-top: 0.5rem; font-size: 0.85rem;">
-          <strong style="color: #7c2d12;">⚠ Sugerencias de Mejora:</strong>
-          <ul style="margin: 0.25rem 0 0 1.5rem; color: #7c2d12;">
+        <div class="result-card result-warnings-list">
+          <strong>⚠️ Sugerencias de Mejora:</strong>
+          <ul>
             ${warnings.map(w => `<li>${w.message}</li>`).join('')}
           </ul>
         </div>
@@ -355,74 +353,58 @@ function displayValidationResult(validation, execution, exerciseId, options = {}
     }
   }
 
-  // Construir HTML de sugerencias
   let suggestionsHtml = '';
   if (validation.suggestions && validation.suggestions.length > 0) {
     suggestionsHtml = `
-      <div style="background: rgba(72, 187, 120, 0.1); border-left: 4px solid #48bb78; padding: 0.75rem; border-radius: 4px; margin-top: 0.5rem; font-size: 0.85rem;">
-        <strong style="color: #22543d;">💡 Sugerencias:</strong>
-        <ul style="margin: 0.25rem 0 0 1.5rem; color: #276749;">
+      <div class="result-card result-suggestions-list">
+        <strong>💡 Sugerencias:</strong>
+        <ul>
           ${validation.suggestions.map(s => `<li>${s}</li>`).join('')}
         </ul>
       </div>
     `;
   }
 
-  // Construir HTML de output: solo salida genuina (c-11-editor-ux 6.3).
-  // validator.js ya no emite salidas simuladas (`output` siempre ''): sin
-  // ejecución real (C-06) no se muestra ningún bloque. Robusto si `output`
-  // falta o `execution` viene vacío.
-  // (El campo `output` de validator.js NO es regla: solo texto de salida.)
   let outputHtml = '';
   const shownOutput = (execution && execution.output && execution.output !== 'Código ejecutado')
     ? execution.output
     : '';
   if (shownOutput) {
     outputHtml = `
-      <div style="background: #1a202c; color: #e2e8f0; padding: 1rem; border-radius: 6px; margin-top: 1rem; font-family: 'Fira Code', monospace;">
-        <div style="color: #48bb78; margin-bottom: 0.5rem; font-weight: 600;">▶ Salida del programa:</div>
-        <pre style="margin: 0; color: #e2e8f0; white-space: pre-wrap; line-height: 1.6;">${shownOutput}</pre>
+      <div class="result-card result-output-card">
+        <div class="result-output-title">▸ Salida del programa:</div>
+        <pre>${shownOutput}</pre>
       </div>
     `;
   }
 
-  // Pista (c-11-editor-ux): oculta ante éxito, visible ante fallo o a pedido
-  // con "Ver Pista" (showHint). No toca noticeHtml (contrato C-04).
   const hintDiv = document.getElementById('exercise-hint');
   const hintExercise = exercisesData.find(e => e.id === exerciseId);
 
-  // Resultado final
   if (validation.success) {
     if (hintDiv) hintDiv.style.display = 'none';
     resultDiv.innerHTML = `
-      ${noticeHtml}
-      <div style="background: #f0fff4; border-left: 4px solid #48bb78; padding: 1rem; border-radius: 4px; margin-top: 1rem;">
-        <strong style="color: #22543d;">✓ ¡Excelente Trabajo!</strong>
-        <p style="margin: 0.5rem 0 0; color: #276749; font-size: 0.9rem;">
-          Tu código es correcto y cumple con los requisitos del ejercicio.
-        </p>
+      <div class="result-card result-success">
+        <strong>✓ ¡Excelente Trabajo!</strong>
+        <p>Tu código es correcto y cumple con los requisitos del ejercicio.</p>
       </div>
       ${errorsHtml}
       ${suggestionsHtml}
       ${outputHtml}
+      ${noticeHtml}
     `;
     resultDiv.className = 'exercise-result success';
 
-    // Marcar como completado
     const exercise = exercisesData.find(e => e.id === exerciseId);
     if (exercise) {
       progressManager.markAsCompleted(exercise.lessonId);
-
-      // Guardar que este ejercicio específico está completado
       try {
         if (typeof safeSet === 'function') {
           safeSet(localStorage, `exercise_${exerciseId}_completed`, 'true');
         } else {
           localStorage.setItem(`exercise_${exerciseId}_completed`, 'true');
         }
-      } catch (_) { /* el progreso en memoria sigue válido */ }
-
-      // Verificar si se completaron TODOS los ejercicios de esta lección
+      } catch (_) { /* el progreso en memoria sigue v?lido */ }
       checkLessonCompletion(exercise.lessonId, exerciseId, resultDiv);
     }
   } else {
@@ -431,24 +413,22 @@ function displayValidationResult(validation, execution, exerciseId, options = {}
       hintDiv.style.display = 'block';
     }
     resultDiv.innerHTML = `
-      ${noticeHtml}
-      <div style="background: #fff5f5; border-left: 4px solid #e53e3e; padding: 1rem; border-radius: 4px; margin-top: 1rem;">
-        <strong style="color: #742a2a;">✗ Necesita Correcciones</strong>
-        <p style="margin: 0.5rem 0 0; color: #742a2a; font-size: 0.9rem;">
-          Tu código necesita algunos ajustes para cumplir con los requisitos.
-        </p>
+      <div class="result-card result-error">
+        <strong>✗ Necesita Correcciones</strong>
+        <p>Revisá los puntos señalados abajo para ajustar tu solución.</p>
       </div>
       ${errorsHtml}
       ${suggestionsHtml}
       ${outputHtml}
+      ${noticeHtml}
     `;
     resultDiv.className = 'exercise-result error';
   }
 }
 
 /**
- * Verifica si todos los ejercicios de una lección están completados
- * Si es así, muestra un mensaje de felicitación con botón a la siguiente lección
+ * Verifica si todos los ejercicios de una lecci?n est?n completados
+ * Si es as?, muestra un mensaje de felicitaci?n con bot?n a la siguiente lecci?n
  */
 function checkLessonCompletion(lessonId, currentExerciseId, resultDiv) {
   // Obtener todos los ejercicios de esta lección
@@ -546,14 +526,29 @@ function resetExercise(exerciseId) {
   document.getElementById('exercise-hint').style.display = 'none';
 }
 
+function filterExercisesMenuLevel(levelKey, btn) {
+  const root = document.getElementById('exercise-content');
+  if (!root) return;
+  root.querySelectorAll('.exercises-level-pill').forEach((b) => {
+    b.classList.toggle('active', b === btn);
+  });
+  root.querySelectorAll('.exercises-level-section').forEach((sec) => {
+    sec.style.display = (!levelKey || levelKey === 'all' || sec.dataset.level === levelKey) ? '' : 'none';
+  });
+}
+
 function showExercisesMenu() {
+  const viewer = document.getElementById('exercise-viewer');
+  if (viewer) viewer.scrollTop = 0;
   const content = document.getElementById('exercise-content');
   delete content.dataset.exerciseId;
 
-  const getLevelName = (level) => {
-    const names = { beginner: 'Principiante', intermediate: 'Intermedio', advanced: 'Avanzado', expert: 'Experto' };
-    return names[level];
-  };
+  const levelMeta = [
+    { key: 'beginner', name: 'Principiante', icon: '🌱' },
+    { key: 'intermediate', name: 'Intermedio', icon: '🚀' },
+    { key: 'advanced', name: 'Avanzado', icon: '⚡' },
+    { key: 'expert', name: 'Experto', icon: '👑' }
+  ];
 
   const groups = (typeof LessonNav !== 'undefined' && LessonNav.groupExercisesByLesson)
     ? LessonNav.groupExercisesByLesson(exercisesData, lessonsData)
@@ -562,45 +557,67 @@ function showExercisesMenu() {
     ? LessonNav.readingLessonIds(exercisesData, lessonsData)
     : [];
 
-  content.innerHTML = `
-        <button class="lesson-close" onclick="closeExercise()">×</button>
-        <h2>📋 Todos los Ejercicios (${exercisesData.length} total)</h2>
-        <p style="color: var(--text-secondary); margin-bottom: 1rem;">Haz clic en cualquier ejercicio para practicar (agrupados por lección)</p>
-        ${readingIds.length ? `<p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.5rem;">📖 Lecciones de lectura (sin ejercicios): ${readingIds.map(id => '#' + id).join(', ')}</p>` : ''}
-        
-        <div class="exercises-menu-groups" style="display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.5rem;">
-            ${groups.map((group) => {
-    const levelName = getLevelName(group.lesson.level);
+  const levelSectionsHtml = levelMeta.map((lvl) => {
+    const lvlGroups = groups.filter((g) => g.lesson.level === lvl.key);
+    const lvlExCount = lvlGroups.reduce((acc, g) => acc + g.exercises.length, 0);
     return `
-                <div class="exercise-group" data-lesson-id="${group.lesson.id}" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 1rem;">
-                    <h3 class="exercise-group-title" style="margin: 0 0 0.75rem 0; font-size: 1.05rem; color: var(--text-primary);">
-                        Lección #${group.lesson.id}: ${group.lesson.title} <span style="color: var(--text-muted); font-weight: 400; font-size: 0.85rem;">• ${levelName} (${group.exercises.length} ${group.exercises.length === 1 ? 'ejercicio' : 'ejercicios'})</span>
-                    </h3>
-                    <div class="exercise-group-items" style="display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.75rem;">
-                        ${group.exercises.map((ex, idx) => `
-                            <div class="lesson-card exercise-item" data-exercise-id="${ex.id}" onclick="openExercise(${ex.id})" style="cursor: pointer; padding: 0.85rem 1rem; background: rgba(255,255,255,0.05); border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); transition: all 0.3s;">
-                                <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.75rem;">
-                                    <div style="min-width: 0; flex: 1;">
-                                        <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.2rem;">
-                                            Ejercicio ${idx + 1} de ${group.exercises.length} • ${levelName}
-                                        </div>
-                                        <h4 style="margin: 0; color: var(--text-primary);">${ex.title}</h4>
-                                        <p style="margin: 0.35rem 0 0; color: var(--text-secondary); font-size: 0.9rem;">${ex.description}</p>
-                                    </div>
-                                    <div style="font-size: 1.35rem;">💻</div>
-                                </div>
-                            </div>
-                        `).join('')}
+      <section class="exercises-level-section level-${lvl.key}" data-level="${lvl.key}">
+        <header class="exercises-level-header">
+          <div class="exercises-level-title">
+            <span class="exercises-level-icon" aria-hidden="true">${lvl.icon}</span>
+            <h3>Nivel ${lvl.name}</h3>
+          </div>
+          <span class="exercises-level-badge">${lvlGroups.length} lecciones • ${lvlExCount} ejercicios</span>
+        </header>
+        <div class="exercises-level-groups">
+          ${lvlGroups.map((group) => `
+            <div class="exercise-group" data-lesson-id="${group.lesson.id}" data-level="${lvl.key}">
+              <h4 class="exercise-group-title">
+                <span class="exercise-group-num">Lección #${group.lesson.id}</span>
+                <span class="exercise-group-name">${group.lesson.title}</span>
+                <span class="exercise-group-count">${group.exercises.length} ${group.exercises.length === 1 ? 'ejercicio' : 'ejercicios'}</span>
+              </h4>
+              <div class="exercise-group-items">
+                ${group.exercises.map((ex, idx) => `
+                  <div class="exercise-item" data-exercise-id="${ex.id}" onclick="openExercise(${ex.id})">
+                    <div class="exercise-item-main">
+                      <div class="exercise-item-meta">Ejercicio ${idx + 1} de ${group.exercises.length} • ${lvl.name}</div>
+                      <div class="exercise-item-title">${ex.title}</div>
+                      <p class="exercise-item-desc">${String(ex.description || "").split("<br>")[0]}</p>
                     </div>
-                </div>
-            `;
-  }).join('')}
+                    <span class="exercise-item-cta" aria-hidden="true">Practicar →</span>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          `).join('')}
         </div>
-        
-        <div class="lesson-navigation" style="margin-top: 2rem;">
-            <button class="nav-btn" data-nav="close" onclick="closeExercise()">Cerrar</button>
-        </div>
+      </section>
     `;
+  }).join('');
+
+  content.innerHTML = `
+    <button class="lesson-close" onclick="closeExercise()" aria-label="Cerrar listado">×</button>
+    <h2>💻 Todos los Ejercicios (${exercisesData.length} total)</h2>
+    <p class="exercises-menu-lead">Recorré los ejercicios organizados por nivel y por lección. Elegí cualquiera para abrir el editor.</p>
+    ${readingIds.length ? `<p class="exercises-menu-reading-note">📖 Lecciones teóricas de lectura (sin ejercicios): ${readingIds.map(id => '#' + id).join(', ')}</p>` : ''}
+
+    <div class="exercises-level-filter" role="group" aria-label="Filtrar ejercicios por nivel">
+      <button type="button" class="exercises-level-pill active" data-level-filter="all" onclick="filterExercisesMenuLevel('all', this)">Todos (${exercisesData.length})</button>
+      ${levelMeta.map((lvl) => {
+        const count = groups.filter((g) => g.lesson.level === lvl.key).reduce((a, g) => a + g.exercises.length, 0);
+        return `<button type="button" class="exercises-level-pill level-${lvl.key}" data-level-filter="${lvl.key}" onclick="filterExercisesMenuLevel('${lvl.key}', this)">${lvl.icon} ${lvl.name} (${count})</button>`;
+      }).join('')}
+    </div>
+
+    <div class="exercises-menu-groups">
+      ${levelSectionsHtml}
+    </div>
+
+    <div class="lesson-navigation">
+      <button class="nav-btn" data-nav="close" onclick="closeExercise()">Cerrar</button>
+    </div>
+  `;
 }
 
 // ============================================
@@ -915,11 +932,8 @@ window.openLesson = function (lessonId) {
 // ============================================
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Add evaluation buttons to level cards
   document.querySelectorAll('.level-card').forEach(card => {
     const level = card.dataset.level;
-
-    // Map level to study guide
     const studyGuides = {
       beginner: 'guia-principiante.html',
       intermediate: 'guia-intermedio.html',
@@ -927,112 +941,30 @@ document.addEventListener('DOMContentLoaded', () => {
       expert: 'guia-experto.html'
     };
 
-    // Add study guide button
+    const actionsWrap = document.createElement('div');
+    actionsWrap.className = 'level-card-actions';
+
     const studyBtn = document.createElement('a');
     studyBtn.href = studyGuides[level];
     studyBtn.download = studyGuides[level];
-    studyBtn.className = 'btn-secondary';
-    studyBtn.style.marginTop = '1rem';
-    studyBtn.style.width = '100%';
-    studyBtn.style.display = 'block';
-    studyBtn.style.textAlign = 'center';
-    studyBtn.textContent = '📚 Descargar Material de Estudio';
+    studyBtn.className = 'btn-secondary level-guide-btn';
+    studyBtn.textContent = '?? Descargar Material de Estudio';
     studyBtn.onclick = (e) => {
       e.stopPropagation();
     };
 
-    // Add evaluation button
     const evalBtn = document.createElement('button');
-    evalBtn.className = 'btn-primary';
-    evalBtn.style.marginTop = '0.5rem';
-    evalBtn.style.width = '100%';
-    evalBtn.textContent = '📝 Tomar Evaluación';
+    evalBtn.className = 'btn-primary level-eval-btn';
+    evalBtn.textContent = '?? Tomar Evaluaci?n';
     evalBtn.onclick = (e) => {
       e.stopPropagation();
       startEvaluation(level);
     };
 
-    card.appendChild(studyBtn);
-    card.appendChild(evalBtn);
+    actionsWrap.appendChild(studyBtn);
+    actionsWrap.appendChild(evalBtn);
+    card.appendChild(actionsWrap);
   });
 
-  // Decorar tarjetas de lección (C-11b)
-  decorateLessonCards();
-
-  // Check for certificate on load
   checkForCertificate();
 });
-
-// ============================================
-// C-11b: TARJETAS DE LECCIÓN CON SUS EJERCICIOS Y DISPONIBILIDAD
-// ============================================
-
-function decorateLessonCards(rootSelector) {
-  if (typeof LessonNav === 'undefined' || typeof exercisesData === 'undefined' || typeof lessonsData === 'undefined') {
-    return;
-  }
-  const readingSet = new Set(LessonNav.readingLessonIds(exercisesData, lessonsData));
-  const scope = rootSelector ? document.querySelectorAll(rootSelector + ' .lesson-card') : document.querySelectorAll('#lessons-grid .lesson-card, #modules-view .lesson-card');
-  scope.forEach((card) => {
-    const idSpan = card.querySelector('.lesson-id');
-    const lessonId = card.dataset.lessonId
-      ? Number(card.dataset.lessonId)
-      : (idSpan ? Number((idSpan.textContent || '').replace(/[^0-9]/g, '')) : 0);
-    if (!lessonId) return;
-    card.dataset.lessonId = String(lessonId);
-
-    const available = LessonNav.isAvailable('lesson', lessonId) === true;
-    card.classList.toggle('lesson-locked', !available);
-
-    const prevSummary = card.querySelector('.lesson-exercises-summary');
-    if (prevSummary) prevSummary.remove();
-
-    const summary = document.createElement('div');
-    summary.className = 'lesson-exercises-summary';
-    if (readingSet.has(lessonId)) {
-      const badge = document.createElement('span');
-      badge.className = 'lesson-reading-badge';
-      badge.textContent = '📖 Lección de lectura';
-      summary.appendChild(badge);
-    } else {
-      const list = LessonNav.getLessonExercises(exercisesData, lessonId);
-      const countEl = document.createElement('div');
-      countEl.className = 'lesson-exercises-count';
-      countEl.dataset.count = String(list.length);
-      countEl.textContent = `💻 ${list.length} ${list.length === 1 ? 'ejercicio' : 'ejercicios'}`;
-      const ul = document.createElement('ul');
-      ul.className = 'lesson-exercise-list';
-      list.forEach((ex) => {
-        const li = document.createElement('li');
-        li.textContent = ex.title;
-        ul.appendChild(li);
-      });
-      summary.appendChild(countEl);
-      summary.appendChild(ul);
-    }
-
-    const footer = card.querySelector('.lesson-footer');
-    if (footer) {
-      card.insertBefore(summary, footer);
-    } else {
-      card.appendChild(summary);
-    }
-  });
-}
-
-if (typeof window.renderLessons === 'function') {
-  const originalRenderLessons = window.renderLessons;
-  window.renderLessons = function (filterLevel) {
-    originalRenderLessons(filterLevel);
-    decorateLessonCards('#lessons-grid');
-  };
-}
-
-if (typeof window.renderModulesView === 'function') {
-  const originalRenderModulesView = window.renderModulesView;
-  window.renderModulesView = function () {
-    originalRenderModulesView();
-    decorateLessonCards('#modules-view');
-  };
-}
-
