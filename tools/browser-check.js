@@ -172,7 +172,7 @@ async function runNavigationChecks(browser, url, check, ownErrors) {
   }
   check('tarjetas: abrir una tarjeta sigue abriendo la lección', await (async () => {
     await page.evaluate(() => switchView('grid'));
-    await page.click('#lessons-grid .lesson-card[data-lesson-id="3"]');
+    await page.click('#lessons-grid .lesson-card[data-lesson-id="3"] .lesson-title');
     const ok = await page.evaluate(() => document.getElementById('lesson-viewer').classList.contains('active'));
     await page.evaluate(() => closeLesson());
     return ok;
@@ -314,7 +314,7 @@ async function measureExerciseScreen(page, width, longLine) {
         insideCard: b.left >= cardRect.left - 0.5 && b.right <= cardRect.right + 0.5,
         insideScreen: b.left >= -0.5 && b.right <= vw + 0.5,
         lines: lines(el), clipped: el.scrollWidth > el.clientWidth + 1,
-        bg: cs.backgroundImage, fontSize: parseFloat(cs.fontSize),
+        bg: cs.backgroundImage !== 'none' ? cs.backgroundImage : cs.backgroundColor, fontSize: parseFloat(cs.fontSize),
       };
     };
     const actions = Array.from(document.querySelectorAll('#exercise-content .exercise-actions button')).map(info);
@@ -565,6 +565,155 @@ async function runResponsiveChecks(browser, url, check, ownErrors) {
   }
 }
 
+async function runC12bChecks(browser, url, check, ownErrors) {
+  const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+  page.on('pageerror', (err) => ownErrors.push(String(err && err.message || err)));
+  await page.goto(url);
+  await page.waitForFunction(() => typeof openExercise === 'function' && typeof exercisesData !== 'undefined', null, { timeout: 30000 });
+
+  // 1) Botones de nivel sin "??" y con "Tomar Evaluación" y "Descargar Material de Estudio"
+  const levelBtns = await page.evaluate(() => {
+    const cards = [...document.querySelectorAll('.level-card')];
+    return cards.map((c) => ({
+      level: c.dataset.level,
+      guideText: (c.querySelector('.level-guide-btn')?.textContent || '').trim(),
+      evalText: (c.querySelector('.level-eval-btn')?.textContent || '').trim(),
+    }));
+  });
+  check('C-12b: los 4 niveles muestran "Descargar Material de Estudio" y "Tomar Evaluación" sin "?" ni "??"',
+    levelBtns.length === 4 && levelBtns.every((b) =>
+      b.guideText === 'Descargar Material de Estudio'
+      && b.evalText === 'Tomar Evaluación'
+      && !b.guideText.includes('?')
+      && !b.evalText.includes('?')),
+    JSON.stringify(levelBtns));
+
+  // 2) Aviso local capitalizado y logo SVG propio sin ☕
+  const headerAndNotice = await page.evaluate(() => {
+    const logo = document.querySelector('.logo');
+    const notice = document.getElementById('local-only-notice');
+    return {
+      hasLogoSvg: Boolean(logo && logo.querySelector('svg')),
+      logoText: (logo?.textContent || '').trim(),
+      hasCoffeeEmoji: (logo?.textContent || '').includes('☕'),
+      noticeText: (notice?.textContent || '').trim(),
+    };
+  });
+  check('C-12b: logo SVG geométrico propio junto a "JavaMaster" (sin ☕) y aviso local con mayúscula inicial',
+    headerAndNotice.hasLogoSvg
+    && headerAndNotice.logoText === 'JavaMaster'
+    && !headerAndNotice.hasCoffeeEmoji
+    && headerAndNotice.noticeText.startsWith('Tu progreso se guarda solo en este navegador'),
+    JSON.stringify(headerAndNotice));
+
+  // 3) Selector de modo día / noche (#theme-toggle) accesible y persistente
+  const themeCheck = await page.evaluate(() => {
+    const btn = document.getElementById('theme-toggle');
+    if (!btn) return { exists: false };
+    const r = btn.getBoundingClientRect();
+    const initialTheme = document.documentElement.dataset.theme;
+    const initialBg = getComputedStyle(document.body).backgroundColor;
+    btn.click();
+    const afterFirstClick = document.documentElement.dataset.theme;
+    const afterFirstBg = getComputedStyle(document.body).backgroundColor;
+    const storedFirst = localStorage.getItem('javamaster_theme');
+    const pressedFirst = btn.getAttribute('aria-pressed');
+    btn.click();
+    const afterSecondClick = document.documentElement.dataset.theme;
+    const storedSecond = localStorage.getItem('javamaster_theme');
+    return {
+      exists: true,
+      width: r.width,
+      height: r.height,
+      hasSunAndMoonSvg: btn.querySelectorAll('svg').length >= 2,
+      ariaLabel: btn.getAttribute('aria-label') || '',
+      initialTheme,
+      afterFirstClick,
+      afterSecondClick,
+      bgChanged: initialBg !== afterFirstBg,
+      storedFirst,
+      storedSecond,
+      pressedFirst,
+    };
+  });
+  check('C-12b: #theme-toggle >= 44x44 px, con SVGs sol/luna, alterna data-theme dark/light y persiste en localStorage',
+    Boolean(themeCheck.exists
+      && themeCheck.width >= 43.5
+      && themeCheck.height >= 43.5
+      && themeCheck.hasSunAndMoonSvg
+      && /modo/i.test(themeCheck.ariaLabel)
+      && themeCheck.initialTheme !== themeCheck.afterFirstClick
+      && themeCheck.afterFirstClick === themeCheck.storedFirst
+      && themeCheck.afterSecondClick === themeCheck.initialTheme
+      && themeCheck.afterSecondClick === themeCheck.storedSecond
+      && themeCheck.bgChanged),
+    JSON.stringify(themeCheck));
+
+  // 4) Guías verticales de indentación en el editor al usar Tab (en modo oscuro y claro)
+  await openAndRead(page, 1);
+  // Probar presionar Tab en una línea nueva que queda solo con 4 espacios ("    ")
+  await page.evaluate(() => {
+    const ta = document.getElementById('exercise-code');
+    ta.value = 'public class Main {\n';
+    ta.selectionStart = ta.selectionEnd = ta.value.length;
+    ta.dispatchEvent(new Event('input'));
+  });
+  await page.focus('#exercise-code');
+  await page.keyboard.press('Tab');
+
+  const tabBlankLineCheck = await page.evaluate(() => {
+    const line0Guides = document.querySelectorAll('#indent-guides .indent-guide[data-line="0"]').length;
+    const line1Guides = document.querySelectorAll('#indent-guides .indent-guide[data-line="1"]').length;
+    return { line0Guides, line1Guides, value: document.getElementById('exercise-code').value };
+  });
+  check('C-12b: al presionar Tab en una línea (incluso sin texto aún), aparece de inmediato 1 guía en esa línea y 0 en la línea sin indentar',
+    tabBlankLineCheck.line0Guides === 0 && tabBlankLineCheck.line1Guides === 1,
+    JSON.stringify(tabBlankLineCheck));
+
+  // Ahora escribimos código con 1 Tab (4 espacios) y 2 Tabs (8 espacios) y verificamos por línea y en ambos temas
+  await page.keyboard.type('public static void main(String[] args) {\n');
+  await page.keyboard.press('Tab');
+  await page.keyboard.press('Tab');
+  await page.keyboard.type('System.out.println("Hola");\n');
+  await page.keyboard.press('Tab');
+  await page.keyboard.type('}\n}');
+
+  const multiLevelGuides = await page.evaluate(() => {
+    const countForLine = (ln) => document.querySelectorAll(`#indent-guides .indent-guide[data-line="${ln}"]`).length;
+    const sampleGuide = document.querySelector('#indent-guides .indent-guide');
+    const darkBg = sampleGuide ? getComputedStyle(sampleGuide).backgroundColor : '';
+    const darkWidth = sampleGuide ? sampleGuide.getBoundingClientRect().width : 0;
+    document.getElementById('theme-toggle').click();
+    const lightBg = sampleGuide ? getComputedStyle(sampleGuide).backgroundColor : '';
+    const lightWidth = sampleGuide ? sampleGuide.getBoundingClientRect().width : 0;
+    document.getElementById('theme-toggle').click();
+    return {
+      line0: countForLine(0), // public class Main { -> 0
+      line1: countForLine(1), //     public static void main... -> 1
+      line2: countForLine(2), //         System.out.println... -> 2
+      line3: countForLine(3), //     } -> 1
+      line4: countForLine(4), // } -> 0
+      darkBg,
+      lightBg,
+      darkWidth,
+      lightWidth,
+    };
+  });
+  check('C-12b: guías de indentación solo en los niveles usados por línea (0, 1, 2, 1, 0) y visibles en tema oscuro y claro',
+    multiLevelGuides.line0 === 0
+    && multiLevelGuides.line1 === 1
+    && multiLevelGuides.line2 === 2
+    && multiLevelGuides.line3 === 1
+    && multiLevelGuides.line4 === 0
+    && multiLevelGuides.darkWidth >= 0.8
+    && multiLevelGuides.lightWidth >= 0.8
+    && multiLevelGuides.darkBg !== 'rgba(0, 0, 0, 0)'
+    && multiLevelGuides.lightBg !== 'rgba(0, 0, 0, 0)',
+    JSON.stringify(multiLevelGuides));
+
+  await page.close();
+}
+
 (async () => {
   const browser = await chromium.launch();
   const page = await browser.newPage();
@@ -610,6 +759,7 @@ async function runResponsiveChecks(browser, url, check, ownErrors) {
   const check = makeChecker(extra);
   await runNavigationChecks(browser, url, check, ownErrors);
   await runResponsiveChecks(browser, url, check, ownErrors);
+  await runC12bChecks(browser, url, check, ownErrors);
   const extraFailed = extra.filter((r) => !r.ok);
   console.log(`casos de navegación y responsive: ${extra.length}, pasaron: ${extra.length - extraFailed.length}, fallaron: ${extraFailed.length}`);
   console.log(`\ncasos: ${CASES.length + extra.length}, pasaron: ${pass + extra.length - extraFailed.length}, fallaron: ${failed.length + extraFailed.length}`);

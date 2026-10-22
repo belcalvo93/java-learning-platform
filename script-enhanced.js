@@ -1,5 +1,21 @@
 // Append to existing script.js - New Features
 
+const ENHANCED_ICONS = {
+  check: '<svg class="ui-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>',
+  bulb: '<svg class="ui-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6"></path><path d="M10 22h4"></path><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.1V18h6v-1.2c0-.8.4-1.6 1-2.1A7 7 0 0 0 12 2z"></path></svg>',
+  reset: '<svg class="ui-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>',
+  list: '<svg class="ui-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>',
+  code: '<svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>',
+  book: '<svg class="ui-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>',
+  download: '<svg class="ui-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>',
+  clipboard: '<svg class="ui-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><path d="m9 14 2 2 4-4"></path></svg>',
+  beginner: '<svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>',
+  intermediate: '<svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>',
+  advanced: '<svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="6" r="2.5"></circle><circle cx="18" cy="6" r="2.5"></circle><circle cx="12" cy="18" r="2.5"></circle><path d="M8.2 7.2L10.8 15.8M15.8 7.2L13.2 15.8M8.5 6h7"></path></svg>',
+  expert: '<svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 19 9 12 22 5 9 12 2"></polygon><line x1="5" y1="9" x2="19" y2="9"></line></svg>',
+  award: '<svg class="ui-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="6"></circle><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"></path></svg>'
+};
+
 // ============================================
 // EJERCICIOS INTERACTIVOS
 // ============================================
@@ -52,9 +68,9 @@ function openExercise(exerciseId) {
         </div>
       </div>
       <div class="exercise-actions">
-        <button class="btn-primary" onclick="checkExercise(${exercise.id})">✓ Verificar Solución</button>
-        <button class="btn-secondary" onclick="showHint(${exercise.id})">💡 Ver Pista</button>
-        <button class="btn-secondary" onclick="resetExercise(${exercise.id})">↻ Reiniciar</button>
+        <button class="btn-primary" onclick="checkExercise(${exercise.id})">${ENHANCED_ICONS.check}<span>Verificar Solución</span></button>
+        <button class="btn-secondary" onclick="showHint(${exercise.id})">${ENHANCED_ICONS.bulb}<span>Ver Pista</span></button>
+        <button class="btn-secondary" onclick="resetExercise(${exercise.id})">${ENHANCED_ICONS.reset}<span>Reiniciar</span></button>
       </div>
       <div id="exercise-result"></div>
       <div id="exercise-hint" style="display: none;" class="exercise-hint"></div>
@@ -65,7 +81,7 @@ function openExercise(exerciseId) {
         ← Ejercicio Anterior
       </button>
       <button class="nav-btn" data-nav="all" onclick="showExercisesMenu()">
-        📋 Ver Todos los Ejercicios
+        ${ENHANCED_ICONS.list}<span>Ver Todos los Ejercicios</span>
       </button>
       <button class="nav-btn" data-nav="back" onclick="closeExercise()">
         Volver a Lecciones
@@ -81,11 +97,13 @@ function openExercise(exerciseId) {
   document.body.style.overflow = 'hidden';
 
   // Enable tab key in textarea + gutter de números sincronizado (c-11)
-  // + guías de indentación estilo VS Code (c-11 6.1, sin librerías)
-  setTimeout(() => {
+  // + guías de indentación dinámicas por nivel usado (c-11 / c-12b, sin librerías)
+  const attachEditorHandlers = () => {
     const textarea = document.getElementById('exercise-code');
     const gutter = document.getElementById('line-numbers');
     const guides = document.getElementById('indent-guides');
+    if (!textarea || textarea.dataset.boundEditor === 'true') return;
+    textarea.dataset.boundEditor = 'true';
     if (textarea && gutter) {
       const syncGutter = () => {
         const count = textarea.value.split('\n').length;
@@ -94,17 +112,19 @@ function openExercise(exerciseId) {
         gutter.textContent = numbers;
         gutter.scrollTop = textarea.scrollTop;
       };
-      // Dibuja una guía por cada nivel de 4 espacios de cada línea, solo
-      // hasta su propio nivel. Las líneas en blanco continúan la guía del
-      // bloque (toman el nivel del siguiente bloque, o del anterior si no
-      // hay siguiente). Nada a la derecha del texto ni bajo la última línea.
+      // Dibuja una guía vertical por cada nivel de 4 espacios realmente usado
+      // en cada línea (incluyendo líneas recién indentadas con Tab que aún solo
+      // contienen espacios). Las líneas sin indentar (level === 0) no tienen
+      // guías. Las líneas completamente vacías dentro de un bloque indentado
+      // continúan el nivel común entre el bloque previo y el siguiente.
       const renderGuides = () => {
         if (!guides) return;
         const lines = textarea.value.split('\n');
         if (lines.length > 500) { guides.innerHTML = ''; return; }
         const raw = lines.map((line) => {
-          if (!line.trim()) return -1;
-          const spaces = (line.replace(/\t/g, '    ').match(/^ */) || [''])[0].length;
+          const expanded = line.replace(/\t/g, '    ');
+          const spaces = (expanded.match(/^ */) || [''])[0].length;
+          if (!expanded.trim() && spaces === 0) return -1;
           return Math.floor(spaces / 4);
         });
         const nextLevel = new Array(lines.length).fill(0);
@@ -119,11 +139,13 @@ function openExercise(exerciseId) {
         let prev = 0;
         let html = '';
         for (let i = 0; i < lines.length; i++) {
-          const level = raw[i] >= 0 ? raw[i] : (hasNext[i] ? nextLevel[i] : prev);
+          const level = raw[i] >= 0
+            ? raw[i]
+            : (hasNext[i] && prev > 0 ? Math.min(prev, nextLevel[i]) : 0);
           if (raw[i] >= 0) prev = raw[i];
           for (let k = 0; k < level; k++) {
-            html += '<div class="indent-guide" style="left:calc(var(--spacing-md) + '
-              + (k * 4) + 'ch);top:calc(var(--spacing-md) + '
+            html += '<div class="indent-guide" data-line="' + i + '" data-level="' + (k + 1) + '" style="left:calc(var(--editor-pad-x, var(--spacing-md)) + '
+              + (k * 4) + 'ch);top:calc(var(--editor-pad-y, var(--spacing-md)) + '
               + Number((i * 1.6).toFixed(3)) + 'em)"></div>';
           }
         }
@@ -167,7 +189,9 @@ function openExercise(exerciseId) {
         }
       });
     }
-  }, 100);
+  };
+  attachEditorHandlers();
+  setTimeout(attachEditorHandlers, 50);
 }
 
 function closeExercise() {
@@ -187,9 +211,8 @@ async function checkExercise(exerciseId) {
 
   // Mostrar loading
   resultDiv.innerHTML = `
-    <div style="text-align: center; padding: 2rem;">
-      <div style="font-size: 2rem; margin-bottom: 1rem;">⏳</div>
-      <div style="color: var(--text-secondary);">Validando por reglas…</div>
+    <div style="text-align: center; padding: 1.5rem;">
+      <div style="color: var(--text-secondary); font-weight: 500;">Validando por reglas…</div>
     </div>
   `;
 
@@ -344,7 +367,7 @@ function displayValidationResult(validation, execution, exerciseId, options = {}
     if (warnings.length > 0) {
       errorsHtml += `
         <div class="result-card result-warnings-list">
-          <strong>⚠️ Sugerencias de Mejora:</strong>
+          <strong>Sugerencias de Mejora:</strong>
           <ul>
             ${warnings.map(w => `<li>${w.message}</li>`).join('')}
           </ul>
@@ -357,7 +380,7 @@ function displayValidationResult(validation, execution, exerciseId, options = {}
   if (validation.suggestions && validation.suggestions.length > 0) {
     suggestionsHtml = `
       <div class="result-card result-suggestions-list">
-        <strong>💡 Sugerencias:</strong>
+        <strong>Sugerencias:</strong>
         <ul>
           ${validation.suggestions.map(s => `<li>${s}</li>`).join('')}
         </ul>
@@ -404,7 +427,7 @@ function displayValidationResult(validation, execution, exerciseId, options = {}
         } else {
           localStorage.setItem(`exercise_${exerciseId}_completed`, 'true');
         }
-      } catch (_) { /* el progreso en memoria sigue v?lido */ }
+      } catch (_) { /* el progreso en memoria sigue válido */ }
       checkLessonCompletion(exercise.lessonId, exerciseId, resultDiv);
     }
   } else {
@@ -427,8 +450,8 @@ function displayValidationResult(validation, execution, exerciseId, options = {}
 }
 
 /**
- * Verifica si todos los ejercicios de una lecci?n est?n completados
- * Si es as?, muestra un mensaje de felicitaci?n con bot?n a la siguiente lecci?n
+ * Verifica si todos los ejercicios de una lección están completados
+ * Si es así, muestra un mensaje de felicitación con botón a la siguiente lección
  */
 function checkLessonCompletion(lessonId, currentExerciseId, resultDiv) {
   // Obtener todos los ejercicios de esta lección
@@ -472,27 +495,18 @@ function checkLessonCompletion(lessonId, currentExerciseId, resultDiv) {
     if (currentLesson) {
       // Agregar mensaje de felicitación al final del resultado
       const congratsMessage = `
-        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-                    color: white; padding: 1.5rem; border-radius: 8px; margin-top: 1.5rem; 
-                    text-align: center; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);">
-          <h3 style="margin: 0 0 0.5rem 0; font-size: 1.5rem;">🎉 ¡Felicidades!</h3>
-          <p style="margin: 0 0 1rem 0; opacity: 0.95; font-size: 1rem;">
-            Has completado todos los ejercicios de<br>
-            <strong>"${currentLesson.title}"</strong>
+        <div class="lesson-complete-banner">
+          <h3>${ENHANCED_ICONS.award}<span>¡Lección completada!</span></h3>
+          <p>
+            Completaste todos los ejercicios de <strong>"${currentLesson.title}"</strong>.
           </p>
           ${nextLesson ? `
-            <button onclick="closeExercise(); openLesson(${nextLesson.id})" 
-                    style="background: white; color: #667eea; border: none; 
-                           padding: 0.75rem 2rem; border-radius: 6px; font-weight: 600; 
-                           cursor: pointer; font-size: 1rem; transition: transform 0.2s;
-                           box-shadow: 0 2px 8px rgba(0,0,0,0.1);"
-                    onmouseover="this.style.transform='scale(1.05)'"
-                    onmouseout="this.style.transform='scale(1)'">
-              📚 Continuar con: ${nextLesson.title} →
+            <button class="btn-primary" onclick="closeExercise(); openLesson(${nextLesson.id})">
+              ${ENHANCED_ICONS.book}<span>Continuar con: ${nextLesson.title} →</span>
             </button>
           ` : `
-            <p style="margin: 1rem 0 0; font-size: 1.1rem; font-weight: 600;">
-              🏆 ¡Has completado todo el curso!
+            <p class="course-complete-note">
+              ¡Has completado todo el curso!
             </p>
           `}
         </div>
@@ -544,10 +558,10 @@ function showExercisesMenu() {
   delete content.dataset.exerciseId;
 
   const levelMeta = [
-    { key: 'beginner', name: 'Principiante', icon: '🌱' },
-    { key: 'intermediate', name: 'Intermedio', icon: '🚀' },
-    { key: 'advanced', name: 'Avanzado', icon: '⚡' },
-    { key: 'expert', name: 'Experto', icon: '👑' }
+    { key: 'beginner', name: 'Principiante', icon: ENHANCED_ICONS.beginner },
+    { key: 'intermediate', name: 'Intermedio', icon: ENHANCED_ICONS.intermediate },
+    { key: 'advanced', name: 'Avanzado', icon: ENHANCED_ICONS.advanced },
+    { key: 'expert', name: 'Experto', icon: ENHANCED_ICONS.expert }
   ];
 
   const groups = (typeof LessonNav !== 'undefined' && LessonNav.groupExercisesByLesson)
@@ -598,15 +612,15 @@ function showExercisesMenu() {
 
   content.innerHTML = `
     <button class="lesson-close" onclick="closeExercise()" aria-label="Cerrar listado">×</button>
-    <h2>💻 Todos los Ejercicios (${exercisesData.length} total)</h2>
+    <h2 class="exercises-menu-heading">${ENHANCED_ICONS.code}<span>Todos los Ejercicios (${exercisesData.length} total)</span></h2>
     <p class="exercises-menu-lead">Recorré los ejercicios organizados por nivel y por lección. Elegí cualquiera para abrir el editor.</p>
-    ${readingIds.length ? `<p class="exercises-menu-reading-note">📖 Lecciones teóricas de lectura (sin ejercicios): ${readingIds.map(id => '#' + id).join(', ')}</p>` : ''}
+    ${readingIds.length ? `<p class="exercises-menu-reading-note">${ENHANCED_ICONS.book}<span>Lecciones teóricas de lectura (sin ejercicios): ${readingIds.map(id => '#' + id).join(', ')}</span></p>` : ''}
 
     <div class="exercises-level-filter" role="group" aria-label="Filtrar ejercicios por nivel">
       <button type="button" class="exercises-level-pill active" data-level-filter="all" onclick="filterExercisesMenuLevel('all', this)">Todos (${exercisesData.length})</button>
       ${levelMeta.map((lvl) => {
         const count = groups.filter((g) => g.lesson.level === lvl.key).reduce((a, g) => a + g.exercises.length, 0);
-        return `<button type="button" class="exercises-level-pill level-${lvl.key}" data-level-filter="${lvl.key}" onclick="filterExercisesMenuLevel('${lvl.key}', this)">${lvl.icon} ${lvl.name} (${count})</button>`;
+        return `<button type="button" class="exercises-level-pill level-${lvl.key}" data-level-filter="${lvl.key}" onclick="filterExercisesMenuLevel('${lvl.key}', this)">${lvl.icon}<span>${lvl.name} (${count})</span></button>`;
       }).join('')}
     </div>
 
@@ -750,19 +764,19 @@ function showEvaluationResult(score, correct, passed) {
     <button class="lesson-close" onclick="closeEvaluation()">×</button>
     <div class="evaluation-result">
       <div class="result-score">${score}%</div>
-      <div class="result-message">${passed ? '¡Felicitaciones! 🎉' : 'Sigue practicando 💪'}</div>
+      <div class="result-message">${passed ? '¡Evaluación aprobada!' : 'Sigue practicando'}</div>
       <div class="result-details">
         Respondiste correctamente ${correct} de ${currentEvaluation.questions.length} preguntas
       </div>
       
       ${passed ? `
         <div class="info-box success">
-          <strong>✅ Nivel Aprobado</strong><br>
+          <strong>Nivel Aprobado</strong><br>
           Has desbloqueado el siguiente nivel. ¡Sigue así!
         </div>
       ` : `
         <div class="info-box warning">
-          <strong>📚 Repasa el contenido</strong><br>
+          <strong>Repasa el contenido</strong><br>
           Necesitas al menos ${currentEvaluation.passingScore}% para aprobar. Revisa las lecciones y vuelve a intentarlo.
         </div>
       `}
@@ -826,7 +840,7 @@ function showCertificate() {
     <button class="lesson-close" onclick="closeCertificate()">×</button>
     <div class="certificate" id="certificate">
       <div class="certificate-header">
-        <div class="certificate-logo">☕</div>
+        <div class="certificate-logo">${ENHANCED_ICONS.award}</div>
         <h1 class="certificate-title">Certificado de Finalización</h1>
         <p class="certificate-subtitle">JavaMaster - Programa Completo</p>
       </div>
@@ -860,7 +874,7 @@ function showCertificate() {
     </div>
     
     <div class="certificate-actions">
-      <button class="btn-primary" onclick="downloadCertificate()">📥 Descargar Certificado</button>
+      <button class="btn-primary" onclick="downloadCertificate()">${ENHANCED_ICONS.download}<span>Descargar Certificado</span></button>
       <button class="btn-secondary" onclick="closeCertificate()">Cerrar</button>
     </div>
   `;
@@ -906,14 +920,14 @@ window.openLesson = function (lessonId) {
     }
   }
 
-  // Add exercise button if available (reading lessons 22, 25, 40, 42 do not have exercises)
+    // Add exercise button if available (reading lessons 22, 25, 40, 42 do not have exercises)
   const exercise = exercisesData.find(e => e.lessonId === lessonId);
   if (exercise && navDiv) {
     navDiv.classList.remove('lesson-nav-reading');
     const exerciseBtn = document.createElement('button');
     exerciseBtn.className = 'nav-btn';
     exerciseBtn.dataset.lessonNav = 'practice';
-    exerciseBtn.textContent = '💻 Practicar';
+    exerciseBtn.innerHTML = `${ENHANCED_ICONS.code}<span>Practicar</span>`;
     if (typeof LessonNav !== 'undefined' && LessonNav.isAvailable && !LessonNav.isAvailable('exercise', exercise.id)) {
       exerciseBtn.disabled = true;
     }
@@ -948,14 +962,14 @@ document.addEventListener('DOMContentLoaded', () => {
     studyBtn.href = studyGuides[level];
     studyBtn.download = studyGuides[level];
     studyBtn.className = 'btn-secondary level-guide-btn';
-    studyBtn.textContent = '?? Descargar Material de Estudio';
+    studyBtn.innerHTML = `${ENHANCED_ICONS.download}<span>Descargar Material de Estudio</span>`;
     studyBtn.onclick = (e) => {
       e.stopPropagation();
     };
 
     const evalBtn = document.createElement('button');
     evalBtn.className = 'btn-primary level-eval-btn';
-    evalBtn.textContent = '?? Tomar Evaluaci?n';
+    evalBtn.innerHTML = `${ENHANCED_ICONS.clipboard}<span>Tomar Evaluación</span>`;
     evalBtn.onclick = (e) => {
       e.stopPropagation();
       startEvaluation(level);

@@ -356,6 +356,12 @@ C-01 → C-02 → C-04 → C-10 → C-07 → C-08*
   - `knowledge-base/02_descripcion_general.md` §Stack tecnológico (Vanilla sin framework, sin fuentes externas)
   - `knowledge-base/05_reglas_de_negocio.md` §RN-CON-01, RN-CON-03 (invariantes e IDs estables)
 
+### [C-12b] `ui-polish`
+- **Estado**: `[x]` completado y archivado (`openspec/changes/archive/2026-10-21-c-12b-ui-polish/`, specs sincronizadas en `openspec/specs/ui-redesign/` y `openspec/specs/editor-ux/`) — integridad UTF-8 (0 `"??"` / mojibake), criterio `/critique` + `/polish` de Impeccable (acento sólido sobrio, iconografía SVG de trazo fino, logo SVG geométrico propio `{;}`, patrón técnico sutil, colores de nivel desaturados), selector de modo día/noche (`#theme-toggle`) con persistencia y guías de indentación dinámicas al usar `Tab` — suite 2765/2765, browser-check 158/158, invariante 52/208 PASA, 0 errores de consola.
+- **Scope**: Pulido visual profesional, integridad UTF-8, selector de modo día/noche, logo SVG propio y restauración de guías dinámicas de indentación en el editor
+- **Dependencias**: C-12
+- **Governance**: BAJO
+
 ---
 
 ## FASE 4 — Post-MVP: login y administración (diseño solamente)

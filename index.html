@@ -8,10 +8,22 @@
         content="Aprende Java desde cero hasta nivel experto con explicaciones en español. La mejor plataforma interactiva para dominar la programación en Java.">
     <meta name="keywords" content="Java, programación, tutorial, español, aprender Java, curso Java">
     <title>JavaMaster - Aprende Java de Cero a Experto</title>
+    <script>
+        (function () {
+            var theme = null;
+            try {
+                theme = localStorage.getItem('javamaster_theme');
+            } catch (_) { }
+            if (theme !== 'light' && theme !== 'dark') {
+                theme = (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) ? 'light' : 'dark';
+            }
+            document.documentElement.dataset.theme = theme;
+        })();
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap">
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500;600&display=swap">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="colors-feminine.css">
     <link rel="stylesheet" href="modules-view.css">
@@ -22,23 +34,68 @@
     <header class="header">
         <nav class="nav-container" aria-label="Navegación principal">
             <a href="#inicio" class="logo">
-                <span class="logo-icon" aria-hidden="true">☕</span>
-                <span>JavaMaster</span>
+                <svg class="logo-mark" width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+                    <rect x="1.5" y="1.5" width="25" height="25" rx="6.5" stroke="currentColor" stroke-width="1.75" />
+                    <path d="M9.5 9.5L6.25 14L9.5 18.5" stroke="var(--accent-primary)" stroke-width="1.85"
+                        stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M18.5 9.5L21.75 14L18.5 18.5" stroke="var(--accent-primary)" stroke-width="1.85"
+                        stroke-linecap="round" stroke-linejoin="round" />
+                    <circle cx="14" cy="11.75" r="1.15" fill="currentColor" />
+                    <path d="M14.35 15.1C14.35 16.45 13.75 17.45 12.85 18" stroke="currentColor" stroke-width="1.6"
+                        stroke-linecap="round" />
+                </svg>
+                <span class="logo-text">JavaMaster</span>
             </a>
-            <ul class="nav-links">
-                <li><a href="#inicio">Inicio</a></li>
-                <li><a href="#niveles">Niveles</a></li>
-                <li><a href="#lecciones">Lecciones</a></li>
-                <li><a href="#progreso">Mi Progreso</a></li>
-            </ul>
+            <div class="nav-right">
+                <ul class="nav-links">
+                    <li><a href="#inicio">Inicio</a></li>
+                    <li><a href="#niveles">Niveles</a></li>
+                    <li><a href="#lecciones">Lecciones</a></li>
+                    <li><a href="#progreso">Mi Progreso</a></li>
+                </ul>
+                <button type="button" id="theme-toggle" class="theme-toggle-btn" aria-label="Cambiar a modo claro"
+                    aria-pressed="false" title="Alternar modo día y noche">
+                    <svg class="theme-icon theme-icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
+                        aria-hidden="true">
+                        <circle cx="12" cy="12" r="4.25"></circle>
+                        <path
+                            d="M12 2.5v2.25M12 19.25v2.25M4.93 4.93l1.6 1.6M17.47 17.47l1.6 1.6M2.5 12h2.25M19.25 12h2.25M4.93 19.07l1.6-1.6M17.47 6.53l1.6-1.6">
+                        </path>
+                    </svg>
+                    <svg class="theme-icon theme-icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
+                        aria-hidden="true">
+                        <path d="M20.35 14.65A8.25 8.25 0 0 1 9.35 3.65a8.25 8.25 0 1 0 11 11Z"></path>
+                    </svg>
+                    <span class="theme-toggle-text">Tema</span>
+                </button>
+            </div>
         </nav>
     </header>
 
     <main>
         <!-- Hero Section -->
         <section class="hero" id="inicio">
+            <div class="hero-tech-bg" aria-hidden="true">
+                <svg class="hero-circuit-svg" viewBox="0 0 560 320" fill="none">
+                    <path d="M20 60H140L170 90H290" stroke="currentColor" stroke-width="1" />
+                    <path d="M140 60V24H240" stroke="currentColor" stroke-width="1" stroke-dasharray="3 5" />
+                    <path d="M80 180H210L240 150H390" stroke="currentColor" stroke-width="1" />
+                    <path d="M290 90L325 125H460" stroke="currentColor" stroke-width="1" />
+                    <path d="M240 240H350L380 210H520" stroke="currentColor" stroke-width="1" />
+                    <circle cx="140" cy="60" r="3" fill="currentColor" />
+                    <circle cx="290" cy="90" r="3" fill="currentColor" />
+                    <circle cx="210" cy="180" r="3" fill="currentColor" />
+                    <circle cx="390" cy="150" r="3.5" stroke="currentColor" stroke-width="1.25" />
+                    <circle cx="350" cy="240" r="3" fill="currentColor" />
+                    <rect x="458" y="115" width="68" height="22" rx="4" stroke="currentColor" stroke-width="1" />
+                    <rect x="240" y="13" width="54" height="22" rx="4" stroke="currentColor" stroke-width="1" />
+                </svg>
+            </div>
             <div class="container">
                 <div class="hero-inner">
+                    <p class="hero-kicker">Plataforma abierta de ingeniería en Java</p>
                     <h1>Domina Java desde Cero</h1>
                     <p class="hero-subtitle">
                         Estudiá y practicá Java en español a tu propio ritmo.
@@ -86,7 +143,13 @@
                     <!-- Nivel Principiante -->
                     <div class="level-card beginner" data-level="beginner">
                         <div class="level-header">
-                            <span class="level-icon" aria-hidden="true">🌱</span>
+                            <span class="level-icon" aria-hidden="true">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="4 17 10 11 4 5"></polyline>
+                                    <line x1="12" y1="19" x2="20" y2="19"></line>
+                                </svg>
+                            </span>
                             <div class="level-info">
                                 <h3>Principiante</h3>
                                 <p class="level-lessons">15 lecciones • 62 ejercicios</p>
@@ -106,7 +169,14 @@
                     <!-- Nivel Intermedio -->
                     <div class="level-card intermediate" data-level="intermediate">
                         <div class="level-header">
-                            <span class="level-icon" aria-hidden="true">🚀</span>
+                            <span class="level-icon" aria-hidden="true">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                                    <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                                    <polyline points="2 17 12 22 22 17"></polyline>
+                                    <polyline points="2 12 12 17 22 12"></polyline>
+                                </svg>
+                            </span>
                             <div class="level-info">
                                 <h3>Intermedio</h3>
                                 <p class="level-lessons">15 lecciones • 58 ejercicios</p>
@@ -126,7 +196,15 @@
                     <!-- Nivel Avanzado -->
                     <div class="level-card advanced" data-level="advanced">
                         <div class="level-header">
-                            <span class="level-icon" aria-hidden="true">⚡</span>
+                            <span class="level-icon" aria-hidden="true">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="6" cy="6" r="2.5"></circle>
+                                    <circle cx="18" cy="6" r="2.5"></circle>
+                                    <circle cx="12" cy="18" r="2.5"></circle>
+                                    <path d="M8.2 7.2L10.8 15.8M15.8 7.2L13.2 15.8M8.5 6h7"></path>
+                                </svg>
+                            </span>
                             <div class="level-info">
                                 <h3>Avanzado</h3>
                                 <p class="level-lessons">12 lecciones • 48 ejercicios</p>
@@ -147,7 +225,13 @@
                     <!-- Nivel Experto -->
                     <div class="level-card expert" data-level="expert">
                         <div class="level-header">
-                            <span class="level-icon" aria-hidden="true">👑</span>
+                            <span class="level-icon" aria-hidden="true">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                                    <polygon points="12 2 19 9 12 22 5 9 12 2"></polygon>
+                                    <line x1="5" y1="9" x2="19" y2="9"></line>
+                                </svg>
+                            </span>
                             <div class="level-info">
                                 <h3>Experto</h3>
                                 <p class="level-lessons">10 lecciones • 40 ejercicios</p>
@@ -177,10 +261,24 @@
                     </div>
                     <div class="view-toggle" role="group" aria-label="Cambiar vista de lecciones">
                         <button class="toggle-btn active" data-view="modules" onclick="switchView('modules')">
-                            📚 Por Módulos
+                            <svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="1.75" stroke-linecap="round"
+                                stroke-linejoin="round" aria-hidden="true">
+                                <path d="M3 7h6l2 2h10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"></path>
+                                <path d="M3 7V5a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v2"></path>
+                            </svg>
+                            <span>Por Módulos</span>
                         </button>
                         <button class="toggle-btn" data-view="grid" onclick="switchView('grid')">
-                            🔲 Vista Grid
+                            <svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="1.75" stroke-linecap="round"
+                                stroke-linejoin="round" aria-hidden="true">
+                                <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
+                                <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
+                                <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
+                                <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
+                            </svg>
+                            <span>Vista Grid</span>
                         </button>
                     </div>
                 </div>
@@ -210,9 +308,20 @@
         <section id="progreso" class="progress-section">
             <div class="container">
                 <div class="progress-section-header">
-                    <h2 class="section-title">Mi Progreso</h2>
-                    <p class="section-subtitle">Seguí tu avance en las 52 lecciones y los 208 ejercicios del curso</p>
-                    <div id="local-only-notice" role="status">ℹ️ Tu progreso se guarda solo en este navegador.</div>
+                    <div>
+                        <h2 class="section-title">Mi Progreso</h2>
+                        <p class="section-subtitle">Seguí tu avance en las 52 lecciones y los 208 ejercicios del curso</p>
+                    </div>
+                    <div id="local-only-notice" role="status">
+                        <svg class="ui-icon" width="15" height="15" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
+                            aria-hidden="true">
+                            <circle cx="12" cy="12" r="9"></circle>
+                            <line x1="12" y1="16" x2="12" y2="12"></line>
+                            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                        </svg>
+                        <span>Tu progreso se guarda solo en este navegador.</span>
+                    </div>
                 </div>
 
                 <div class="total-progress-card">
@@ -242,7 +351,10 @@
                 <div class="level-progress-grid" aria-label="Progreso por nivel">
                     <div class="level-progress-item beginner" data-level="beginner">
                         <div class="level-progress-top">
-                            <h4>🌱 Principiante</h4>
+                            <h4>
+                                <span class="level-dot beginner" aria-hidden="true"></span>
+                                Principiante
+                            </h4>
                             <span class="mini-progress-text" id="beginner-text">0%</span>
                         </div>
                         <p class="level-progress-meta">15 lecciones • 62 ejercicios</p>
@@ -252,7 +364,10 @@
                     </div>
                     <div class="level-progress-item intermediate" data-level="intermediate">
                         <div class="level-progress-top">
-                            <h4>🚀 Intermedio</h4>
+                            <h4>
+                                <span class="level-dot intermediate" aria-hidden="true"></span>
+                                Intermedio
+                            </h4>
                             <span class="mini-progress-text" id="intermediate-text">0%</span>
                         </div>
                         <p class="level-progress-meta">15 lecciones • 58 ejercicios</p>
@@ -262,7 +377,10 @@
                     </div>
                     <div class="level-progress-item advanced" data-level="advanced">
                         <div class="level-progress-top">
-                            <h4>⚡ Avanzado</h4>
+                            <h4>
+                                <span class="level-dot advanced" aria-hidden="true"></span>
+                                Avanzado
+                            </h4>
                             <span class="mini-progress-text" id="advanced-text">0%</span>
                         </div>
                         <p class="level-progress-meta">12 lecciones • 48 ejercicios</p>
@@ -272,7 +390,10 @@
                     </div>
                     <div class="level-progress-item expert" data-level="expert">
                         <div class="level-progress-top">
-                            <h4>👑 Experto</h4>
+                            <h4>
+                                <span class="level-dot expert" aria-hidden="true"></span>
+                                Experto
+                            </h4>
                             <span class="mini-progress-text" id="expert-text">0%</span>
                         </div>
                         <p class="level-progress-meta">10 lecciones • 40 ejercicios</p>
@@ -322,7 +443,7 @@
         <div class="footer-content">
             <p>© 2026 JavaMaster - Tu camino hacia la maestría en Java</p>
             <p class="footer-author">
-                Creado con ❤️ por <strong>Belén Calvo</strong> para la comunidad
+                Creado por <strong>Belén Calvo</strong> para la comunidad
                 hispanohablante de programadores
             </p>
             <div class="footer-links">
@@ -348,7 +469,7 @@
                 <input type="password" id="signin-password" placeholder="Contraseña" class="auth-input">
                 <button disabled aria-disabled="true" class="nav-btn auth-submit-btn">Entrar</button>
                 <button disabled aria-disabled="true" class="nav-btn auth-google-btn">
-                    🔐 Continuar con Google
+                    Continuar con Google
                 </button>
                 <p class="auth-switch-text">
                     ¿No tienes cuenta? <a href="#" onclick="switchToSignUp(); return false;">Regístrate</a>

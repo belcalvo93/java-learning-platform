@@ -2,10 +2,75 @@
 // JAVA MASTER - PROGRESS MANAGER
 // ============================================
 
-// Aviso visible: el progreso vive solo en este navegador (RN-PRO-01).
+// Aviso visible: tu progreso se guarda solo en este navegador (RN-PRO-01).
 // Lenguaje simple, sin jerga interna.
-const LOCAL_ONLY_NOTICE = 'tu progreso se guarda solo en este navegador';
+const LOCAL_ONLY_NOTICE = 'Tu progreso se guarda solo en este navegador';
 const STORAGE_BLOCKED_NOTICE = 'No se pudo guardar tu progreso en este navegador, pero podés seguir practicando.';
+const THEME_STORAGE_KEY = 'javamaster_theme';
+
+function getActiveTheme() {
+  try {
+    if (typeof document !== 'undefined' && document.documentElement && document.documentElement.dataset) {
+      const current = document.documentElement.dataset.theme;
+      if (current === 'light' || current === 'dark') return current;
+    }
+    if (typeof localStorage !== 'undefined' && localStorage) {
+      const stored = localStorage.getItem(THEME_STORAGE_KEY);
+      if (stored === 'light' || stored === 'dark') return stored;
+    }
+    if (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+      return 'light';
+    }
+  } catch (_) { /* fallback seguro */ }
+  return 'dark';
+}
+
+function applyTheme(theme, persist = false) {
+  const normalized = theme === 'light' ? 'light' : 'dark';
+  try {
+    if (typeof document !== 'undefined' && document.documentElement) {
+      document.documentElement.dataset.theme = normalized;
+    }
+  } catch (_) { /* sin DOM */ }
+  if (persist) {
+    try {
+      if (typeof localStorage !== 'undefined' && localStorage) {
+        localStorage.setItem(THEME_STORAGE_KEY, normalized);
+      }
+    } catch (_) { /* localStorage bloqueado */ }
+  }
+  try {
+    if (typeof document !== 'undefined' && document.getElementById) {
+      const btn = document.getElementById('theme-toggle');
+      if (btn) {
+        const isLight = normalized === 'light';
+        btn.setAttribute('aria-pressed', isLight ? 'true' : 'false');
+        btn.setAttribute('aria-label', isLight ? 'Cambiar a modo oscuro' : 'Cambiar a modo claro');
+        const label = btn.querySelector('.theme-toggle-text');
+        if (label) label.textContent = isLight ? 'Día' : 'Noche';
+      }
+    }
+  } catch (_) { /* sin DOM */ }
+  return normalized;
+}
+
+function toggleTheme() {
+  const next = getActiveTheme() === 'light' ? 'dark' : 'light';
+  return applyTheme(next, true);
+}
+
+function initThemeToggle() {
+  const initial = getActiveTheme();
+  applyTheme(initial, false);
+  if (typeof document === 'undefined' || !document.getElementById) return;
+  const btn = document.getElementById('theme-toggle');
+  if (btn && !btn.dataset.boundTheme) {
+    btn.dataset.boundTheme = 'true';
+    btn.addEventListener('click', () => {
+      toggleTheme();
+    });
+  }
+}
 
 // Respaldo en memoria cuando el guardado del navegador falla o está bloqueado.
 const __memoryStore = new Map();
@@ -77,8 +142,13 @@ function ensureLocalOnlyNotice(extraMessage) {
       return;
     }
   }
-  const text = extraMessage ? `${LOCAL_ONLY_NOTICE}. ${extraMessage}` : `ℹ️ ${LOCAL_ONLY_NOTICE}.`;
-  if ('textContent' in notice) notice.textContent = text;
+  const text = extraMessage ? `${LOCAL_ONLY_NOTICE}. ${extraMessage}` : `${LOCAL_ONLY_NOTICE}.`;
+  const textSpan = (notice && typeof notice.querySelector === 'function') ? notice.querySelector('span') : null;
+  if (textSpan && 'textContent' in textSpan) {
+    textSpan.textContent = text;
+  } else if ('textContent' in notice) {
+    notice.textContent = text;
+  }
 }
 
 class ProgressManager {
@@ -3702,19 +3772,29 @@ function isLessonCardAvailable(lesson) {
   return true;
 }
 
+const UI_ICONS = {
+  book: '<svg class="ui-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>',
+  code: '<svg class="ui-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>',
+  clock: '<svg class="ui-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><polyline points="12 7 12 12 15 14"></polyline></svg>',
+  beginner: '<svg class="ui-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>',
+  intermediate: '<svg class="ui-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>',
+  advanced: '<svg class="ui-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="6" r="2.5"></circle><circle cx="18" cy="6" r="2.5"></circle><circle cx="12" cy="18" r="2.5"></circle><path d="M8.2 7.2L10.8 15.8M15.8 7.2L13.2 15.8M8.5 6h7"></path></svg>',
+  expert: '<svg class="ui-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 19 9 12 22 5 9 12 2"></polygon><line x1="5" y1="9" x2="19" y2="9"></line></svg>'
+};
+
 function buildLessonExercisesSummaryHtml(lesson) {
   if (typeof exercisesData === 'undefined' || !Array.isArray(exercisesData)) return '';
   const list = (typeof LessonNav !== 'undefined' && typeof LessonNav.getLessonExercises === 'function')
     ? LessonNav.getLessonExercises(exercisesData, lesson.id)
     : exercisesData.filter(e => e.lessonId === lesson.id);
   if (list.length === 0) {
-    return '<div class="lesson-exercises-summary"><span class="lesson-reading-badge">📖 Lección de lectura</span></div>';
+    return `<div class="lesson-exercises-summary"><span class="lesson-reading-badge">${UI_ICONS.book}<span>Lección de lectura</span></span></div>`;
   }
   const items = list.map(ex =>
     `<li class="lesson-exercise-link" data-exercise-id="${ex.id}" onclick="event.stopPropagation(); if (typeof openExercise === 'function') openExercise(${ex.id});">${ex.title}</li>`
   ).join('');
   return `<div class="lesson-exercises-summary">`
-    + `<div class="lesson-exercises-count" data-count="${list.length}">💻 ${list.length} ${list.length === 1 ? 'ejercicio' : 'ejercicios'}</div>`
+    + `<div class="lesson-exercises-count" data-count="${list.length}">${UI_ICONS.code}<span>${list.length} ${list.length === 1 ? 'ejercicio' : 'ejercicios'}</span></div>`
     + `<ul class="lesson-exercise-list">${items}</ul>`
     + `</div>`;
 }
@@ -3741,7 +3821,7 @@ function renderLessons(filterLevel) {
     card.innerHTML = `
       <div class="lesson-meta">
         <span class="lesson-id">#${lesson.id}</span>
-        <span class="lesson-duration">⏱️ ${lesson.duration}</span>
+        <span class="lesson-duration">${UI_ICONS.clock}<span>${lesson.duration}</span></span>
       </div>
       <h3 class="lesson-title">${lesson.title}</h3>
       <p class="lesson-desc">${lesson.description}</p>
@@ -3825,10 +3905,10 @@ function renderModulesView() {
   if (!container) return;
 
   const levels = [
-    { name: 'beginner', title: 'Principiante', icon: '🌱', start: 1, end: 15, modules: 3 },
-    { name: 'intermediate', title: 'Intermedio', icon: '🚀', start: 16, end: 30, modules: 3 },
-    { name: 'advanced', title: 'Avanzado', icon: '⚡', start: 31, end: 42, modules: 4 },
-    { name: 'expert', title: 'Experto', icon: '👑', start: 43, end: 52, modules: 3 }
+    { name: 'beginner', title: 'Principiante', icon: UI_ICONS.beginner, start: 1, end: 15, modules: 3 },
+    { name: 'intermediate', title: 'Intermedio', icon: UI_ICONS.intermediate, start: 16, end: 30, modules: 3 },
+    { name: 'advanced', title: 'Avanzado', icon: UI_ICONS.advanced, start: 31, end: 42, modules: 4 },
+    { name: 'expert', title: 'Experto', icon: UI_ICONS.expert, start: 43, end: 52, modules: 3 }
   ];
 
   container.innerHTML = '';
@@ -3887,7 +3967,7 @@ function renderModulesView() {
                     <div class="lesson-card level-${lesson.level} ${isCompleted ? 'completed' : ''}${!available ? ' lesson-locked' : ''}" data-lesson-id="${lesson.id}" data-level="${lesson.level}" onclick="openLesson(${lesson.id})">
                       <div class="lesson-meta">
                         <span class="lesson-id">#${lesson.id}</span>
-                        <span class="lesson-duration">⏱️ ${lesson.duration}</span>
+                        <span class="lesson-duration">${UI_ICONS.clock}<span>${lesson.duration}</span></span>
                       </div>
                       <h3 class="lesson-title">${lesson.title}</h3>
                       <p class="lesson-desc">${lesson.description}</p>
@@ -3961,6 +4041,7 @@ function switchView(viewType) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  initThemeToggle();
   renderModulesView(); // Renderizar vista de módulos
   renderLessons('all'); // Renderizar vista grid
   progressManager.updateUI();
