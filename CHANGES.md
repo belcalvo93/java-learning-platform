@@ -374,7 +374,7 @@ C-01 → C-02 → C-04 → C-10 → C-07 → C-08*
 - **Governance**: BAJO
 
 ### [C-20] `real-execution-audit`
-- **Estado**: `[ ]` pendiente
+- **Estado**: `[x]` completado y archivado (`openspec/changes/archive/2026-10-24-c-20-real-execution-audit/`) — auditoría con ejecución real en JDK (javac 21 / java 21) sobre 38 ejercicios (9 de audit-validator, 133 con/sin -ea, archivos en disco 128/162-168, concurrencia 169-188 y Supplier 148); herramienta `tools/audit-real-execution.js`, matriz `docs/real-execution-audit.md` y `docs/content-followups.md` actualizado; veredictos: 16 OK, 12 CONSIGNA AMBIGUA, 10 DEPENDE DEL ENTORNO, 0 NO COMPILA; suite 2808/2808 tests pasando.
 - **Scope**: Auditoría con ejecución real de los 9 ejercicios clasificados `real` en `docs/validator-audit.md` (Scanner con entrada dinámica) más los ejercicios identificados en `docs/content-followups.md` (aserciones con flag -ea, lecturas de archivos en disco con scratchpad temporal).
   - Ejecutar con JDK real (`javac` y `java`) vía backend seguro (`backend/server.js` / test runner).
   - Contrastar la salida real contra las reglas de `validator.js` y refinar o documentar el comportamiento esperado.
