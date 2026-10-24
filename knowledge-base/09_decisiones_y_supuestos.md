@@ -28,6 +28,19 @@
 **Justificación**: orden pedido por Belén (limpieza → ejecución segura → publicar → login).
 **Trade-offs aceptados**: progreso por navegador, sin cross-device ni certificado verificable.
 
+### DD-05 — Proveedor Auth y DB post-MVP: Firebase Auth + Cloud Firestore en Plan Spark (tomada por defecto, revertible)
+**Decisión**: adoptar **Firebase Authentication + Cloud Firestore (Plan Spark — \$0/mes)** para el login opcional y la persistencia del progreso por usuario en `C-13`, marcada como **"tomada por defecto, revertible"** (ver [`docs/auth-db-decision.md`](../docs/auth-db-decision.md)).
+**Contexto**: el sitio opera en GitHub Pages (`https://java.belencalvo.me`) sin backend propio (`RN-SEG-02`) y con requisito de costo cero (`RN-COS-01`). Se evaluaron Firebase (Spark), Supabase (Free) y Appwrite Cloud (Free).
+**Alternativas consideradas**:
+- **Supabase (Auth + PostgreSQL Free)**: descartada por defecto porque **pausa automáticamente el proyecto tras 7 días sin consultas a la base de datos**, dejando caído el login y el guardado de progreso entre cursadas hasta que alguien lo reactive manualmente en el dashboard (o mantenga un cron externo).
+- **Appwrite Cloud (Free)**: descartada por menor madurez de ecosistema y límites de suspensión en inactividad prolongada.
+**Justificación**:
+1. **Cero pausas por inactividad**: Firebase Spark permanece activo 24/7 sin apagarse tras semanas sin tráfico.
+2. **Costo \$0 garantizado sin tarjeta de crédito**: incluye 50.000 MAU, 1 GiB de almacenamiento, 50.000 lecturas/día y 20.000 escrituras/día; al guardar todo el progreso de un usuario en un único documento `users/{uid}`, cada inicio de sesión consume 1 lectura y cada avance completado consume 1 escritura.
+3. **Cero servidor intermedio y alineación con el repo**: se protege directamente con Firestore Security Rules (`request.auth.uid == userId`), restricción de dominios autorizados (`java.belencalvo.me`) y aprovecha el diseño base previsto en `firebase-config.js` / `auth.js`.
+**Reversibilidad (mitigación de lock-in)**: toda la lógica de negocio y el algoritmo de fusión (`mergeProgress`) se implementan en un módulo puro (`progress-sync.js`) desacoplado detrás de un adaptador de 4 métodos; si en el futuro se quisiera migrar a Supabase, solo se reemplaza el adaptador sin tocar la lógica de progreso ni la UI.
+**Trade-offs aceptados**: base documental NoSQL con reglas declarativas propias de Firestore en lugar de SQL estándar.
+
 ## Supuestos inferidos
 ### SU-01 — validator.js cubre los 208 ejercicios (SIN VERIFICAR)
 **Supuesto**: la validación por reglas podría ser suficiente para el MVP — NO verificado.
