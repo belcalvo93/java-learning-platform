@@ -68,6 +68,8 @@ C-01 validator-audit
                     → C-14 panel-admin               ← implementa C-09 (ALTO)
                     → C-15 level-gating-exams        ← gating por examen (diseño primero)
                     → C-19 level-gating              ← bloqueo atado a cuentas (candidato)
+                    → C-20 real-execution-audit      ← auditoría con ejecución real (9 real + followups)
+                    → C-21 readme-update             ← actualización integral del README
 ```
 
 Regla: no empezar un change hasta que el anterior esté archivado (`openspec/changes/archive/`).
@@ -103,6 +105,8 @@ C-01 → C-02 → C-04 → C-10 → C-07 → C-08*
   18 │ C-14 panel-admin                 ← implementa C-09 (ALTO)
   19 │ C-15 level-gating-exams          ← gating por examen (diseño primero)
   20 │ C-19 level-gating                ← bloqueo atado a cuentas (candidato)
+  21 │ C-20 real-execution-audit        ← auditoría con ejecución real (9 real + followups)
+  22 │ C-21 readme-update                ← actualización integral del README según estado actual
 ```
 
 ---
@@ -367,6 +371,24 @@ C-01 → C-02 → C-04 → C-10 → C-07 → C-08*
 - **Estado**: `[x]` completado y archivado (`openspec/changes/archive/2026-10-24-c-12c-dark-palette/`, spec sincronizada en `openspec/specs/ui-redesign/`) — reemplazo de la paleta del modo oscuro por base verde profunda (#021F1D fondo, #132E2B tarjetas, #27413E superficies elevadas, #011413 editor, #E5E7EB texto principal, #10B981 verde menta de acento secundario y éxito/progreso, #E57389 acento rosa primario preservado); conexión sutil en modo claro con verde menta (#0B7A57) exclusivamente en barras de progreso, marcas de completado y estados de éxito; 0 residuos de gris pizarra (#171b24, #1c212c, etc.); suite 2793/2793, browser-check 161/161, invariante 52/208 PASA, 0 errores de consola.
 - **Scope**: Paleta verde de modo oscuro según imagen de referencia y conexión en modo claro (solo progreso/éxito)
 - **Dependencias**: C-12b
+- **Governance**: BAJO
+
+### [C-20] `real-execution-audit`
+- **Estado**: `[ ]` pendiente
+- **Scope**: Auditoría con ejecución real de los 9 ejercicios clasificados `real` en `docs/validator-audit.md` (Scanner con entrada dinámica) más los ejercicios identificados en `docs/content-followups.md` (aserciones con flag -ea, lecturas de archivos en disco con scratchpad temporal).
+  - Ejecutar con JDK real (`javac` y `java`) vía backend seguro (`backend/server.js` / test runner).
+  - Contrastar la salida real contra las reglas de `validator.js` y refinar o documentar el comportamiento esperado.
+- **Dependencias**: C-06, C-16, C-18
+- **Governance**: MEDIO
+- **Leer antes**:
+  - `docs/validator-audit.md` (matriz de los 9 ejercicios clasificados `needs-real-execution`)
+  - `docs/content-followups.md` (seguimiento de aserciones e I/O de archivos)
+  - `docs/execution-options.md` (opciones de ejecución y runner seguro)
+
+### [C-21] `readme-update`
+- **Estado**: `[x]` completado y archivado (`openspec/changes/archive/2026-10-24-c-21-readme-update/`) — actualización integral y verídica del `README.md` (10 secciones, tabla de contenidos, cobertura de los 4 niveles y 52/208 ejercicios, 4 lecciones de lectura, guías descargables y evaluaciones, validación offline, temas día/noche con paleta verde, backend offline, comandos comprobados y sin promesas falsas); 0 secretos, suite 2793/2793, browser-check 161/161, auditoría 208 invariante PASA.
+- **Scope**: Actualización integral del README.md según el estado consolidado de la plataforma (regla de oro C-03).
+- **Dependencias**: C-07, C-12c, C-16, C-18
 - **Governance**: BAJO
 ---
 
