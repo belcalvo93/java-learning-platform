@@ -369,7 +369,7 @@ C-01 → C-02 → C-04 → C-10 → C-07 → C-08*
 > Ningún change de esta fase implementa código. Requieren MVP publicado (C-07). Proveedor y modelo pendientes (PA-04/PA-05).
 
 ### [C-08] `login-persisted-design`
-- **Estado**: `[ ]` pendiente
+- **Estado**: `[x]` completado y archivado (`openspec/changes/archive/2026-10-24-c-08-login-persisted-design/`, spec sincronizada en `openspec/specs/user-auth-progress/`, diseño canónico en `docs/auth-db-decision.md` y KB actualizada en `03`, `04`, `07`, `09` y `10`) — decisión `DD-05` tomada por defecto y revertible: Firebase Auth + Cloud Firestore (Plan Spark, \$0/mes, sin pausa por inactividad), algoritmo de fusión sin pérdida `mergeProgress`, `firestore.rules`, aviso Ley 25.326 y plan de 5 tasks TDD para `C-13`.
 - **Scope**: Diseño de login + progreso persistido + certificado verificable — DOCUMENTO, sin implementar (verificación manual)
   - `docs/auth-db-decision.md`: Firebase real vs Supabase vs otro (costo free-tier, mantenimiento, auth social, RLS/ reglas); recomendación + migración desde `localStorage` (import de avance local, `localStorage` pasa a caché per RN-PRO-03)
   - Modelo `Usuario / Avance / Certificado`: campos, fuente de verdad servidor, certificado verificable (id firmada o URL pública); lecciones siguen públicas (sin barrera)
