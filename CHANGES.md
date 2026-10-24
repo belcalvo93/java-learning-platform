@@ -207,7 +207,7 @@ C-01 → C-02 → C-04 → C-10 → C-07 → C-08*
 > C-05 decide; C-06 construye solo lo decidido. Ninguno reactiva Render. C-06 es el gate RN-SEG-02.
 
 ### [C-05] `execution-alternatives`
-- **Estado**: `[ ]` pendiente
+- **Estado**: `[x]` completado y archivado (`openspec/changes/archive/2026-10-24-c-05-execution-alternatives/`, documento `docs/execution-options.md`) — decisión `DD-02` final firmada por Belén: producción en GitHub Pages se mantiene con solo reglas (`validator.js` estructural post-`C-18`, `95,2 % rules-only-ok`, costo \$0) y en `C-06` se endurece `backend/server.js` en el repositorio con tests TDD (`RN-SEG-02`) sin desplegar ni reactivar Render.
 - **Scope**: Evaluación documentada de alternativas de ejecución Java + decisión DD-02 final (verificación manual — análisis, sin código productivo)
   - Matriz `docs/execution-options.md`: parche sandbox propio (allowlist + `execFile` + timeout + output cap + cleanup) vs Piston/Judge0 vs WASM vs solo-reglas; columnas: costo mensual free-tier, mantenimiento, fidelidad compilación JDK21, superficie de ataque, latencia, qué subset de C-01 cubre
   - Usa la matriz C-01 como entrada: cuántos ejercicios exigen ejecución real determina si basta con solo-reglas o hace falta sandbox
@@ -224,7 +224,7 @@ C-01 → C-02 → C-04 → C-10 → C-07 → C-08*
   - `knowledge-base/02_descripcion_general.md` §API REST (superficie vulnerable de referencia)
 
 ### [C-06] `secure-executor`
-- **Estado**: `[ ]` pendiente
+- **Estado**: `[x]` completado y archivado (`openspec/changes/archive/2026-10-24-c-06-secure-executor/`, spec sincronizada en `openspec/specs/secure-executor/`) — `backend/server.js` endurecido con allowlist `className`, `execFile` sin shell (`shell: false`), entorno vacío (`env: {}`), `-Xmx64m`, límite de concurrencia (`maxConcurrent`), timeout 5s con `killSignal: 'SIGKILL'`, manejo de `ERR_CHILD_PROCESS_STDIO_MAXBUFFER` sin falso timeout, truncado a 10KB, `await fs.rm` en `finally`, sanitización de rutas internas, CORS explícito (HTTP 403), body cap 64KB (HTTP 413) y rate-limit con vaciado de `rateBuckets` (HTTP 429) — suite 2783/2783 (18/18 en `tools/secure-executor.test.js`), invariante 52/208 PASA, SIN desplegar y Render suspendido (`RN-SEG-02`).
 - **Scope**: Executor Java seguro con tests pasando — SIN desplegar ni reactivar Render (TDD, gate RN-SEG-02)
   - `backend/server.js`: `className` contra allowlist `^[A-Z][A-Za-z0-9_]{0,31}$` (rechazo por defecto); `execFile` sin shell (prohibido `exec` con interpolación); sandbox: directorio temporal aislado, `javac`/`java` con timeout 5s, output capado 10KB, limpieza garantizada en `finally`; rate-limit básico; CORS con origen explícito (no `*` permanente); límite de body restrictivo (techo actual `1mb`)
   - Contrato `POST /api/execute {code, className}` → `{stage, stdout, stderr}` con stages `compilation`/`execution`; errores legibles sin filtrar paths internos
