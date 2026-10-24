@@ -11,12 +11,40 @@
     return exercises.filter((e) => e.lessonId === lessonId);
   };
 
-  // Única función de disponibilidad de lecciones y ejercicios. Hoy todo está
-  // disponible; el bloqueo por nivel (C-19) se activa cambiando SOLO esta
-  // función. La UI y `getLessonNav` la consultan siempre vía `api.isAvailable`.
-  // kind: 'lesson' | 'exercise'.
-  api.isAvailable = function (kind, id) { // eslint-disable-line no-unused-vars
+  // C-12 / C-19: único punto de disponibilidad por nivel ('beginner' | 'intermediate' | 'advanced' | 'expert').
+  // Hoy devuelve siempre true; el bloqueo por nivel (C-19) se activa cambiando SOLO esta función.
+  api.isLevelAvailable = function (level) { // eslint-disable-line no-unused-vars
     return true;
+  };
+
+  function resolveLevelFor(kind, id, context) {
+    if (context && context.level) return context.level;
+    const lessons = (context && context.lessons) || (root && root.lessonsData) || null;
+    const exercises = (context && context.exercises) || (root && root.exercisesData) || null;
+    let lessonId = kind === 'lesson' ? Number(id) : null;
+    if (kind === 'exercise' && exercises) {
+      const ex = exercises.find((e) => e.id === Number(id));
+      if (ex) lessonId = ex.lessonId;
+    }
+    if (lessonId && lessons) {
+      const lesson = lessons.find((l) => l.id === lessonId);
+      if (lesson && lesson.level) return lesson.level;
+    }
+    if (lessonId) {
+      if (lessonId <= 15) return 'beginner';
+      if (lessonId <= 30) return 'intermediate';
+      if (lessonId <= 42) return 'advanced';
+      return 'expert';
+    }
+    return 'beginner';
+  }
+
+  // Única función de disponibilidad de lecciones y ejercicios. Consulta siempre
+  // `api.isLevelAvailable(level)` para que el bloqueo por nivel (C-19) viva en un solo lugar.
+  // kind: 'lesson' | 'exercise'.
+  api.isAvailable = function (kind, id, context) {
+    const level = resolveLevelFor(kind, id, context);
+    return api.isLevelAvailable(level) === true;
   };
 
   // Ids de las lecciones que no tienen ejercicios (lecciones de lectura).
@@ -46,8 +74,9 @@
     const next = list[index + 1] || null;
     const isLastInLesson = next === null;
     let advance;
-    if (next) advance = { type: 'exercise', target: next, available: api.isAvailable('exercise', next.id) === true };
-    else if (nextLesson) advance = { type: 'lesson', target: nextLesson, available: api.isAvailable('lesson', nextLesson.id) === true };
+    const ctx = { lessons, exercises };
+    if (next) advance = { type: 'exercise', target: next, available: api.isAvailable('exercise', next.id, ctx) === true };
+    else if (nextLesson) advance = { type: 'lesson', target: nextLesson, available: api.isAvailable('lesson', nextLesson.id, ctx) === true };
     else advance = { type: 'none', target: null, available: false };
     return { exercise, lesson, exercises: list, index, total: list.length, prev, next, isLastInLesson, nextLesson, advance };
   };

@@ -8,6 +8,7 @@
 // de CDN/fuentes se ignora; los errores JS propios se listan aparte.
 
 const { chromium } = require('playwright');
+const fs = require('node:fs');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
 
@@ -171,15 +172,57 @@ async function runNavigationChecks(browser, url, check, ownErrors) {
   }
   check('tarjetas: abrir una tarjeta sigue abriendo la lección', await (async () => {
     await page.evaluate(() => switchView('grid'));
-    await page.click('#lessons-grid .lesson-card[data-lesson-id="3"]');
+    await page.click('#lessons-grid .lesson-card[data-lesson-id="3"] .lesson-title');
     const ok = await page.evaluate(() => document.getElementById('lesson-viewer').classList.contains('active'));
     await page.evaluate(() => closeLesson());
     return ok;
   })());
+  check('c12: clic directo en un ejercicio dentro de una tarjeta abre ese ejercicio', await (async () => {
+    await page.evaluate(() => switchView('grid'));
+    const exId = ids[1];
+    await page.click(`#lessons-grid .lesson-card[data-lesson-id="${NAV_LESSON}"] .lesson-exercise-list li[data-exercise-id="${exId}"]`);
+    await page.waitForFunction((i) => document.getElementById('exercise-content').dataset.exerciseId === String(i), exId, { timeout: 5000 });
+    const ok = await page.evaluate((i) => document.getElementById('exercise-viewer').classList.contains('active')
+      && Number(document.getElementById('exercise-content').dataset.exerciseId) === i, exId);
+    await page.evaluate(() => closeExercise());
+    return ok;
+  })());
 
-  // "Ver Todos los Ejercicios" agrupado por lección.
+  // C-12: sin @import en CSS y Google Fonts con <link>.
+  const stylesSrc = fs.readFileSync(path.join(__dirname, '..', 'styles.css'), 'utf8');
+  const femSrc = fs.readFileSync(path.join(__dirname, '..', 'colors-feminine.css'), 'utf8');
+  const hasFontLink = await page.evaluate(() => !!document.querySelector('link[rel="stylesheet"][href*="fonts.googleapis.com"]'));
+  check('c12: sin @import en CSS y Google Fonts cargado con <link>',
+    !/^\s*@import\b/m.test(stylesSrc) && !/^\s*@import\b/m.test(femSrc) && hasFontLink);
+
+  // C-12: sección "Mi Progreso" separada de #lecciones y con 4 barras por nivel.
+  const progInfo = await page.evaluate(() => {
+    const lec = document.getElementById('lecciones');
+    const prog = document.getElementById('progreso');
+    if (!lec || !prog) return null;
+    const lr = lec.getBoundingClientRect();
+    const pr = prog.getBoundingClientRect();
+    const bars = ['beginner', 'intermediate', 'advanced', 'expert'].every(
+      (lv) => !!prog.querySelector(`#${lv}-progress`) && !!prog.querySelector(`#${lv}-text`),
+    );
+    return {
+      notNested: !lec.contains(prog),
+      gap: pr.top - lr.bottom,
+      bars,
+    };
+  });
+  check('c12: "Mi Progreso" fuera de #lecciones, separada (>= 40 px) y con 4 barras de nivel',
+    Boolean(progInfo && progInfo.notNested && progInfo.gap >= 40 && progInfo.bars),
+    JSON.stringify(progInfo));
+
+  // "Ver Todos los Ejercicios" agrupado por nivel y lección.
   await openAndRead(page, ids[0]);
   await page.click('#exercise-content [data-nav="all"]');
+  const levelSections = await page.evaluate(() => Array.from(document.querySelectorAll('#exercise-content .exercises-level-section')).map((s) => s.dataset.level));
+  const nestedLessonCards = await page.evaluate(() => document.querySelectorAll('#exercise-content .exercises-menu-groups .lesson-card').length);
+  check('c12: "Ver Todos" tiene 4 secciones por nivel y no anida .lesson-card',
+    JSON.stringify(levelSections) === JSON.stringify(['beginner', 'intermediate', 'advanced', 'expert']) && nestedLessonCards === 0,
+    JSON.stringify({ levelSections, nestedLessonCards }));
   const groups = await page.evaluate(() => Array.from(document.querySelectorAll('#exercise-content .exercise-group')).map((g) => ({
     id: Number(g.dataset.lessonId),
     title: (g.querySelector('.exercise-group-title') || { textContent: '' }).textContent,
@@ -195,7 +238,22 @@ async function runNavigationChecks(browser, url, check, ownErrors) {
   await page.waitForFunction((i) => document.getElementById('exercise-content').dataset.exerciseId === String(i), ids[2], { timeout: 5000 });
   check('ver todos: elegir un ejercicio lo abre', (await currentExerciseId(page)) === ids[2]);
 
-  // Función única de disponibilidad: la consultan Siguiente y las tarjetas.
+  // C-12: aviso de validación discreto al pie (.validation-mode-note).
+  await page.fill('#exercise-code', 'int x = ;');
+  await page.click('button:has-text("Verificar Solución")');
+  await page.waitForFunction(() => !!document.querySelector('#exercise-result .validation-mode-note'), null, { timeout: 5000 });
+  const noteCheck = await page.evaluate(() => {
+    const note = document.querySelector('#exercise-result .validation-mode-note');
+    return note ? {
+      text: note.textContent.trim(),
+      dataNotice: note.getAttribute('data-notice') || '',
+    } : null;
+  });
+  check('c12: aviso de validación discreto al pie (.validation-mode-note)',
+    Boolean(noteCheck && /Validado en tu navegador/.test(noteCheck.text) && /validando por reglas/.test(noteCheck.dataNotice)),
+    JSON.stringify(noteCheck));
+
+  // Función única de disponibilidad: la consultan Siguiente y las tarjetas, incluyendo isLevelAvailable.
   await page.evaluate((blocked) => {
     window.__origAvail = LessonNav.isAvailable;
     LessonNav.isAvailable = (kind, id) => !(kind === 'exercise' && id === blocked);
@@ -210,7 +268,23 @@ async function runNavigationChecks(browser, url, check, ownErrors) {
   check('disponibilidad: la tarjeta de una lección no disponible se marca como bloqueada',
     await page.evaluate(() => document.querySelector('#lessons-grid .lesson-card[data-lesson-id="5"]').classList.contains('lesson-locked')
       && !document.querySelector('#lessons-grid .lesson-card[data-lesson-id="6"]').classList.contains('lesson-locked')));
-  await page.evaluate(() => { LessonNav.isAvailable = window.__origAvail; renderLessons('all'); });
+  await page.evaluate(() => {
+    LessonNav.isAvailable = window.__origAvail;
+    window.__origLevelAvail = LessonNav.isLevelAvailable;
+    LessonNav.isLevelAvailable = (level) => level !== 'expert';
+    renderLessons('all');
+  });
+  check('c12 (disponibilidad por nivel): LessonNav.isLevelAvailable bloquea un nivel entero cuando devuelve false',
+    await page.evaluate(() => {
+      const expCards = Array.from(document.querySelectorAll('#lessons-grid .lesson-card.level-expert'));
+      const begCards = Array.from(document.querySelectorAll('#lessons-grid .lesson-card.level-beginner'));
+      return expCards.length > 0 && expCards.every((c) => c.classList.contains('lesson-locked'))
+        && begCards.every((c) => !c.classList.contains('lesson-locked'));
+    }));
+  await page.evaluate(() => {
+    LessonNav.isLevelAvailable = window.__origLevelAvail;
+    renderLessons('all');
+  });
   check('disponibilidad: sin regla activa, ninguna tarjeta está bloqueada',
     await page.evaluate(() => document.querySelectorAll('#lessons-grid .lesson-locked').length === 0));
   await page.close();
@@ -240,7 +314,7 @@ async function measureExerciseScreen(page, width, longLine) {
         insideCard: b.left >= cardRect.left - 0.5 && b.right <= cardRect.right + 0.5,
         insideScreen: b.left >= -0.5 && b.right <= vw + 0.5,
         lines: lines(el), clipped: el.scrollWidth > el.clientWidth + 1,
-        bg: cs.backgroundImage, fontSize: parseFloat(cs.fontSize),
+        bg: cs.backgroundImage !== 'none' ? cs.backgroundImage : cs.backgroundColor, fontSize: parseFloat(cs.fontSize),
       };
     };
     const actions = Array.from(document.querySelectorAll('#exercise-content .exercise-actions button')).map(info);
@@ -425,9 +499,9 @@ async function runResponsiveChecks(browser, url, check, ownErrors) {
       const nl = ml.navs.find((b) => b.key === 'next');
       check(`responsive ${tag}: "Siguiente Lección" (último ejercicio) cabe en una línea dentro de la tarjeta`,
         /Siguiente Lecci/.test(nl.text) && nl.insideCard && nl.lines === 1 && !nl.clipped, nl.text);
-      check(`responsive ${tag} (ejercicio): consigna a >= 16 px del borde y editor a >= 8 px`,
-        m.margins.consignaLeft >= 15.5 && m.margins.consignaRight >= 15.5
-        && m.margins.editorLeft >= 7.5 && m.margins.editorRight >= 7.5,
+      check(`responsive ${tag} (ejercicio): consigna a >= 20 px del borde y editor a >= 16 px`,
+        m.margins.consignaLeft >= 19.5 && m.margins.consignaRight >= 19.5
+        && m.margins.editorLeft >= 15.5 && m.margins.editorRight >= 15.5,
         JSON.stringify(m.margins));
     }
 
@@ -463,11 +537,11 @@ async function runResponsiveChecks(browser, url, check, ownErrors) {
         && Math.abs(prev.top - next.top) < 2 && Math.abs(prev.width - next.width) < 4
         && prac.width >= 0.9 * (next.right - prev.left) && comp.width >= 0.9 * (next.right - prev.left)));
       const tg = lm.textGaps;
-      check(`responsive ${tag} (lección): distancia entre texto (título, párrafo y caja "En el mundo real") y bordes >= 16 px`,
+      check(`responsive ${tag} (lección): distancia entre texto (título, párrafo y caja "En el mundo real") y bordes >= 20 px`,
         Boolean(tg.h2 && tg.p && tg.infoBox
-        && tg.h2.left >= 15.5 && tg.h2.right >= 15.5
-        && tg.p.left >= 15.5 && tg.p.right >= 15.5
-        && tg.infoBox.left >= 15.5 && tg.infoBox.right >= 15.5),
+        && tg.h2.left >= 19.5 && tg.h2.right >= 19.5
+        && tg.p.left >= 19.5 && tg.p.right >= 19.5
+        && tg.infoBox.left >= 19.5 && tg.infoBox.right >= 19.5),
         JSON.stringify(tg));
       check(`responsive ${tag} (lección): botones del pie a >= 12 px de cada borde y sin desborde`,
         lm.overflow.viewer && lm.overflow.card && lm.overflow.nav
@@ -489,6 +563,155 @@ async function runResponsiveChecks(browser, url, check, ownErrors) {
     await page.evaluate(() => closeLesson());
     await page.close();
   }
+}
+
+async function runC12bChecks(browser, url, check, ownErrors) {
+  const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+  page.on('pageerror', (err) => ownErrors.push(String(err && err.message || err)));
+  await page.goto(url);
+  await page.waitForFunction(() => typeof openExercise === 'function' && typeof exercisesData !== 'undefined', null, { timeout: 30000 });
+
+  // 1) Botones de nivel sin "??" y con "Tomar Evaluación" y "Descargar Material de Estudio"
+  const levelBtns = await page.evaluate(() => {
+    const cards = [...document.querySelectorAll('.level-card')];
+    return cards.map((c) => ({
+      level: c.dataset.level,
+      guideText: (c.querySelector('.level-guide-btn')?.textContent || '').trim(),
+      evalText: (c.querySelector('.level-eval-btn')?.textContent || '').trim(),
+    }));
+  });
+  check('C-12b: los 4 niveles muestran "Descargar Material de Estudio" y "Tomar Evaluación" sin "?" ni "??"',
+    levelBtns.length === 4 && levelBtns.every((b) =>
+      b.guideText === 'Descargar Material de Estudio'
+      && b.evalText === 'Tomar Evaluación'
+      && !b.guideText.includes('?')
+      && !b.evalText.includes('?')),
+    JSON.stringify(levelBtns));
+
+  // 2) Aviso local capitalizado y logo SVG propio sin ☕
+  const headerAndNotice = await page.evaluate(() => {
+    const logo = document.querySelector('.logo');
+    const notice = document.getElementById('local-only-notice');
+    return {
+      hasLogoSvg: Boolean(logo && logo.querySelector('svg')),
+      logoText: (logo?.textContent || '').trim(),
+      hasCoffeeEmoji: (logo?.textContent || '').includes('☕'),
+      noticeText: (notice?.textContent || '').trim(),
+    };
+  });
+  check('C-12b: logo SVG geométrico propio junto a "JavaMaster" (sin ☕) y aviso local con mayúscula inicial',
+    headerAndNotice.hasLogoSvg
+    && headerAndNotice.logoText === 'JavaMaster'
+    && !headerAndNotice.hasCoffeeEmoji
+    && headerAndNotice.noticeText.startsWith('Tu progreso se guarda solo en este navegador'),
+    JSON.stringify(headerAndNotice));
+
+  // 3) Selector de modo día / noche (#theme-toggle) accesible y persistente
+  const themeCheck = await page.evaluate(() => {
+    const btn = document.getElementById('theme-toggle');
+    if (!btn) return { exists: false };
+    const r = btn.getBoundingClientRect();
+    const initialTheme = document.documentElement.dataset.theme;
+    const initialBg = getComputedStyle(document.body).backgroundColor;
+    btn.click();
+    const afterFirstClick = document.documentElement.dataset.theme;
+    const afterFirstBg = getComputedStyle(document.body).backgroundColor;
+    const storedFirst = localStorage.getItem('javamaster_theme');
+    const pressedFirst = btn.getAttribute('aria-pressed');
+    btn.click();
+    const afterSecondClick = document.documentElement.dataset.theme;
+    const storedSecond = localStorage.getItem('javamaster_theme');
+    return {
+      exists: true,
+      width: r.width,
+      height: r.height,
+      hasSunAndMoonSvg: btn.querySelectorAll('svg').length >= 2,
+      ariaLabel: btn.getAttribute('aria-label') || '',
+      initialTheme,
+      afterFirstClick,
+      afterSecondClick,
+      bgChanged: initialBg !== afterFirstBg,
+      storedFirst,
+      storedSecond,
+      pressedFirst,
+    };
+  });
+  check('C-12b: #theme-toggle >= 44x44 px, con SVGs sol/luna, alterna data-theme dark/light y persiste en localStorage',
+    Boolean(themeCheck.exists
+      && themeCheck.width >= 43.5
+      && themeCheck.height >= 43.5
+      && themeCheck.hasSunAndMoonSvg
+      && /modo/i.test(themeCheck.ariaLabel)
+      && themeCheck.initialTheme !== themeCheck.afterFirstClick
+      && themeCheck.afterFirstClick === themeCheck.storedFirst
+      && themeCheck.afterSecondClick === themeCheck.initialTheme
+      && themeCheck.afterSecondClick === themeCheck.storedSecond
+      && themeCheck.bgChanged),
+    JSON.stringify(themeCheck));
+
+  // 4) Guías verticales de indentación en el editor al usar Tab (en modo oscuro y claro)
+  await openAndRead(page, 1);
+  // Probar presionar Tab en una línea nueva que queda solo con 4 espacios ("    ")
+  await page.evaluate(() => {
+    const ta = document.getElementById('exercise-code');
+    ta.value = 'public class Main {\n';
+    ta.selectionStart = ta.selectionEnd = ta.value.length;
+    ta.dispatchEvent(new Event('input'));
+  });
+  await page.focus('#exercise-code');
+  await page.keyboard.press('Tab');
+
+  const tabBlankLineCheck = await page.evaluate(() => {
+    const line0Guides = document.querySelectorAll('#indent-guides .indent-guide[data-line="0"]').length;
+    const line1Guides = document.querySelectorAll('#indent-guides .indent-guide[data-line="1"]').length;
+    return { line0Guides, line1Guides, value: document.getElementById('exercise-code').value };
+  });
+  check('C-12b: al presionar Tab en una línea (incluso sin texto aún), aparece de inmediato 1 guía en esa línea y 0 en la línea sin indentar',
+    tabBlankLineCheck.line0Guides === 0 && tabBlankLineCheck.line1Guides === 1,
+    JSON.stringify(tabBlankLineCheck));
+
+  // Ahora escribimos código con 1 Tab (4 espacios) y 2 Tabs (8 espacios) y verificamos por línea y en ambos temas
+  await page.keyboard.type('public static void main(String[] args) {\n');
+  await page.keyboard.press('Tab');
+  await page.keyboard.press('Tab');
+  await page.keyboard.type('System.out.println("Hola");\n');
+  await page.keyboard.press('Tab');
+  await page.keyboard.type('}\n}');
+
+  const multiLevelGuides = await page.evaluate(() => {
+    const countForLine = (ln) => document.querySelectorAll(`#indent-guides .indent-guide[data-line="${ln}"]`).length;
+    const sampleGuide = document.querySelector('#indent-guides .indent-guide');
+    const darkBg = sampleGuide ? getComputedStyle(sampleGuide).backgroundColor : '';
+    const darkWidth = sampleGuide ? sampleGuide.getBoundingClientRect().width : 0;
+    document.getElementById('theme-toggle').click();
+    const lightBg = sampleGuide ? getComputedStyle(sampleGuide).backgroundColor : '';
+    const lightWidth = sampleGuide ? sampleGuide.getBoundingClientRect().width : 0;
+    document.getElementById('theme-toggle').click();
+    return {
+      line0: countForLine(0), // public class Main { -> 0
+      line1: countForLine(1), //     public static void main... -> 1
+      line2: countForLine(2), //         System.out.println... -> 2
+      line3: countForLine(3), //     } -> 1
+      line4: countForLine(4), // } -> 0
+      darkBg,
+      lightBg,
+      darkWidth,
+      lightWidth,
+    };
+  });
+  check('C-12b: guías de indentación solo en los niveles usados por línea (0, 1, 2, 1, 0) y visibles en tema oscuro y claro',
+    multiLevelGuides.line0 === 0
+    && multiLevelGuides.line1 === 1
+    && multiLevelGuides.line2 === 2
+    && multiLevelGuides.line3 === 1
+    && multiLevelGuides.line4 === 0
+    && multiLevelGuides.darkWidth >= 0.8
+    && multiLevelGuides.lightWidth >= 0.8
+    && multiLevelGuides.darkBg !== 'rgba(0, 0, 0, 0)'
+    && multiLevelGuides.lightBg !== 'rgba(0, 0, 0, 0)',
+    JSON.stringify(multiLevelGuides));
+
+  await page.close();
 }
 
 (async () => {
@@ -536,6 +759,7 @@ async function runResponsiveChecks(browser, url, check, ownErrors) {
   const check = makeChecker(extra);
   await runNavigationChecks(browser, url, check, ownErrors);
   await runResponsiveChecks(browser, url, check, ownErrors);
+  await runC12bChecks(browser, url, check, ownErrors);
   const extraFailed = extra.filter((r) => !r.ok);
   console.log(`casos de navegación y responsive: ${extra.length}, pasaron: ${extra.length - extraFailed.length}, fallaron: ${extraFailed.length}`);
   console.log(`\ncasos: ${CASES.length + extra.length}, pasaron: ${pass + extra.length - extraFailed.length}, fallaron: ${failed.length + extraFailed.length}`);

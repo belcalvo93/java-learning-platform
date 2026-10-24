@@ -207,7 +207,7 @@ C-01 → C-02 → C-04 → C-10 → C-07 → C-08*
 > C-05 decide; C-06 construye solo lo decidido. Ninguno reactiva Render. C-06 es el gate RN-SEG-02.
 
 ### [C-05] `execution-alternatives`
-- **Estado**: `[ ]` pendiente
+- **Estado**: `[x]` completado y archivado (`openspec/changes/archive/2026-10-24-c-05-execution-alternatives/`, documento `docs/execution-options.md`) — decisión `DD-02` final firmada por Belén: producción en GitHub Pages se mantiene con solo reglas (`validator.js` estructural post-`C-18`, `95,2 % rules-only-ok`, costo \$0) y en `C-06` se endurece `backend/server.js` en el repositorio con tests TDD (`RN-SEG-02`) sin desplegar ni reactivar Render.
 - **Scope**: Evaluación documentada de alternativas de ejecución Java + decisión DD-02 final (verificación manual — análisis, sin código productivo)
   - Matriz `docs/execution-options.md`: parche sandbox propio (allowlist + `execFile` + timeout + output cap + cleanup) vs Piston/Judge0 vs WASM vs solo-reglas; columnas: costo mensual free-tier, mantenimiento, fidelidad compilación JDK21, superficie de ataque, latencia, qué subset de C-01 cubre
   - Usa la matriz C-01 como entrada: cuántos ejercicios exigen ejecución real determina si basta con solo-reglas o hace falta sandbox
@@ -224,7 +224,7 @@ C-01 → C-02 → C-04 → C-10 → C-07 → C-08*
   - `knowledge-base/02_descripcion_general.md` §API REST (superficie vulnerable de referencia)
 
 ### [C-06] `secure-executor`
-- **Estado**: `[ ]` pendiente
+- **Estado**: `[x]` completado y archivado (`openspec/changes/archive/2026-10-24-c-06-secure-executor/`, spec sincronizada en `openspec/specs/secure-executor/`) — `backend/server.js` endurecido con allowlist `className`, `execFile` sin shell (`shell: false`), entorno vacío (`env: {}`), `-Xmx64m`, límite de concurrencia (`maxConcurrent`), timeout 5s con `killSignal: 'SIGKILL'`, manejo de `ERR_CHILD_PROCESS_STDIO_MAXBUFFER` sin falso timeout, truncado a 10KB, `await fs.rm` en `finally`, sanitización de rutas internas, CORS explícito (HTTP 403), body cap 64KB (HTTP 413) y rate-limit con vaciado de `rateBuckets` (HTTP 429) — suite 2783/2783 (18/18 en `tools/secure-executor.test.js`), invariante 52/208 PASA, SIN desplegar y Render suspendido (`RN-SEG-02`).
 - **Scope**: Executor Java seguro con tests pasando — SIN desplegar ni reactivar Render (TDD, gate RN-SEG-02)
   - `backend/server.js`: `className` contra allowlist `^[A-Z][A-Za-z0-9_]{0,31}$` (rechazo por defecto); `execFile` sin shell (prohibido `exec` con interpolación); sandbox: directorio temporal aislado, `javac`/`java` con timeout 5s, output capado 10KB, limpieza garantizada en `finally`; rate-limit básico; CORS con origen explícito (no `*` permanente); límite de body restrictivo (techo actual `1mb`)
   - Contrato `POST /api/execute {code, className}` → `{stage, stdout, stderr}` con stages `compilation`/`execution`; errores legibles sin filtrar paths internos
@@ -339,19 +339,28 @@ C-01 → C-02 → C-04 → C-10 → C-07 → C-08*
   - `knowledge-base/04_modelo_de_datos.md` §ProgresoLocal (tilde de completado)
 
 ### [C-12] `ui-redesign`
-- **Estado**: `[ ]` pendiente
+- **Estado**: `[x]` completado y archivado (`openspec/changes/archive/2026-10-21-c-12-ui-redesign/`, spec sincronizada en `openspec/specs/ui-redesign/`) — Dirección A *Atelier Nocturno Editorial*, suite 2746/2746, browser-check 153/153, invariante 52/208 PASA, 0 errores de consola.
 - **Scope**: Rediseño visual del frontend en dos etapas (verificación manual con capturas antes/después — visual, sin lógica de negocio nueva)
   - Etapa 1 — dirección visual definida con la autora ANTES de escribir código: público, tono, paleta, tipografía y componentes; se documenta y Belén la aprueba; sin código hasta el OK
   - Etapa 2 — implementación con la skill `frontend-design`: conservar la identidad actual (paleta rosa/violeta refinada, no ruptura); sin cambiar IDs ni conteos 52/208 (RN-CON-01, RN-CON-03); sin librerías ni fuentes externas; contraste accesible (WCAG AA en texto) y buen uso en celular
   - Verificación manual: capturas antes/después en móvil + desktop, checklist de contraste y de invariantes 52/208, cero errores de consola; sin tests de lógica
   - Tener en cuenta (hallazgos C-16, ver C-11): el botón "Siguiente Ejercicio" navega por id y no por lección; el mensaje de indentación fallida no distingue una llave de más
   - Tener en cuenta (C-11b): las tarjetas de lección se enriquecen hoy desde `script-enhanced.js` envolviendo `renderLessons` y `renderModulesView`; integrarlas correctamente en el rediseño.
+  - Pendientes visuales a incluir en C-12:
+    1. Márgenes laterales del texto de lectura en móvil (≤ 480 px): mejoraron en C-11b pero siguen justos a criterio de la usuaria; revisar espaciado y tipografía en conjunto.
+    2. La sección "Mi progreso" del final de la página queda muy pegada al desplegable de "Nivel experto"; separarla y mejorar el diseño de esa zona.
 - **Dependencias**: C-11
 - **Governance**: BAJO
 - **Leer antes**:
   - `knowledge-base/06_funcionalidades.md` §US-001, US-002 (navegación y guías que se rediseñan)
   - `knowledge-base/02_descripcion_general.md` §Stack tecnológico (Vanilla sin framework, sin fuentes externas)
   - `knowledge-base/05_reglas_de_negocio.md` §RN-CON-01, RN-CON-03 (invariantes e IDs estables)
+
+### [C-12b] `ui-polish`
+- **Estado**: `[x]` completado y archivado (`openspec/changes/archive/2026-10-21-c-12b-ui-polish/`, specs sincronizadas en `openspec/specs/ui-redesign/` y `openspec/specs/editor-ux/`) — integridad UTF-8 (0 `"??"` / mojibake), criterio `/critique` + `/polish` de Impeccable (acento sólido sobrio, iconografía SVG de trazo fino, logo SVG geométrico propio `{;}`, patrón técnico sutil, colores de nivel desaturados), selector de modo día/noche (`#theme-toggle`) con persistencia y guías de indentación dinámicas al usar `Tab` — suite 2765/2765, browser-check 158/158, invariante 52/208 PASA, 0 errores de consola.
+- **Scope**: Pulido visual profesional, integridad UTF-8, selector de modo día/noche, logo SVG propio y restauración de guías dinámicas de indentación en el editor
+- **Dependencias**: C-12
+- **Governance**: BAJO
 
 ---
 

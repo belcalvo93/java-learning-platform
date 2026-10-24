@@ -206,4 +206,27 @@ describe('C-11b función única de disponibilidad', () => {
     const ids = idsOf(lessons[lessons.length - 1].id);
     assert.strictEqual(LessonNav.getLessonNav(exercises, lessons, ids[ids.length - 1]).advance.available, false);
   });
+
+  it('C-12 isLevelAvailable devuelve true hoy para los 4 niveles', () => {
+    assert.strictEqual(typeof LessonNav.isLevelAvailable, 'function');
+    for (const lvl of ['beginner', 'intermediate', 'advanced', 'expert']) {
+      assert.strictEqual(LessonNav.isLevelAvailable(lvl), true);
+    }
+  });
+
+  it('C-12 isAvailable y getLessonNav consultan isLevelAvailable cuando se bloquea un nivel (preparado para C-19)', () => {
+    const origLevel = LessonNav.isLevelAvailable;
+    try {
+      LessonNav.isLevelAvailable = (lvl) => lvl !== 'intermediate';
+      assert.strictEqual(LessonNav.isAvailable('lesson', 15, { lessons, exercises }), true);
+      assert.strictEqual(LessonNav.isAvailable('lesson', 16, { lessons, exercises }), false);
+      const ids15 = idsOf(15);
+      const navEndBeginner = LessonNav.getLessonNav(exercises, lessons, ids15[ids15.length - 1]);
+      assert.strictEqual(navEndBeginner.advance.type, 'lesson');
+      assert.strictEqual(navEndBeginner.advance.target.id, 16);
+      assert.strictEqual(navEndBeginner.advance.available, false);
+    } finally {
+      LessonNav.isLevelAvailable = origLevel;
+    }
+  });
 });

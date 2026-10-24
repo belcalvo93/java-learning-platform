@@ -33,3 +33,7 @@ build/
 # Otros
 .cache/
 .atl/
+# Playwright CLI output (may contain credentials)
+.playwright-cli/
+.agent/
+.claude/skills/

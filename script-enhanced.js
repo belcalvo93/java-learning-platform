@@ -1,5 +1,21 @@
 // Append to existing script.js - New Features
 
+const ENHANCED_ICONS = {
+  check: '<svg class="ui-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>',
+  bulb: '<svg class="ui-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6"></path><path d="M10 22h4"></path><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.1V18h6v-1.2c0-.8.4-1.6 1-2.1A7 7 0 0 0 12 2z"></path></svg>',
+  reset: '<svg class="ui-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>',
+  list: '<svg class="ui-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>',
+  code: '<svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>',
+  book: '<svg class="ui-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>',
+  download: '<svg class="ui-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>',
+  clipboard: '<svg class="ui-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><path d="m9 14 2 2 4-4"></path></svg>',
+  beginner: '<svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>',
+  intermediate: '<svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>',
+  advanced: '<svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="6" r="2.5"></circle><circle cx="18" cy="6" r="2.5"></circle><circle cx="12" cy="18" r="2.5"></circle><path d="M8.2 7.2L10.8 15.8M15.8 7.2L13.2 15.8M8.5 6h7"></path></svg>',
+  expert: '<svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 19 9 12 22 5 9 12 2"></polygon><line x1="5" y1="9" x2="19" y2="9"></line></svg>',
+  award: '<svg class="ui-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="6"></circle><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"></path></svg>'
+};
+
 // ============================================
 // EJERCICIOS INTERACTIVOS
 // ============================================
@@ -52,9 +68,9 @@ function openExercise(exerciseId) {
         </div>
       </div>
       <div class="exercise-actions">
-        <button class="btn-primary" onclick="checkExercise(${exercise.id})">✓ Verificar Solución</button>
-        <button class="btn-secondary" onclick="showHint(${exercise.id})">💡 Ver Pista</button>
-        <button class="btn-secondary" onclick="resetExercise(${exercise.id})">↻ Reiniciar</button>
+        <button class="btn-primary" onclick="checkExercise(${exercise.id})">${ENHANCED_ICONS.check}<span>Verificar Solución</span></button>
+        <button class="btn-secondary" onclick="showHint(${exercise.id})">${ENHANCED_ICONS.bulb}<span>Ver Pista</span></button>
+        <button class="btn-secondary" onclick="resetExercise(${exercise.id})">${ENHANCED_ICONS.reset}<span>Reiniciar</span></button>
       </div>
       <div id="exercise-result"></div>
       <div id="exercise-hint" style="display: none;" class="exercise-hint"></div>
@@ -65,7 +81,7 @@ function openExercise(exerciseId) {
         ← Ejercicio Anterior
       </button>
       <button class="nav-btn" data-nav="all" onclick="showExercisesMenu()">
-        📋 Ver Todos los Ejercicios
+        ${ENHANCED_ICONS.list}<span>Ver Todos los Ejercicios</span>
       </button>
       <button class="nav-btn" data-nav="back" onclick="closeExercise()">
         Volver a Lecciones
@@ -77,14 +93,17 @@ function openExercise(exerciseId) {
   `;
 
   viewer.classList.add('active');
+  viewer.scrollTop = 0;
   document.body.style.overflow = 'hidden';
 
   // Enable tab key in textarea + gutter de números sincronizado (c-11)
-  // + guías de indentación estilo VS Code (c-11 6.1, sin librerías)
-  setTimeout(() => {
+  // + guías de indentación dinámicas por nivel usado (c-11 / c-12b, sin librerías)
+  const attachEditorHandlers = () => {
     const textarea = document.getElementById('exercise-code');
     const gutter = document.getElementById('line-numbers');
     const guides = document.getElementById('indent-guides');
+    if (!textarea || textarea.dataset.boundEditor === 'true') return;
+    textarea.dataset.boundEditor = 'true';
     if (textarea && gutter) {
       const syncGutter = () => {
         const count = textarea.value.split('\n').length;
@@ -93,17 +112,19 @@ function openExercise(exerciseId) {
         gutter.textContent = numbers;
         gutter.scrollTop = textarea.scrollTop;
       };
-      // Dibuja una guía por cada nivel de 4 espacios de cada línea, solo
-      // hasta su propio nivel. Las líneas en blanco continúan la guía del
-      // bloque (toman el nivel del siguiente bloque, o del anterior si no
-      // hay siguiente). Nada a la derecha del texto ni bajo la última línea.
+      // Dibuja una guía vertical por cada nivel de 4 espacios realmente usado
+      // en cada línea (incluyendo líneas recién indentadas con Tab que aún solo
+      // contienen espacios). Las líneas sin indentar (level === 0) no tienen
+      // guías. Las líneas completamente vacías dentro de un bloque indentado
+      // continúan el nivel común entre el bloque previo y el siguiente.
       const renderGuides = () => {
         if (!guides) return;
         const lines = textarea.value.split('\n');
         if (lines.length > 500) { guides.innerHTML = ''; return; }
         const raw = lines.map((line) => {
-          if (!line.trim()) return -1;
-          const spaces = (line.replace(/\t/g, '    ').match(/^ */) || [''])[0].length;
+          const expanded = line.replace(/\t/g, '    ');
+          const spaces = (expanded.match(/^ */) || [''])[0].length;
+          if (!expanded.trim() && spaces === 0) return -1;
           return Math.floor(spaces / 4);
         });
         const nextLevel = new Array(lines.length).fill(0);
@@ -118,11 +139,13 @@ function openExercise(exerciseId) {
         let prev = 0;
         let html = '';
         for (let i = 0; i < lines.length; i++) {
-          const level = raw[i] >= 0 ? raw[i] : (hasNext[i] ? nextLevel[i] : prev);
+          const level = raw[i] >= 0
+            ? raw[i]
+            : (hasNext[i] && prev > 0 ? Math.min(prev, nextLevel[i]) : 0);
           if (raw[i] >= 0) prev = raw[i];
           for (let k = 0; k < level; k++) {
-            html += '<div class="indent-guide" style="left:calc(var(--spacing-md) + '
-              + (k * 4) + 'ch);top:calc(var(--spacing-md) + '
+            html += '<div class="indent-guide" data-line="' + i + '" data-level="' + (k + 1) + '" style="left:calc(var(--editor-pad-x, var(--spacing-md)) + '
+              + (k * 4) + 'ch);top:calc(var(--editor-pad-y, var(--spacing-md)) + '
               + Number((i * 1.6).toFixed(3)) + 'em)"></div>';
           }
         }
@@ -166,7 +189,9 @@ function openExercise(exerciseId) {
         }
       });
     }
-  }, 100);
+  };
+  attachEditorHandlers();
+  setTimeout(attachEditorHandlers, 50);
 }
 
 function closeExercise() {
@@ -186,9 +211,8 @@ async function checkExercise(exerciseId) {
 
   // Mostrar loading
   resultDiv.innerHTML = `
-    <div style="text-align: center; padding: 2rem;">
-      <div style="font-size: 2rem; margin-bottom: 1rem;">⏳</div>
-      <div style="color: var(--text-secondary);">Validando por reglas…</div>
+    <div style="text-align: center; padding: 1.5rem;">
+      <div style="color: var(--text-secondary); font-weight: 500;">Validando por reglas…</div>
     </div>
   `;
 
@@ -314,19 +338,16 @@ function validateByRules(userCode, exercise) {
 function displayValidationResult(validation, execution, exerciseId, options = {}) {
   const resultDiv = document.getElementById('exercise-result');
 
-  // Aviso de degradación honesta (sin backend en v1.0)
+  // C-12 Pendiente 4: aviso discreto en vez del banner azul llamativo, manteniendo contrato C-04
   let noticeHtml = '';
   if (options.notice) {
     noticeHtml = `
-      <div style="background: #ebf8ff; border-left: 4px solid #3182ce; padding: 0.75rem; border-radius: 4px; margin-top: 1rem;">
-        <p style="margin: 0; color: #2a4365; font-size: 0.9rem;">
-          ℹ️ ${options.notice}
-        </p>
+      <div class="validation-mode-note" data-notice="${options.notice}" title="${options.notice}">
+        <span>✓ Validado en tu navegador</span>
       </div>
     `;
   }
 
-  // Construir HTML de errores
   let errorsHtml = '';
   if (validation.errors && validation.errors.length > 0) {
     const criticalErrors = validation.errors.filter(e => e.severity === 'error');
@@ -334,9 +355,9 @@ function displayValidationResult(validation, execution, exerciseId, options = {}
 
     if (criticalErrors.length > 0) {
       errorsHtml += `
-        <div style="background: #fff5f5; border-left: 4px solid #e53e3e; padding: 1rem; border-radius: 4px; margin-top: 1rem;">
-          <strong style="color: #742a2a;">❌ Errores Encontrados:</strong>
-          <ul style="margin: 0.5rem 0 0 1.5rem; color: #742a2a; font-size: 0.9rem;">
+        <div class="result-card result-errors-list">
+          <strong>✗ Errores Encontrados:</strong>
+          <ul>
             ${criticalErrors.map(e => `<li>${e.message}${e.line ? ` (Línea ${e.line})` : ''}</li>`).join('')}
           </ul>
         </div>
@@ -345,9 +366,9 @@ function displayValidationResult(validation, execution, exerciseId, options = {}
 
     if (warnings.length > 0) {
       errorsHtml += `
-        <div style="background: #fffaf0; border-left: 4px solid #ed8936; padding: 0.75rem; border-radius: 4px; margin-top: 0.5rem; font-size: 0.85rem;">
-          <strong style="color: #7c2d12;">⚠ Sugerencias de Mejora:</strong>
-          <ul style="margin: 0.25rem 0 0 1.5rem; color: #7c2d12;">
+        <div class="result-card result-warnings-list">
+          <strong>Sugerencias de Mejora:</strong>
+          <ul>
             ${warnings.map(w => `<li>${w.message}</li>`).join('')}
           </ul>
         </div>
@@ -355,65 +376,51 @@ function displayValidationResult(validation, execution, exerciseId, options = {}
     }
   }
 
-  // Construir HTML de sugerencias
   let suggestionsHtml = '';
   if (validation.suggestions && validation.suggestions.length > 0) {
     suggestionsHtml = `
-      <div style="background: rgba(72, 187, 120, 0.1); border-left: 4px solid #48bb78; padding: 0.75rem; border-radius: 4px; margin-top: 0.5rem; font-size: 0.85rem;">
-        <strong style="color: #22543d;">💡 Sugerencias:</strong>
-        <ul style="margin: 0.25rem 0 0 1.5rem; color: #276749;">
+      <div class="result-card result-suggestions-list">
+        <strong>Sugerencias:</strong>
+        <ul>
           ${validation.suggestions.map(s => `<li>${s}</li>`).join('')}
         </ul>
       </div>
     `;
   }
 
-  // Construir HTML de output: solo salida genuina (c-11-editor-ux 6.3).
-  // validator.js ya no emite salidas simuladas (`output` siempre ''): sin
-  // ejecución real (C-06) no se muestra ningún bloque. Robusto si `output`
-  // falta o `execution` viene vacío.
-  // (El campo `output` de validator.js NO es regla: solo texto de salida.)
   let outputHtml = '';
   const shownOutput = (execution && execution.output && execution.output !== 'Código ejecutado')
     ? execution.output
     : '';
   if (shownOutput) {
     outputHtml = `
-      <div style="background: #1a202c; color: #e2e8f0; padding: 1rem; border-radius: 6px; margin-top: 1rem; font-family: 'Fira Code', monospace;">
-        <div style="color: #48bb78; margin-bottom: 0.5rem; font-weight: 600;">▶ Salida del programa:</div>
-        <pre style="margin: 0; color: #e2e8f0; white-space: pre-wrap; line-height: 1.6;">${shownOutput}</pre>
+      <div class="result-card result-output-card">
+        <div class="result-output-title">▸ Salida del programa:</div>
+        <pre>${shownOutput}</pre>
       </div>
     `;
   }
 
-  // Pista (c-11-editor-ux): oculta ante éxito, visible ante fallo o a pedido
-  // con "Ver Pista" (showHint). No toca noticeHtml (contrato C-04).
   const hintDiv = document.getElementById('exercise-hint');
   const hintExercise = exercisesData.find(e => e.id === exerciseId);
 
-  // Resultado final
   if (validation.success) {
     if (hintDiv) hintDiv.style.display = 'none';
     resultDiv.innerHTML = `
-      ${noticeHtml}
-      <div style="background: #f0fff4; border-left: 4px solid #48bb78; padding: 1rem; border-radius: 4px; margin-top: 1rem;">
-        <strong style="color: #22543d;">✓ ¡Excelente Trabajo!</strong>
-        <p style="margin: 0.5rem 0 0; color: #276749; font-size: 0.9rem;">
-          Tu código es correcto y cumple con los requisitos del ejercicio.
-        </p>
+      <div class="result-card result-success">
+        <strong>✓ ¡Excelente Trabajo!</strong>
+        <p>Tu código es correcto y cumple con los requisitos del ejercicio.</p>
       </div>
       ${errorsHtml}
       ${suggestionsHtml}
       ${outputHtml}
+      ${noticeHtml}
     `;
     resultDiv.className = 'exercise-result success';
 
-    // Marcar como completado
     const exercise = exercisesData.find(e => e.id === exerciseId);
     if (exercise) {
       progressManager.markAsCompleted(exercise.lessonId);
-
-      // Guardar que este ejercicio específico está completado
       try {
         if (typeof safeSet === 'function') {
           safeSet(localStorage, `exercise_${exerciseId}_completed`, 'true');
@@ -421,8 +428,6 @@ function displayValidationResult(validation, execution, exerciseId, options = {}
           localStorage.setItem(`exercise_${exerciseId}_completed`, 'true');
         }
       } catch (_) { /* el progreso en memoria sigue válido */ }
-
-      // Verificar si se completaron TODOS los ejercicios de esta lección
       checkLessonCompletion(exercise.lessonId, exerciseId, resultDiv);
     }
   } else {
@@ -431,16 +436,14 @@ function displayValidationResult(validation, execution, exerciseId, options = {}
       hintDiv.style.display = 'block';
     }
     resultDiv.innerHTML = `
-      ${noticeHtml}
-      <div style="background: #fff5f5; border-left: 4px solid #e53e3e; padding: 1rem; border-radius: 4px; margin-top: 1rem;">
-        <strong style="color: #742a2a;">✗ Necesita Correcciones</strong>
-        <p style="margin: 0.5rem 0 0; color: #742a2a; font-size: 0.9rem;">
-          Tu código necesita algunos ajustes para cumplir con los requisitos.
-        </p>
+      <div class="result-card result-error">
+        <strong>✗ Necesita Correcciones</strong>
+        <p>Revisá los puntos señalados abajo para ajustar tu solución.</p>
       </div>
       ${errorsHtml}
       ${suggestionsHtml}
       ${outputHtml}
+      ${noticeHtml}
     `;
     resultDiv.className = 'exercise-result error';
   }
@@ -492,27 +495,18 @@ function checkLessonCompletion(lessonId, currentExerciseId, resultDiv) {
     if (currentLesson) {
       // Agregar mensaje de felicitación al final del resultado
       const congratsMessage = `
-        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-                    color: white; padding: 1.5rem; border-radius: 8px; margin-top: 1.5rem; 
-                    text-align: center; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);">
-          <h3 style="margin: 0 0 0.5rem 0; font-size: 1.5rem;">🎉 ¡Felicidades!</h3>
-          <p style="margin: 0 0 1rem 0; opacity: 0.95; font-size: 1rem;">
-            Has completado todos los ejercicios de<br>
-            <strong>"${currentLesson.title}"</strong>
+        <div class="lesson-complete-banner">
+          <h3>${ENHANCED_ICONS.award}<span>¡Lección completada!</span></h3>
+          <p>
+            Completaste todos los ejercicios de <strong>"${currentLesson.title}"</strong>.
           </p>
           ${nextLesson ? `
-            <button onclick="closeExercise(); openLesson(${nextLesson.id})" 
-                    style="background: white; color: #667eea; border: none; 
-                           padding: 0.75rem 2rem; border-radius: 6px; font-weight: 600; 
-                           cursor: pointer; font-size: 1rem; transition: transform 0.2s;
-                           box-shadow: 0 2px 8px rgba(0,0,0,0.1);"
-                    onmouseover="this.style.transform='scale(1.05)'"
-                    onmouseout="this.style.transform='scale(1)'">
-              📚 Continuar con: ${nextLesson.title} →
+            <button class="btn-primary" onclick="closeExercise(); openLesson(${nextLesson.id})">
+              ${ENHANCED_ICONS.book}<span>Continuar con: ${nextLesson.title} →</span>
             </button>
           ` : `
-            <p style="margin: 1rem 0 0; font-size: 1.1rem; font-weight: 600;">
-              🏆 ¡Has completado todo el curso!
+            <p class="course-complete-note">
+              ¡Has completado todo el curso!
             </p>
           `}
         </div>
@@ -546,14 +540,29 @@ function resetExercise(exerciseId) {
   document.getElementById('exercise-hint').style.display = 'none';
 }
 
+function filterExercisesMenuLevel(levelKey, btn) {
+  const root = document.getElementById('exercise-content');
+  if (!root) return;
+  root.querySelectorAll('.exercises-level-pill').forEach((b) => {
+    b.classList.toggle('active', b === btn);
+  });
+  root.querySelectorAll('.exercises-level-section').forEach((sec) => {
+    sec.style.display = (!levelKey || levelKey === 'all' || sec.dataset.level === levelKey) ? '' : 'none';
+  });
+}
+
 function showExercisesMenu() {
+  const viewer = document.getElementById('exercise-viewer');
+  if (viewer) viewer.scrollTop = 0;
   const content = document.getElementById('exercise-content');
   delete content.dataset.exerciseId;
 
-  const getLevelName = (level) => {
-    const names = { beginner: 'Principiante', intermediate: 'Intermedio', advanced: 'Avanzado', expert: 'Experto' };
-    return names[level];
-  };
+  const levelMeta = [
+    { key: 'beginner', name: 'Principiante', icon: ENHANCED_ICONS.beginner },
+    { key: 'intermediate', name: 'Intermedio', icon: ENHANCED_ICONS.intermediate },
+    { key: 'advanced', name: 'Avanzado', icon: ENHANCED_ICONS.advanced },
+    { key: 'expert', name: 'Experto', icon: ENHANCED_ICONS.expert }
+  ];
 
   const groups = (typeof LessonNav !== 'undefined' && LessonNav.groupExercisesByLesson)
     ? LessonNav.groupExercisesByLesson(exercisesData, lessonsData)
@@ -562,45 +571,67 @@ function showExercisesMenu() {
     ? LessonNav.readingLessonIds(exercisesData, lessonsData)
     : [];
 
-  content.innerHTML = `
-        <button class="lesson-close" onclick="closeExercise()">×</button>
-        <h2>📋 Todos los Ejercicios (${exercisesData.length} total)</h2>
-        <p style="color: var(--text-secondary); margin-bottom: 1rem;">Haz clic en cualquier ejercicio para practicar (agrupados por lección)</p>
-        ${readingIds.length ? `<p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.5rem;">📖 Lecciones de lectura (sin ejercicios): ${readingIds.map(id => '#' + id).join(', ')}</p>` : ''}
-        
-        <div class="exercises-menu-groups" style="display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.5rem;">
-            ${groups.map((group) => {
-    const levelName = getLevelName(group.lesson.level);
+  const levelSectionsHtml = levelMeta.map((lvl) => {
+    const lvlGroups = groups.filter((g) => g.lesson.level === lvl.key);
+    const lvlExCount = lvlGroups.reduce((acc, g) => acc + g.exercises.length, 0);
     return `
-                <div class="exercise-group" data-lesson-id="${group.lesson.id}" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 1rem;">
-                    <h3 class="exercise-group-title" style="margin: 0 0 0.75rem 0; font-size: 1.05rem; color: var(--text-primary);">
-                        Lección #${group.lesson.id}: ${group.lesson.title} <span style="color: var(--text-muted); font-weight: 400; font-size: 0.85rem;">• ${levelName} (${group.exercises.length} ${group.exercises.length === 1 ? 'ejercicio' : 'ejercicios'})</span>
-                    </h3>
-                    <div class="exercise-group-items" style="display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.75rem;">
-                        ${group.exercises.map((ex, idx) => `
-                            <div class="lesson-card exercise-item" data-exercise-id="${ex.id}" onclick="openExercise(${ex.id})" style="cursor: pointer; padding: 0.85rem 1rem; background: rgba(255,255,255,0.05); border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); transition: all 0.3s;">
-                                <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.75rem;">
-                                    <div style="min-width: 0; flex: 1;">
-                                        <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.2rem;">
-                                            Ejercicio ${idx + 1} de ${group.exercises.length} • ${levelName}
-                                        </div>
-                                        <h4 style="margin: 0; color: var(--text-primary);">${ex.title}</h4>
-                                        <p style="margin: 0.35rem 0 0; color: var(--text-secondary); font-size: 0.9rem;">${ex.description}</p>
-                                    </div>
-                                    <div style="font-size: 1.35rem;">💻</div>
-                                </div>
-                            </div>
-                        `).join('')}
+      <section class="exercises-level-section level-${lvl.key}" data-level="${lvl.key}">
+        <header class="exercises-level-header">
+          <div class="exercises-level-title">
+            <span class="exercises-level-icon" aria-hidden="true">${lvl.icon}</span>
+            <h3>Nivel ${lvl.name}</h3>
+          </div>
+          <span class="exercises-level-badge">${lvlGroups.length} lecciones • ${lvlExCount} ejercicios</span>
+        </header>
+        <div class="exercises-level-groups">
+          ${lvlGroups.map((group) => `
+            <div class="exercise-group" data-lesson-id="${group.lesson.id}" data-level="${lvl.key}">
+              <h4 class="exercise-group-title">
+                <span class="exercise-group-num">Lección #${group.lesson.id}</span>
+                <span class="exercise-group-name">${group.lesson.title}</span>
+                <span class="exercise-group-count">${group.exercises.length} ${group.exercises.length === 1 ? 'ejercicio' : 'ejercicios'}</span>
+              </h4>
+              <div class="exercise-group-items">
+                ${group.exercises.map((ex, idx) => `
+                  <div class="exercise-item" data-exercise-id="${ex.id}" onclick="openExercise(${ex.id})">
+                    <div class="exercise-item-main">
+                      <div class="exercise-item-meta">Ejercicio ${idx + 1} de ${group.exercises.length} • ${lvl.name}</div>
+                      <div class="exercise-item-title">${ex.title}</div>
+                      <p class="exercise-item-desc">${String(ex.description || "").split("<br>")[0]}</p>
                     </div>
-                </div>
-            `;
-  }).join('')}
+                    <span class="exercise-item-cta" aria-hidden="true">Practicar →</span>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          `).join('')}
         </div>
-        
-        <div class="lesson-navigation" style="margin-top: 2rem;">
-            <button class="nav-btn" data-nav="close" onclick="closeExercise()">Cerrar</button>
-        </div>
+      </section>
     `;
+  }).join('');
+
+  content.innerHTML = `
+    <button class="lesson-close" onclick="closeExercise()" aria-label="Cerrar listado">×</button>
+    <h2 class="exercises-menu-heading">${ENHANCED_ICONS.code}<span>Todos los Ejercicios (${exercisesData.length} total)</span></h2>
+    <p class="exercises-menu-lead">Recorré los ejercicios organizados por nivel y por lección. Elegí cualquiera para abrir el editor.</p>
+    ${readingIds.length ? `<p class="exercises-menu-reading-note">${ENHANCED_ICONS.book}<span>Lecciones teóricas de lectura (sin ejercicios): ${readingIds.map(id => '#' + id).join(', ')}</span></p>` : ''}
+
+    <div class="exercises-level-filter" role="group" aria-label="Filtrar ejercicios por nivel">
+      <button type="button" class="exercises-level-pill active" data-level-filter="all" onclick="filterExercisesMenuLevel('all', this)">Todos (${exercisesData.length})</button>
+      ${levelMeta.map((lvl) => {
+        const count = groups.filter((g) => g.lesson.level === lvl.key).reduce((a, g) => a + g.exercises.length, 0);
+        return `<button type="button" class="exercises-level-pill level-${lvl.key}" data-level-filter="${lvl.key}" onclick="filterExercisesMenuLevel('${lvl.key}', this)">${lvl.icon}<span>${lvl.name} (${count})</span></button>`;
+      }).join('')}
+    </div>
+
+    <div class="exercises-menu-groups">
+      ${levelSectionsHtml}
+    </div>
+
+    <div class="lesson-navigation">
+      <button class="nav-btn" data-nav="close" onclick="closeExercise()">Cerrar</button>
+    </div>
+  `;
 }
 
 // ============================================
@@ -733,19 +764,19 @@ function showEvaluationResult(score, correct, passed) {
     <button class="lesson-close" onclick="closeEvaluation()">×</button>
     <div class="evaluation-result">
       <div class="result-score">${score}%</div>
-      <div class="result-message">${passed ? '¡Felicitaciones! 🎉' : 'Sigue practicando 💪'}</div>
+      <div class="result-message">${passed ? '¡Evaluación aprobada!' : 'Sigue practicando'}</div>
       <div class="result-details">
         Respondiste correctamente ${correct} de ${currentEvaluation.questions.length} preguntas
       </div>
       
       ${passed ? `
         <div class="info-box success">
-          <strong>✅ Nivel Aprobado</strong><br>
+          <strong>Nivel Aprobado</strong><br>
           Has desbloqueado el siguiente nivel. ¡Sigue así!
         </div>
       ` : `
         <div class="info-box warning">
-          <strong>📚 Repasa el contenido</strong><br>
+          <strong>Repasa el contenido</strong><br>
           Necesitas al menos ${currentEvaluation.passingScore}% para aprobar. Revisa las lecciones y vuelve a intentarlo.
         </div>
       `}
@@ -809,7 +840,7 @@ function showCertificate() {
     <button class="lesson-close" onclick="closeCertificate()">×</button>
     <div class="certificate" id="certificate">
       <div class="certificate-header">
-        <div class="certificate-logo">☕</div>
+        <div class="certificate-logo">${ENHANCED_ICONS.award}</div>
         <h1 class="certificate-title">Certificado de Finalización</h1>
         <p class="certificate-subtitle">JavaMaster - Programa Completo</p>
       </div>
@@ -843,7 +874,7 @@ function showCertificate() {
     </div>
     
     <div class="certificate-actions">
-      <button class="btn-primary" onclick="downloadCertificate()">📥 Descargar Certificado</button>
+      <button class="btn-primary" onclick="downloadCertificate()">${ENHANCED_ICONS.download}<span>Descargar Certificado</span></button>
       <button class="btn-secondary" onclick="closeCertificate()">Cerrar</button>
     </div>
   `;
@@ -889,14 +920,14 @@ window.openLesson = function (lessonId) {
     }
   }
 
-  // Add exercise button if available (reading lessons 22, 25, 40, 42 do not have exercises)
+    // Add exercise button if available (reading lessons 22, 25, 40, 42 do not have exercises)
   const exercise = exercisesData.find(e => e.lessonId === lessonId);
   if (exercise && navDiv) {
     navDiv.classList.remove('lesson-nav-reading');
     const exerciseBtn = document.createElement('button');
     exerciseBtn.className = 'nav-btn';
     exerciseBtn.dataset.lessonNav = 'practice';
-    exerciseBtn.textContent = '💻 Practicar';
+    exerciseBtn.innerHTML = `${ENHANCED_ICONS.code}<span>Practicar</span>`;
     if (typeof LessonNav !== 'undefined' && LessonNav.isAvailable && !LessonNav.isAvailable('exercise', exercise.id)) {
       exerciseBtn.disabled = true;
     }
@@ -915,11 +946,8 @@ window.openLesson = function (lessonId) {
 // ============================================
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Add evaluation buttons to level cards
   document.querySelectorAll('.level-card').forEach(card => {
     const level = card.dataset.level;
-
-    // Map level to study guide
     const studyGuides = {
       beginner: 'guia-principiante.html',
       intermediate: 'guia-intermedio.html',
@@ -927,112 +955,30 @@ document.addEventListener('DOMContentLoaded', () => {
       expert: 'guia-experto.html'
     };
 
-    // Add study guide button
+    const actionsWrap = document.createElement('div');
+    actionsWrap.className = 'level-card-actions';
+
     const studyBtn = document.createElement('a');
     studyBtn.href = studyGuides[level];
     studyBtn.download = studyGuides[level];
-    studyBtn.className = 'btn-secondary';
-    studyBtn.style.marginTop = '1rem';
-    studyBtn.style.width = '100%';
-    studyBtn.style.display = 'block';
-    studyBtn.style.textAlign = 'center';
-    studyBtn.textContent = '📚 Descargar Material de Estudio';
+    studyBtn.className = 'btn-secondary level-guide-btn';
+    studyBtn.innerHTML = `${ENHANCED_ICONS.download}<span>Descargar Material de Estudio</span>`;
     studyBtn.onclick = (e) => {
       e.stopPropagation();
     };
 
-    // Add evaluation button
     const evalBtn = document.createElement('button');
-    evalBtn.className = 'btn-primary';
-    evalBtn.style.marginTop = '0.5rem';
-    evalBtn.style.width = '100%';
-    evalBtn.textContent = '📝 Tomar Evaluación';
+    evalBtn.className = 'btn-primary level-eval-btn';
+    evalBtn.innerHTML = `${ENHANCED_ICONS.clipboard}<span>Tomar Evaluación</span>`;
     evalBtn.onclick = (e) => {
       e.stopPropagation();
       startEvaluation(level);
     };
 
-    card.appendChild(studyBtn);
-    card.appendChild(evalBtn);
+    actionsWrap.appendChild(studyBtn);
+    actionsWrap.appendChild(evalBtn);
+    card.appendChild(actionsWrap);
   });
 
-  // Decorar tarjetas de lección (C-11b)
-  decorateLessonCards();
-
-  // Check for certificate on load
   checkForCertificate();
 });
-
-// ============================================
-// C-11b: TARJETAS DE LECCIÓN CON SUS EJERCICIOS Y DISPONIBILIDAD
-// ============================================
-
-function decorateLessonCards(rootSelector) {
-  if (typeof LessonNav === 'undefined' || typeof exercisesData === 'undefined' || typeof lessonsData === 'undefined') {
-    return;
-  }
-  const readingSet = new Set(LessonNav.readingLessonIds(exercisesData, lessonsData));
-  const scope = rootSelector ? document.querySelectorAll(rootSelector + ' .lesson-card') : document.querySelectorAll('#lessons-grid .lesson-card, #modules-view .lesson-card');
-  scope.forEach((card) => {
-    const idSpan = card.querySelector('.lesson-id');
-    const lessonId = card.dataset.lessonId
-      ? Number(card.dataset.lessonId)
-      : (idSpan ? Number((idSpan.textContent || '').replace(/[^0-9]/g, '')) : 0);
-    if (!lessonId) return;
-    card.dataset.lessonId = String(lessonId);
-
-    const available = LessonNav.isAvailable('lesson', lessonId) === true;
-    card.classList.toggle('lesson-locked', !available);
-
-    const prevSummary = card.querySelector('.lesson-exercises-summary');
-    if (prevSummary) prevSummary.remove();
-
-    const summary = document.createElement('div');
-    summary.className = 'lesson-exercises-summary';
-    if (readingSet.has(lessonId)) {
-      const badge = document.createElement('span');
-      badge.className = 'lesson-reading-badge';
-      badge.textContent = '📖 Lección de lectura';
-      summary.appendChild(badge);
-    } else {
-      const list = LessonNav.getLessonExercises(exercisesData, lessonId);
-      const countEl = document.createElement('div');
-      countEl.className = 'lesson-exercises-count';
-      countEl.dataset.count = String(list.length);
-      countEl.textContent = `💻 ${list.length} ${list.length === 1 ? 'ejercicio' : 'ejercicios'}`;
-      const ul = document.createElement('ul');
-      ul.className = 'lesson-exercise-list';
-      list.forEach((ex) => {
-        const li = document.createElement('li');
-        li.textContent = ex.title;
-        ul.appendChild(li);
-      });
-      summary.appendChild(countEl);
-      summary.appendChild(ul);
-    }
-
-    const footer = card.querySelector('.lesson-footer');
-    if (footer) {
-      card.insertBefore(summary, footer);
-    } else {
-      card.appendChild(summary);
-    }
-  });
-}
-
-if (typeof window.renderLessons === 'function') {
-  const originalRenderLessons = window.renderLessons;
-  window.renderLessons = function (filterLevel) {
-    originalRenderLessons(filterLevel);
-    decorateLessonCards('#lessons-grid');
-  };
-}
-
-if (typeof window.renderModulesView === 'function') {
-  const originalRenderModulesView = window.renderModulesView;
-  window.renderModulesView = function () {
-    originalRenderModulesView();
-    decorateLessonCards('#modules-view');
-  };
-}
-
