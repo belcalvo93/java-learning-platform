@@ -6,57 +6,59 @@
 
 :root,
 html[data-theme="dark"] {
-    /* Paleta base (Modo Noche por defecto — pizarra azulada suave, AA+) */
-    --bg-primary: #171b24;
+    /* Paleta base (Modo Noche verde profundo de referencia, AA+) */
+    --bg-primary: #021F1D;
     --bg-dark: var(--bg-primary);
-    --bg-secondary: #1c212c;
-    --bg-card: #212734;
-    --bg-card-hover: #262d3d;
-    --bg-surface: #282f3e;
-    --bg-editor: #12161f;
-    --bg-glass: rgba(23, 27, 36, 0.92);
+    --bg-secondary: #0A2926;
+    --bg-card: #132E2B;
+    --bg-card-hover: #1A3B37;
+    --bg-surface: #27413E;
+    --bg-editor: #011413;
+    --bg-glass: rgba(2, 31, 29, 0.94);
 
-    /* Acento primario sólido y sobrio (sin gradientes rosa→púrpura) */
-    --accent-primary: #d95b72;
-    --accent-primary-hover: #c54b62;
-    --accent-primary-soft: rgba(217, 91, 114, 0.14);
-    --accent-secondary: #7c6bb0;
+    /* Acento primario rosa sólido sobrio y acento secundario verde menta */
+    --accent-primary: #E57389;
+    --accent-primary-hover: #D95B72;
+    --accent-primary-soft: rgba(229, 115, 137, 0.15);
+    --accent-secondary: #10B981;
+    --accent-mint: #10B981;
+    --accent-mint-soft: rgba(16, 185, 129, 0.15);
     --gradient-primary: var(--accent-primary);
 
     /* Texto con contraste verificado >= 4.5:1 (WCAG AA+) */
-    --text-primary: #f1f3f9;
-    --text-secondary: #b4bcd0;
-    --text-muted: #8590a8;
-    --text-code: #eef2fa;
+    --text-primary: #E5E7EB;
+    --text-secondary: #A3B8B5;
+    --text-muted: #728C88;
+    --text-code: #E5E7EB;
 
-    /* Colores semánticos por nivel (desaturados y armónicos) */
-    --level-beginner: #5ea88a;
-    --level-beginner-bg: rgba(94, 168, 138, 0.12);
-    --level-intermediate: #6c96b3;
-    --level-intermediate-bg: rgba(108, 150, 179, 0.12);
-    --level-advanced: #9c80be;
-    --level-advanced-bg: rgba(156, 128, 190, 0.12);
-    --level-expert: #c28e5c;
-    --level-expert-bg: rgba(194, 142, 92, 0.12);
+    /* Colores semánticos por nivel (desaturados y armónicos sobre fondo verde) */
+    --level-beginner: #4EB78F;
+    --level-beginner-bg: rgba(78, 183, 143, 0.14);
+    --level-intermediate: #6C96B3;
+    --level-intermediate-bg: rgba(108, 150, 179, 0.14);
+    --level-advanced: #A88ED1;
+    --level-advanced-bg: rgba(168, 142, 209, 0.14);
+    --level-expert: #D99B62;
+    --level-expert-bg: rgba(217, 155, 98, 0.14);
 
-    /* Estados semánticos */
-    --color-success: #4ea882;
-    --color-success-bg: rgba(78, 168, 130, 0.12);
-    --color-warning: #d19a52;
-    --color-warning-bg: rgba(209, 154, 82, 0.12);
-    --color-error: #dc6868;
-    --color-error-bg: rgba(220, 104, 104, 0.12);
-    --color-info: #6c96b3;
-    --color-info-bg: rgba(108, 150, 179, 0.12);
+    /* Estados semánticos (verde menta para éxito) */
+    --color-success: #10B981;
+    --color-success-bg: rgba(16, 185, 129, 0.14);
+    --color-warning: #E0A653;
+    --color-warning-bg: rgba(224, 166, 83, 0.14);
+    --color-error: #E57373;
+    --color-error-bg: rgba(229, 115, 115, 0.14);
+    --color-info: #6C96B3;
+    --color-info-bg: rgba(108, 150, 179, 0.14);
 
-    /* Bordes, patrón técnico, guías de indentación y foco */
-    --border-subtle: rgba(255, 255, 255, 0.08);
-    --border-strong: rgba(255, 255, 255, 0.16);
-    --editor-guide: rgba(180, 194, 224, 0.22);
-    --pattern-dot: rgba(255, 255, 255, 0.04);
-    --pattern-circuit: rgba(180, 194, 224, 0.08);
-    --focus-ring: 0 0 0 3px rgba(217, 91, 114, 0.35);
-    --focus-color: #d95b72;
+    /* Bordes, patrón técnico, guías de indentación y foco derivados del matiz verde */
+    --border-subtle: rgba(16, 185, 129, 0.12);
+    --border-strong: rgba(16, 185, 129, 0.24);
+    --editor-guide: rgba(16, 185, 129, 0.22);
+    --pattern-dot: rgba(16, 185, 129, 0.05);
+    --pattern-circuit: rgba(16, 185, 129, 0.10);
+    --focus-ring: 0 0 0 3px rgba(229, 115, 137, 0.35);
+    --focus-color: #E57389;
 
     /* Espaciado (escala de 4/8 px) */
     --spacing-2xs: 0.25rem;
@@ -121,8 +123,10 @@ html[data-theme="light"] {
     --level-expert: #8f5b2d;
     --level-expert-bg: rgba(143, 91, 45, 0.10);
 
-    --color-success: #267856;
-    --color-success-bg: rgba(38, 120, 86, 0.10);
+    --accent-mint: #0B7A57;
+    --accent-mint-soft: rgba(11, 122, 87, 0.12);
+    --color-success: #0B7A57;
+    --color-success-bg: rgba(11, 122, 87, 0.10);
     --color-warning: #9c651c;
     --color-warning-bg: rgba(156, 101, 28, 0.10);
     --color-error: #b83b3b;
@@ -1059,7 +1063,7 @@ html[data-theme="light"] .theme-icon-moon {
 
 .total-progress-fill {
     height: 100%;
-    background: var(--accent-primary);
+    background: var(--accent-mint);
     border-radius: var(--radius-full);
     transition: width var(--transition-normal);
 }

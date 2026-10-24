@@ -714,6 +714,81 @@ async function runC12bChecks(browser, url, check, ownErrors) {
   await page.close();
 }
 
+async function runC12cChecks(browser, url, check, ownErrors) {
+  const page = await browser.newPage();
+  page.on('pageerror', (err) => ownErrors.push(String(err && err.message || err)));
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto(url);
+  await page.waitForFunction(() => document.body && document.documentElement.dataset.theme);
+
+  // Asegurar modo oscuro
+  await page.evaluate(() => {
+    document.documentElement.dataset.theme = 'dark';
+    localStorage.setItem('javamaster_theme', 'dark');
+  });
+
+  const darkPalette = await page.evaluate(() => {
+    function parseRgb(str) {
+      const m = str.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+      if (!m) return null;
+      return [parseInt(m[1]), parseInt(m[2]), parseInt(m[3])];
+    }
+    function lum(rgb) {
+      const a = rgb.map(v => {
+        const c = v / 255;
+        return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+      });
+      return 0.2126 * a[0] + 0.7152 * a[1] + 0.0722 * a[2];
+    }
+    function contrastRatio(rgb1, rgb2) {
+      const l1 = lum(rgb1);
+      const l2 = lum(rgb2);
+      return (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
+    }
+
+    const bodyStyle = getComputedStyle(document.body);
+    const bodyBg = bodyStyle.backgroundColor; // expected rgb(2, 31, 29)
+    const textPrimary = bodyStyle.color;
+
+    const card = document.querySelector('.lesson-card') || document.querySelector('.level-card');
+    const cardStyle = card ? getComputedStyle(card) : null;
+    const cardBg = cardStyle ? cardStyle.backgroundColor : '';
+
+    const rootStyle = getComputedStyle(document.documentElement);
+    const bgSurface = rootStyle.getPropertyValue('--bg-surface').trim();
+    const accentPrimary = rootStyle.getPropertyValue('--accent-primary').trim();
+    const accentMint = rootStyle.getPropertyValue('--accent-mint').trim();
+
+    // Ratios
+    const rgbBody = parseRgb(bodyBg);
+    const rgbText = parseRgb(textPrimary);
+    const textOnBodyCr = (rgbBody && rgbText) ? contrastRatio(rgbText, rgbBody) : 0;
+
+    return {
+      bodyBg,
+      cardBg,
+      bgSurface,
+      accentPrimary,
+      accentMint,
+      textOnBodyCr,
+    };
+  });
+
+  check('C-12c: color de fondo del body en modo oscuro = #021F1D (rgb(2, 31, 29))',
+    darkPalette.bodyBg === 'rgb(2, 31, 29)',
+    JSON.stringify(darkPalette));
+
+  check('C-12c: contraste de texto principal en modo oscuro >= 4.5:1 (WCAG AA)',
+    darkPalette.textOnBodyCr >= 4.5,
+    JSON.stringify(darkPalette));
+
+  check('C-12c: acento menta #10B981 y rosa sobrio definidos en modo oscuro',
+    /10B981/i.test(darkPalette.accentMint) && /E57389|D95B72/i.test(darkPalette.accentPrimary),
+    JSON.stringify(darkPalette));
+
+  await page.close();
+}
+
 (async () => {
   const browser = await chromium.launch();
   const page = await browser.newPage();
@@ -760,6 +835,7 @@ async function runC12bChecks(browser, url, check, ownErrors) {
   await runNavigationChecks(browser, url, check, ownErrors);
   await runResponsiveChecks(browser, url, check, ownErrors);
   await runC12bChecks(browser, url, check, ownErrors);
+  await runC12cChecks(browser, url, check, ownErrors);
   const extraFailed = extra.filter((r) => !r.ok);
   console.log(`casos de navegación y responsive: ${extra.length}, pasaron: ${extra.length - extraFailed.length}, fallaron: ${extraFailed.length}`);
   console.log(`\ncasos: ${CASES.length + extra.length}, pasaron: ${pass + extra.length - extraFailed.length}, fallaron: ${failed.length + extraFailed.length}`);
