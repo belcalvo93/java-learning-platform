@@ -275,7 +275,7 @@ C-01 → C-02 → C-04 → C-10 → C-07 → C-08*
   - `knowledge-base/05_reglas_de_negocio.md` §RN-CON-01, RN-CON-03, RN-PRO-01, RN-PRO-02 (invariantes y copy obligatorio)
 
 ### [C-16] `content-and-mapping`
-- **Estado**: `[x]` completado y archivado (`openspec/changes/archive/2026-10-04-c-16-content-and-mapping/`, spec sincronizada en `openspec/specs/course-content/`) — diff revisado por Belén: OK.
+- **Estado**: [x] completado y archivado (openspec/changes/archive/2026-10-24-c-16-content-and-mapping/, specs sincronizadas en openspec/specs/course-content/ y openspec/specs/validator-structural/) — suite 2793/2793, browser-check 158/158, invariante 52/208 PASA, contenido y validación sincronizados.
 - **Scope**: Aplicar el paquete de contenido verificado `content-pack/content-pack.json` (código; script con invariantes + tests)
   - Ejecutar `node tools/apply-content-pack.js`: reescribe `content` de las lecciones en `script.js` (51 lecciones; la 1 intacta) y `lessonId`/consigna/starter vacío de los 208 ejercicios en `data.js`; NO toca `solution`, `hint`, `validation`, `title`, `difficulty` ni ids (el script verifica invariantes antes de escribir y falla si algo se rompe)
   - Reasignación de ejercicios a su lección (mapa nuevo en `docs/content-review-notes.md`); lecciones sin ejercicios pasan a ser [22, 25, 40, 42]

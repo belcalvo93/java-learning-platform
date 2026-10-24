@@ -776,14 +776,15 @@ class JavaValidator {
         for (const alt of rule.alts || []) {
             variants.push(normalizeStructToks(tokenizeJava(stripJavaComments(alt)), { strictIncr: !!rule.strictIncr }));
         }
-        const refIds = new Set(solBase.filter((t) => t.k === 'id').map((t) => t.v));
-        const fixed = new Set([...refIds].filter((n) => !(rule.free || []).includes(n)));
+        const refIds = new Set(variants.flatMap((v) => v.filter((t) => t.k === 'id').map((t) => t.v)));
         const declared = collectStudentEntities(stripped);
         const context = new Set(rule.ctx || []);
-        const opts = { fixed, stringsFree: rule.strings === 'free', declared, context };
         let used = null;
         let matchedVariant = null;
         const ok = variants.some((v) => {
+            const refIds = new Set(v.filter((t) => t.k === 'id').map((t) => t.v));
+            const fixed = new Set([...refIds].filter((n) => !(rule.free || []).includes(n)));
+            const opts = { fixed, stringsFree: rule.strings === 'free', declared, context };
             const m = structuralMatchTokens(stuToks, v, opts);
             if (m.ok) { used = m.used; matchedVariant = { toks: v, align: m.align }; }
             return m.ok;
@@ -2119,12 +2120,12 @@ const STRUCT_RULES = {
     121: { ctx: [], free: [], strings: 'fixed', missing: 'Falta el try con la línea dada y el catch del tipo pedido con su impresión.' },
     122: { ctx: [], free: [], strings: 'fixed', missing: 'Faltan los dos catch en orden con sus impresiones.' },
     123: { ctx: [], free: [], strings: 'fixed', missing: 'Falta el try con catch y el finally con su impresión.' },
-    124: { ctx: ['edad'], free: [], strings: 'fixed', missing: 'Falta el if que lanza la excepción con su mensaje.' },
+    124: { ctx: ['edad'], free: [], strings: 'fixed', missing: 'Falta el if que lanza la excepción con su mensaje.', alts: ['if (edad < 0) {\n    throw new IllegalArgumentException("Edad negativa");\n}'] },
     125: { ctx: [], free: [], strings: 'fixed', missing: 'Falta el método con throws en la firma.' },
     126: { ctx: [], free: [], strings: 'fixed', missing: 'Falta la clase con extends, el constructor y el super con el mensaje.' },
     127: { ctx: [], free: [], strings: 'fixed', missing: 'Falta la clase con extends, el constructor y el super con el mensaje.' },
     128: { ctx: [], free: [], strings: 'fixed', missing: 'Falta el try-with-resources con la lectura y el catch que muestra la traza.' },
-    129: { ctx: [], free: [], strings: 'fixed', missing: 'Falta el multi-catch con | y su impresión.' },
+    129: { ctx: ['consultar'], free: [], strings: 'fixed', missing: 'Falta el multi-catch con | y su impresión.', alts: ['try { } catch (IOException | SQLException e) { System.out.println("Error de I/O o BD"); }', 'try {\n    // código\n} catch (IOException | SQLException e) {\n    System.out.println("Error de I/O o BD");\n}'] },
     130: { ctx: ['e'], free: [], strings: 'fixed', missing: 'Falta guardar el mensaje en la variable e imprimirla.' },
     131: { ctx: ['e'], free: [], strings: 'fixed', missing: 'Falta la llamada que muestra la traza.' },
     132: { ctx: [], free: [], strings: 'fixed', missing: 'Falta el catch que lanza la nueva excepción con mensaje y causa.' },
@@ -2199,7 +2200,7 @@ const STRUCT_RULES = {
     202: { ctx: [], free: [], strings: 'fixed', missing: 'Falta el test con assertThrows, el tipo y el bloque que lanza.' },
     203: { ctx: [], free: [], strings: 'fixed', missing: 'Falta el mock con su configuración de when y thenReturn.' },
     204: { ctx: [], free: [], strings: 'fixed', missing: 'Falta el mock, la llamada y después la verificación.' },
-    205: { ctx: [], free: [], strings: 'fixed', missing: 'Falta el test en rojo y el método mínimo que lo hace pasar.' },
+    205: { ctx: [], free: [], strings: 'fixed', missing: 'Falta el test en rojo y el método mínimo que lo hace pasar.', alts: ['// 1. Red: escribe test que falla\n@Test void testFalla() { assertEquals(5, suma(2, 2)); }\n// 2. Green: implementa mínimo para pasar\nint suma(int a, int b) { return a + b; }\n// 3. Refactor: mejora el código'] },
     206: { ctx: [], free: [], strings: 'fixed', missing: 'Falta la cadena de aserciones con sus tres eslabones.' },
     207: { ctx: [], free: [], strings: 'fixed', missing: 'Falta el test parametrizado con sus valores y la comprobación.' },
     208: { ctx: [], free: [], strings: 'fixed', custom: 208, missing: 'Faltan las ideas de cobertura.' },
