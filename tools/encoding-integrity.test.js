@@ -138,7 +138,7 @@ describe('C-12b — 2. Identidad visual, logo SVG propio, selector día/noche y 
     const css = fs.readFileSync(path.join(ROOT, 'styles.css'), 'utf8');
     assert.match(css, /html\[data-theme="dark"\]/);
     assert.match(css, /html\[data-theme="light"\]/);
-    assert.match(css, /--bg-primary:\s*#171b24/i);
+    assert.match(css, /--bg-primary:\s*#021F1D/i);
     assert.match(css, /--level-intermediate:\s*#6c96b3/i);
   });
 });

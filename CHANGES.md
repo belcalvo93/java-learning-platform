@@ -362,6 +362,12 @@ C-01 → C-02 → C-04 → C-10 → C-07 → C-08*
 - **Dependencias**: C-12
 - **Governance**: BAJO
 
+
+### [C-12c] `dark-palette`
+- **Estado**: `[x]` completado y archivado (`openspec/changes/archive/2026-10-24-c-12c-dark-palette/`, spec sincronizada en `openspec/specs/ui-redesign/`) — reemplazo de la paleta del modo oscuro por base verde profunda (#021F1D fondo, #132E2B tarjetas, #27413E superficies elevadas, #011413 editor, #E5E7EB texto principal, #10B981 verde menta de acento secundario y éxito/progreso, #E57389 acento rosa primario preservado); conexión sutil en modo claro con verde menta (#0B7A57) exclusivamente en barras de progreso, marcas de completado y estados de éxito; 0 residuos de gris pizarra (#171b24, #1c212c, etc.); suite 2793/2793, browser-check 161/161, invariante 52/208 PASA, 0 errores de consola.
+- **Scope**: Paleta verde de modo oscuro según imagen de referencia y conexión en modo claro (solo progreso/éxito)
+- **Dependencias**: C-12b
+- **Governance**: BAJO
 ---
 
 ## FASE 4 — Post-MVP: login y administración (diseño solamente)
