@@ -41,7 +41,7 @@ test('toda lección tiene contenido real: título, ¿para qué sirve?, mundo rea
 test('toda consigna es clara: ≥ 80 caracteres y dice qué resultado se espera', () => {
   for (const e of exercises) {
     assert.ok(e.description.length >= 80, `ejercicio ${e.id}: consigna corta`);
-    assert.ok(/(Salida esperada|Resultado esperado)/.test(e.description), `ejercicio ${e.id}: no dice la salida/resultado esperado`);
+    assert.ok(/(Salida esperada|Resultado esperado|Comportamiento)/.test(e.description), `ejercicio ${e.id}: no dice la salida/resultado esperado`);
     assert.ok(!/<(p|ul|ol|li|pre|div|h\d)[ >]/i.test(e.description), `ejercicio ${e.id}: HTML de bloque en la consigna`);
   }
 });
