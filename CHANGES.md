@@ -441,7 +441,7 @@ C-01 → C-02 → C-04 → C-10 → C-07 → C-08*
 > Solo tras los diseños C-08 y C-09. Riesgo ALTO en ambos: reglas de Firestore, rol admin y cero secretos en el frontend.
 
 ### [C-13] `login-y-progreso-en-cuenta`
-- **Estado**: `[ ]` pendiente
+- **Estado**: `[ ]` implementado, pendiente de verificación con Firebase real
 - **Scope**: Implementar el diseño de C-08: login con Firebase real + progreso por usuario (código, con tests donde haya lógica)
   - Auth Firebase real (proveedor y modelo según `docs/auth-db-decision.md` de C-08); Firestore con reglas de seguridad (cada usuario solo lee/escribe su progreso; admin por rol, nunca desde el cliente)
   - Progreso por usuario con fuente de verdad en servidor; `localStorage` pasa a caché; migración del progreso local existente (import por única vez, sin duplicar)

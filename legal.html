@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Información legal, términos de servicio, políticas de privacidad, seguridad y cookies de JavaMaster.">
+    <title>Información Legal y Políticas — JavaMaster</title>
+    <script>
+        (function () {
+            var theme = null;
+            try {
+                theme = localStorage.getItem('javamaster_theme');
+            } catch (_) { }
+            if (theme !== 'light' && theme !== 'dark') {
+                theme = (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) ? 'light' : 'dark';
+            }
+            document.documentElement.dataset.theme = theme;
+        })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500;600&display=swap">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="colors-feminine.css">
+    <style>
+        .legal-page-container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 2.5rem 1.25rem 4rem;
+        }
+        .legal-header {
+            margin-bottom: 2.5rem;
+            border-bottom: 1px solid var(--border-subtle);
+            padding-bottom: 1.5rem;
+        }
+        .legal-draft-badge {
+            display: inline-block;
+            background: var(--color-warning-bg);
+            color: var(--color-warning);
+            border: 1px solid var(--color-warning);
+            padding: 0.35rem 0.75rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.825rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        .legal-title {
+            font-size: 2.25rem;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+        .legal-meta {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+        .legal-nav-index {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 1.25rem 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+        .legal-nav-index ul {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.25rem;
+            list-style: none;
+            padding: 0;
+            margin: 0.5rem 0 0;
+        }
+        .legal-nav-index a {
+            color: var(--accent-primary);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+        .legal-nav-index a:hover {
+            text-decoration: underline;
+        }
+        .legal-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 2rem;
+            margin-bottom: 2.5rem;
+            scroll-margin-top: 5rem;
+        }
+        .legal-section h2 {
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            margin-top: 0;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid var(--border-subtle);
+            padding-bottom: 0.5rem;
+        }
+        .legal-section h3 {
+            color: var(--text-primary);
+            font-size: 1.15rem;
+            margin-top: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .legal-section p, .legal-section li {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.65;
+        }
+        .legal-section ul {
+            padding-left: 1.5rem;
+            margin: 0.75rem 0;
+        }
+        .legal-section li {
+            margin-bottom: 0.4rem;
+        }
+        .legal-highlight-box {
+            background: var(--bg-secondary);
+            border-left: 3px solid var(--accent-primary);
+            padding: 1rem 1.25rem;
+            margin: 1.25rem 0;
+            border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+        }
+        .back-to-home {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+            transition: color var(--transition-fast);
+        }
+        .back-to-home:hover {
+            color: var(--accent-primary);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="header">
+        <nav class="nav-container" aria-label="Navegación principal">
+            <a href="index.html" class="logo">
+                <svg class="logo-mark" width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+                    <rect x="1.5" y="1.5" width="25" height="25" rx="6.5" stroke="currentColor" stroke-width="1.75" />
+                    <path d="M9.5 9.5L6.25 14L9.5 18.5" stroke="var(--accent-primary)" stroke-width="1.85"
+                        stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M18.5 9.5L21.75 14L18.5 18.5" stroke="var(--accent-primary)" stroke-width="1.85"
+                        stroke-linecap="round" stroke-linejoin="round" />
+                    <circle cx="14" cy="11.75" r="1.15" fill="currentColor" />
+                    <path d="M14.35 15.1C14.35 16.45 13.75 17.45 12.85 18" stroke="currentColor" stroke-width="1.6"
+                        stroke-linecap="round" />
+                </svg>
+                <span class="logo-text">JavaMaster</span>
+            </a>
+            <div class="nav-right">
+                <ul class="nav-links">
+                    <li><a href="index.html#inicio">Inicio</a></li>
+                    <li><a href="index.html#lecciones">Lecciones</a></li>
+                </ul>
+                <button type="button" id="theme-toggle" class="theme-toggle-btn" aria-label="Cambiar modo"
+                    aria-pressed="false" title="Alternar modo día y noche">
+                    <svg class="theme-icon theme-icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
+                        aria-hidden="true">
+                        <circle cx="12" cy="12" r="4.25"></circle>
+                        <path
+                            d="M12 2.5v2.25M12 19.25v2.25M4.93 4.93l1.6 1.6M17.47 17.47l1.6 1.6M2.5 12h2.25M19.25 12h2.25M4.93 19.07l1.6-1.6M17.47 6.53l1.6-1.6">
+                        </path>
+                    </svg>
+                    <svg class="theme-icon theme-icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
+                        aria-hidden="true">
+                        <path d="M20.35 14.65A8.25 8.25 0 0 1 9.35 3.65a8.25 8.25 0 1 0 11 11Z"></path>
+                    </svg>
+                    <span class="theme-toggle-text">Tema</span>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <main class="legal-page-container">
+        <a href="index.html" class="back-to-home">
+            <svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+            Volver a la plataforma
+        </a>
+
+        <div class="legal-header">
+            <span class="legal-draft-badge">Borrador pendiente de revisión legal de la usuaria</span>
+            <h1 class="legal-title">Términos, Privacidad y Políticas</h1>
+            <p class="legal-meta">Última actualización: 24 de octubre de 2026 | Responsable: Belén Calvo | Contacto: CONTACTO_PENDIENTE</p>
+        </div>
+
+        <nav class="legal-nav-index" aria-label="Índice de políticas">
+            <strong>Contenido de este documento:</strong>
+            <ul>
+                <li><a href="#terminos">1. Términos y Condiciones</a></li>
+                <li><a href="#privacidad">2. Política de Privacidad</a></li>
+                <li><a href="#seguridad">3. Política de Seguridad</a></li>
+                <li><a href="#cookies">4. Política de Cookies y Almacenamiento</a></li>
+            </ul>
+        </nav>
+
+        <!-- 1. TÉRMINOS Y CONDICIONES -->
+        <section id="terminos" class="legal-section">
+            <h2>1. Términos y Condiciones</h2>
+            <p>Bienvenida/o a <strong>JavaMaster</strong>. Al acceder o utilizar esta plataforma educativa interactiva, aceptás los presentes Términos y Condiciones de uso.</p>
+            
+            <h3>Finalidad y Carácter del Servicio</h3>
+            <p>JavaMaster es un proyecto educativo de acceso gratuito concebido para el aprendizaje autónomo y personal de la programación en Java. El servicio se brinda "tal cual está" (<em>as is</em>) y según disponibilidad, sin garantías de ningún tipo respecto de su continuidad ininterrumpida o adecuación a fines específicos.</p>
+            
+            <h3>Certificado de Finalización</h3>
+            <p>Al completar los contenidos del curso, la plataforma permite generar un certificado digital de finalización. Se deja constancia expresa de que <strong>dicho certificado no posee validez oficial, reconocimiento universitario ni acreditación ministerial</strong>; constituye un reconocimiento honorífico y simbólico del avance individual del estudiante dentro de la plataforma.</p>
+
+            <h3>Propiedad Intelectual y Derechos Reservados</h3>
+            <p>© 2026 Belén Calvo. Todos los derechos reservados.</p>
+            <p>El código fuente de la plataforma, los textos explicativos, las consignas de las 52 lecciones, los 208 ejercicios prácticos, las soluciones de referencia y el diseño visual son de exclusiva autoría y propiedad de Belén Calvo. <strong>No se permite copiar, reproducir, distribuir, modificar ni utilizar estos contenidos comercialmente</strong> sin autorización previa, expresa y por escrito de su titular.</p>
+
+            <h3>Uso Aceptable y Límite de Responsabilidad</h3>
+            <p>El usuario se compromete a no intentar vulnerar los sistemas de seguridad de la plataforma, no saturar deliberadamente los servicios de backend ni emplear herramientas automatizadas de scraping abusivo. En la máxima medida permitida por la ley aplicable, la titular de la plataforma no será responsable por daños directos o indirectos derivados del uso o la imposibilidad de uso del servicio.</p>
+
+            <h3>Ley Aplicable y Jurisdicción</h3>
+            <p>Estos Términos se rigen e interpretan de conformidad con las leyes de la <strong>República Argentina</strong>. Ante cualquier controversia, las partes se someten a los tribunales ordinarios competentes.</p>
+        </section>
+
+        <!-- 2. POLÍTICA DE PRIVACIDAD -->
+        <section id="privacidad" class="legal-section">
+            <h2>2. Política de Privacidad</h2>
+            <p>Esta política detalla cómo se gestionan y resguardan los datos personales de quienes utilizan JavaMaster, en estricto cumplimiento de la <strong>Ley Nacional N.º 25.326 de Protección de los Datos Personales</strong> de la República Argentina y estándares internacionales de privacidad.</p>
+
+            <h3>Responsable del Tratamiento y Contacto</h3>
+            <p><strong>Responsable:</strong> Belén Calvo<br>
+            <strong>Contacto para asuntos de privacidad:</strong> CONTACTO_PENDIENTE</p>
+
+            <h3>Datos Personales Recabados</h3>
+            <p>En aplicación del principio de <strong>minimización de datos</strong>, solo solicitamos lo estrictamente necesario para brindar la funcionalidad de sincronización opcional:</p>
+            <ul>
+                <li><strong>Dirección de correo electrónico:</strong> Necesaria para la creación de la cuenta, autenticación y recuperación de clave.</li>
+                <li><strong>Nombre o apodo (opcional):</strong> Utilizado únicamente para personalizar el saludo y la visualización de la cuenta.</li>
+                <li><strong>País (opcional):</strong> Con fines de contextualización del alumno.</li>
+                <li><strong>Progreso educativo:</strong> Identificadores de lecciones y ejercicios resueltos, y estado de evaluaciones, necesarios para sincronizar el avance entre dispositivos.</li>
+            </ul>
+            <p><strong>Datos que NO se recogen:</strong> No se solicitan ni almacenan números de documento de identidad, fechas exactas de nacimiento, domicilios, números telefónicos, datos de tarjetas de crédito/pago ni datos sensibles de ninguna índole.</p>
+
+            <h3>Finalidad y Base Legal</h3>
+            <p>La única finalidad de la recopilación es gestionar el acceso del usuario y permitir la persistencia y sincronización multiplataforma de su progreso. La base legal que legitima el tratamiento es el <strong>consentimiento libre, expreso e informado</strong> otorgado al registrarse.</p>
+
+            <h3>Encargados del Tratamiento y Transferencia Internacional</h3>
+            <p>Para la infraestructura de autenticación y base de datos en la nube se utiliza la plataforma <strong>Google Cloud / Firebase</strong> (Firebase Authentication y Cloud Firestore), provista por Google LLC. Esto implica la transferencia internacional de datos a centros de procesamiento seguros operados por Google, sujetos a estrictas cláusulas contractuales de protección de datos y estándares de seguridad de nivel de la industria.</p>
+
+            <h3>No Comercialización, Ausencia de Publicidad y Ausencia de IA con Datos de Usuario</h3>
+            <div class="legal-highlight-box">
+                <ul>
+                    <li><strong>NO vendemos, alquilamos ni transferimos</strong> datos personales a terceros bajo ninguna circunstancia.</li>
+                    <li><strong>NO incluimos anuncios publicitarios</strong> ni comercializamos perfiles de navegación.</li>
+                    <li><strong>NO usamos herramientas de analítica ni rastreadores de terceros</strong> actualmente. Si en el futuro se incorporasen herramientas analíticas de primera mano, se informará previamente en esta política.</li>
+                    <li><strong>NO se utilizan datos de usuarios, códigos ingresados ni información de progreso para entrenar modelos de Inteligencia Artificial.</strong></li>
+                </ul>
+            </div>
+
+            <h3>Plazo de Conservación</h3>
+            <p>Los datos se conservan únicamente mientras el usuario mantenga su cuenta activa. Si el usuario decide eliminar su cuenta, todos sus datos son suprimidos de forma inmediata e irreversible.</p>
+
+            <h3>Menores de Edad</h3>
+            <p>La plataforma y sus funciones de creación de cuentas no están dirigidas a menores de 13 años. Si tomamos conocimiento de que se ha registrado una cuenta perteneciente a un menor de 13 años sin el debido consentimiento parental, procederemos a su inmediata eliminación.</p>
+
+            <h3>Derechos de los Titulares (Ley 25.326, GDPR y Otras Normativas)</h3>
+            <p>Los usuarios gozan de los derechos de acceso, rectificación, actualización, supresión y portabilidad de sus datos:</p>
+            <ul>
+                <li><strong>Cómo ejercerlos directamente:</strong> Desde el panel "Mi Cuenta", podés utilizar el botón <em>"Descargar mis datos (JSON)"</em> para obtener una copia completa de tu información, o el botón <em>"Eliminar mi cuenta y mis datos"</em> para borrar irreversiblemente tu cuenta en Firebase Auth y tu documento en Firestore.</li>
+                <li><strong>Vía correo electrónico:</strong> También podés solicitar la rectificación o supresión escribiendo a CONTACTO_PENDIENTE.</li>
+            </ul>
+
+            <div class="legal-highlight-box">
+                <small><strong>Información requerida por la Dirección Nacional de Protección de Datos Personales (Órgano de Control de la Ley N.º 25.326):</strong><br>
+                «El titular de los datos personales tiene la facultad de ejercer el derecho de acceso a los mismos en forma gratuita a intervalos no inferiores a seis meses, salvo que se acredite un interés legítimo al efecto conforme lo establecido en el artículo 14, inciso 3 de la Ley N.º 25.326. La AGENCIA DE ACCESO A LA INFORMACIÓN PÚBLICA, en su carácter de Órgano de Control de la Ley N.º 25.326, tiene la atribución de atender las denuncias y reclamos que se interpongan con relación al incumplimiento de las normas sobre protección de datos personales.»</small>
+            </div>
+            <p>Para usuarios alcanzados por normativas como el RGPD europeo o la normativa británica, se reconocen asimismo los derechos a la limitación del tratamiento, a la oposición y a presentar un reclamo ante su autoridad local de control.</p>
+        </section>
+
+        <!-- 3. POLÍTICA DE SEGURIDAD -->
+        <section id="seguridad" class="legal-section">
+            <h2>3. Política de Seguridad</h2>
+            <p>La seguridad de los datos de los usuarios y de la infraestructura de JavaMaster constituye una prioridad fundamental.</p>
+
+            <h3>Medidas Técnicas Implementadas</h3>
+            <ul>
+                <li><strong>Comunicaciones Cifradas (HTTPS):</strong> Todo el tráfico entre tu navegador y la plataforma viaja cifrado mediante protocolos TLS/HTTPS modernos.</li>
+                <li><strong>Aislamiento Estricto en Base de Datos:</strong> Mediante reglas de seguridad granulares en Cloud Firestore (<code>firestore.rules</code>), ningún usuario puede leer, consultar ni modificar el avance o la información de otro estudiante.</li>
+                <li><strong>Gestión Robusta de Credenciales:</strong> Las contraseñas nunca se almacenan en texto plano; son gestionadas directamente por Firebase Authentication mediante algoritmos seguros de derivación criptográfica (Scrypt/Bcrypt).</li>
+                <li><strong>Cero Secretos en el Código:</strong> El repositorio público no contiene claves privadas, tokens de administración ni credenciales sensibles de backend.</li>
+                <li><strong>Ejecución y Validación Segura:</strong> Las validaciones pedagógicas se realizan de forma determinística en el navegador, preservando el aislamiento del entorno de usuario.</li>
+            </ul>
+
+            <h3>Reporte Responsable de Vulnerabilidades</h3>
+            <p>Si encontrás una vulnerabilidad o posible fallo de seguridad en la plataforma, te agradecemos reportarlo responsablemente enviando un correo a <strong>CONTACTO_PENDIENTE</strong> con el detalle técnico para su rápida subsanación. Nos comprometemos a investigar de inmediato y a notificar a los usuarios en caso de cualquier incidente que comprometa la confidencialidad de sus datos.</p>
+        </section>
+
+        <!-- 4. POLÍTICA DE COOKIES Y ALMACENAMIENTO -->
+        <section id="cookies" class="legal-section">
+            <h2>4. Política de Cookies y Almacenamiento Local</h2>
+            <p>En JavaMaster creemos en una web limpia, rápida y respetuosa de tu privacidad.</p>
+
+            <h3>Ausencia de Cookies de Rastreo o Publicitarias</h3>
+            <p><strong>No utilizamos cookies de seguimiento, rastreadores entre sitios ni cookies publicitarias de terceros.</strong></p>
+
+            <h3>Almacenamiento Técnico Estrictamente Necesario</h3>
+            <p>La plataforma únicamente utiliza almacenamiento técnico en el navegador (principalmente a través de <code>localStorage</code> y tokens de sesión) indispensable para que la aplicación funcione:</p>
+            <ul>
+                <li><code>javamaster_theme</code>: Almacena tu preferencia visual (modo claro o modo oscuro).</li>
+                <li><code>javaMasterProgress</code> y <code>exercise_*_completed</code>: Permiten que tu avance en las lecciones y ejercicios no se pierda al recargar la página cuando utilizás la plataforma sin iniciar sesión.</li>
+                <li><em>Tokens de sesión de Firebase Auth:</em> Almacenamiento en memoria o almacenamiento seguro del navegador gestionado por el SDK de Firebase para recordar tu sesión activa si decidís ingresar con cuenta.</li>
+            </ul>
+            <p>Dado que estos mecanismos son <strong>técnicamente indispensables</strong> para la prestación del servicio educativo solicitado por el usuario, no se requiere ni se muestra un cartel invasivo de consentimiento de cookies.</p>
+
+            <h3>Cómo Borrar el Almacenamiento Local</h3>
+            <p>Podés limpiar este almacenamiento en cualquier momento desde la configuración de tu navegador (opción "Borrar datos de navegación" o "Almacenamiento local") o utilizando el botón "Reiniciar" disponible en los ejercicios de la plataforma.</p>
+        </section>
+    </main>
+
+    <!-- Footer Unificado -->
+    <footer class="footer">
+        <div class="footer-content">
+            <p>© 2026 Belén Calvo. Todos los derechos reservados.</p>
+            <p class="footer-author">
+                JavaMaster — Plataforma interactiva para dominar la programación en Java
+            </p>
+            <div class="footer-links">
+                <a href="index.html#inicio">Inicio</a>
+                <a href="index.html#lecciones">Lecciones</a>
+                <a href="legal.html#terminos">Términos y Condiciones</a>
+                <a href="legal.html#privacidad">Política de Privacidad</a>
+                <a href="legal.html#seguridad">Política de Seguridad</a>
+                <a href="legal.html#cookies">Política de Cookies</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
