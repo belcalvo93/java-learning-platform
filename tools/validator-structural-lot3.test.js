@@ -67,7 +67,7 @@ const VALID = {
     'Scanner sc=new Scanner(System.in);int num=sc.nextInt();sc.close();'],
   39: ['try (Scanner sc = new Scanner(System.in)) { System.out.print("Número: "); int num = sc.nextInt(); System.out.println("Leído: " + num); }',
     `${solutionOf(39)}\nSystem.out.println("listo");`],
-  40: ['Scanner sc=new Scanner(System.in);System.out.print("Precio: ");double precio=sc.nextDouble();',
+  40: ['Scanner sc=new Scanner(System.in).useLocale(Locale.US);System.out.print("Precio: ");double precio=sc.nextDouble();',
     `${solutionOf(40)}\nSystem.out.println(precio);`],
 };
 
@@ -105,7 +105,7 @@ const INVALID = {
     'Scanner sc = new Scanner(System.in);\nif (sc.hasNextInt()) {\n    int num = sc.nextInt();\n    System.out.println("Número: " + num);\n}'],
   37: ['Scanner sc = new Scanner(System.in);\nint num;\nwhile (num != 0) {\n    System.out.print("Número (0 para salir): ");\n    num = sc.nextInt();\n}',
     'Scanner sc = new Scanner(System.in);\nint num;\ndo {\n    System.out.print("Número (0 para salir): ");\n    num = sc.nextInt();\n} while (num == 0);'],
-  38: ['sc.close();',
+  38: ['close();',
     'Scanner sc = new Scanner(System.in);\nint num = sc.nextInt();\nsc.stop();'],
   39: ['try {\n    Scanner sc = new Scanner(System.in);\n    System.out.print("Número: ");\n    int num = sc.nextInt();\n    System.out.println("Leído: " + num);\n}',
     'try (Scanner sc = new Scanner(System.in)) {\n    System.out.print("Número: ");\n    int num = sc.nextLine();\n    System.out.println("Leído: " + num);\n}'],

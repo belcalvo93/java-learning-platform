@@ -68,8 +68,8 @@ const VALID = {
     'final AtomicInteger contador = new AtomicInteger(0);\ncontador.incrementAndGet();'],
   178: ['ExecutorService executor=Executors.newFixedThreadPool(5);executor.submit(()->System.out.println("Tarea"));executor.shutdown();',
     'final ExecutorService executor = Executors.newFixedThreadPool(5);\nexecutor.submit(() -> System.out.println("Tarea"));\nexecutor.shutdown();'],
-  179: ['Callable<Integer>tarea=()->42;Future<Integer>futuro=executor.submit(tarea);int resultado=futuro.get();',
-    'final Callable<Integer> tarea = () -> 42;\nfinal Future<Integer> futuro = executor.submit(tarea);\nfinal int resultado = futuro.get();'],
+  179: ['Callable<Integer>tarea=()->42;Future<Integer>futuro=executor.submit(tarea);int resultado=futuro.get();executor.shutdown();',
+    'final Callable<Integer> tarea = () -> 42;\nfinal Future<Integer> futuro = executor.submit(tarea);\nfinal int resultado = futuro.get();\nexecutor.shutdown();'],
   // `s` libre: vale renombrada si se usa siempre igual.
   180: ['CompletableFuture.supplyAsync(() -> "Hola").thenApply(x -> x + " Mundo").thenAccept(System.out::println);',
     'CompletableFuture.supplyAsync(()->"Hola").thenApply(s->s+" Mundo").thenAccept(System.out::println);'],

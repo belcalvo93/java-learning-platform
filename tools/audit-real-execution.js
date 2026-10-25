@@ -107,7 +107,16 @@ import java.util.function.*;
 
   let outerClasses = '';
   let classMembers = '';
-  let mainBody = solution;
+  const extraImports = [];
+  const cleanedSolutionLines = [];
+  for (const line of solution.split('\n')) {
+    if (line.trim().startsWith('import ')) {
+      extraImports.push(line.trim());
+    } else {
+      cleanedSolutionLines.push(line);
+    }
+  }
+  let mainBody = cleanedSolutionLines.join('\n');
   let starterInit = '';
 
   // 1. Extraer declaraciones previas del starterCode
@@ -275,6 +284,7 @@ System.out.println("Barrera superada");`;
   }
 
   return `${standardImports}
+${extraImports.join('\n')}
 
 ${outerClasses}
 
@@ -608,7 +618,7 @@ async function auditAllExercises(exercisesData, lessonsData) {
         verdict: verdict.category,
         verdictDetail: verdict.detail,
         runs: [resDot.output, resComma.output],
-        recommendation: 'En la consigna o starter, sugerir "sc.useLocale(Locale.US)" para garantizar que tanto "3.5" como "3,5" no rompan según la configuración regional del sistema operativo.',
+        recommendation: 'Solucionado en C-22 configurando "sc.useLocale(Locale.US)" en starter y solución. La herramienta lo clasifica como DEPENDE DEL ENTORNO porque rechaza la entrada con coma ("3,5"), pero el comportamiento en la JVM es ahora determinista.',
       });
       continue;
     }

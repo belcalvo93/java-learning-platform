@@ -390,6 +390,16 @@ C-01 → C-02 → C-04 → C-10 → C-07 → C-08*
 - **Scope**: Actualización integral del README.md según el estado consolidado de la plataforma (regla de oro C-03).
 - **Dependencias**: C-07, C-12c, C-16, C-18
 - **Governance**: BAJO
+
+### [C-22] `content-fixes-from-audit`
+- **Estado**: `[x]` completado y archivado (`openspec/changes/archive/2026-10-24-c-22-content-fixes-from-audit/`) — correcciones de contenido aprobadas y aplicadas en `data.js` y `validator.js`: fijado `Locale.US` en ejercicio 40, estandarizada salida vs. prompt en 33 a 40, corregido starter e import en 38 con validador tolerante a bloque o instrucción suelta, exigido `executor.shutdown()` en 178 y 179, fijada semilla determinista `Random(42)` en 148 (valor 30), agregada nota pedagógica sobre flag `-ea` en 133, unificada etiqueta `Comportamiento:` en 170/174/176/182/186, y documentadas limitaciones aceptadas de archivos (128, 162-168) y concurrencia (181). Re-ejecutada la auditoría real alcanzando 27 OK, 0 NO COMPILA y 0 SOLUCIÓN INCORRECTA.
+- **Scope**: Corrección de contenido y reglas a partir de los hallazgos de ejecución real de C-20.
+- **Dependencias**: C-20
+- **Governance**: MEDIO
+- **Leer antes**:
+  - `docs/content-fixes-proposal.md` (propuesta detallada ejercicio por ejercicio)
+  - `docs/real-execution-audit.md` (matriz de resultados de ejecución real de C-20)
+  - `docs/content-followups.md` (seguimiento de inconsistencias y dependencias de entorno)
 ---
 
 ## FASE 4 — Post-MVP: login y administración (diseño solamente)
