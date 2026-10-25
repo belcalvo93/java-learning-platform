@@ -714,6 +714,82 @@ async function runC12bChecks(browser, url, check, ownErrors) {
   await page.close();
 }
 
+async function runC13AuthChecks(browser, url, check, ownErrors) {
+  const page = await browser.newPage();
+  page.on('console', (msg) => {
+    if (msg.type() !== 'error') return;
+    const text = msg.text();
+    if (/firebase|gstatic|googleapis|fonts|net::|cdn|favicon/i.test(text)) return;
+    ownErrors.push(text);
+  });
+  page.on('pageerror', (err) => ownErrors.push(String(err && err.message || err)));
+  await page.goto(url);
+  await page.waitForFunction(
+    () => typeof AuthManager !== 'undefined' && typeof isFirebaseConfigured === 'function',
+    null, { timeout: 30000 },
+  );
+
+  // 1. Botón "Mi Cuenta" existe y está visible
+  const authBtn = await page.$('#auth-button');
+  check('C-13: botón "Mi Cuenta" presente en header', !!authBtn);
+
+  // 2. Click en "Mi Cuenta" abre el modal
+  await page.click('#auth-button');
+  const modalActive = await page.$eval('#auth-modal', el => el.classList.contains('active'));
+  check('C-13: modal de autenticación se abre al hacer clic en Mi Cuenta', modalActive);
+
+  // 3. Degrada limpiamente mostrando banner de no configurado si no hay claves
+  const unconfiguredVisible = await page.$eval('#auth-unconfigured-banner', el => getComputedStyle(el).display !== 'none');
+  check('C-13: muestra banner informativo de progreso local cuando no hay claves de Firebase', unconfiguredVisible);
+
+  // 4. Pestañas de Iniciar Sesión y Crear Cuenta funcionan
+  await page.click('#tab-btn-signup');
+  const signupVisible = await page.$eval('#signup-panel', el => getComputedStyle(el).display !== 'none');
+  check('C-13: pestaña Crear Cuenta se visualiza correctamente', signupVisible);
+
+  // 5. Línea discreta con enlace a legal.html#privacidad (ya sin checkbox ni cuadro de privacidad)
+  const legalNotice = await page.$('.auth-legal-notice a[href="legal.html#privacidad"]');
+  const ageCheckbox = await page.$('#signup-age-confirm');
+  const privacyNotice = await page.$('.privacy-notice-box');
+  check('C-13: registro muestra línea legal con enlace a privacidad y quita checkbox/cuadro anterior',
+    !!legalNotice && !ageCheckbox && !privacyNotice);
+
+  // 6. Cerrar modal
+  await page.click('#auth-modal .lesson-close');
+  const modalClosed = await page.$eval('#auth-modal', el => !el.classList.contains('active'));
+  check('C-13: botón cerrar oculta el modal de autenticación', modalClosed);
+
+  // 7. Pie de página en index.html contiene los 4 enlaces a legal.html
+  const footerLinks = await page.evaluate(() => Array.from(document.querySelectorAll('.footer-links a')).map(a => a.getAttribute('href')));
+  const hasAllLegalLinks = [
+    'legal.html#terminos',
+    'legal.html#privacidad',
+    'legal.html#seguridad',
+    'legal.html#cookies'
+  ].every(href => footerLinks.includes(href));
+  check('C-13: pie de página contiene los 4 enlaces legales a legal.html', hasAllLegalLinks, JSON.stringify(footerLinks));
+
+  // 8. Navegar a legal.html y verificar carga y anclas
+  const legalUrl = url.replace('index.html', 'legal.html');
+  await page.goto(legalUrl);
+  await page.waitForFunction(() => document.title.includes('Legal'));
+  const anchors = await page.evaluate(() => {
+    return {
+      terminos: !!document.getElementById('terminos'),
+      privacidad: !!document.getElementById('privacidad'),
+      seguridad: !!document.getElementById('seguridad'),
+      cookies: !!document.getElementById('cookies'),
+      draftBadge: !!document.querySelector('.legal-draft-badge'),
+      hasPlaceholder: document.body.textContent.includes('CONTACTO_PENDIENTE')
+    };
+  });
+  check('C-13: legal.html carga con las cuatro anclas, borrador visible y placeholder de contacto',
+    anchors.terminos && anchors.privacidad && anchors.seguridad && anchors.cookies && anchors.draftBadge && anchors.hasPlaceholder,
+    JSON.stringify(anchors));
+
+  await page.close();
+}
+
 async function runC12cChecks(browser, url, check, ownErrors) {
   const page = await browser.newPage();
   page.on('pageerror', (err) => ownErrors.push(String(err && err.message || err)));
@@ -836,6 +912,7 @@ async function runC12cChecks(browser, url, check, ownErrors) {
   await runResponsiveChecks(browser, url, check, ownErrors);
   await runC12bChecks(browser, url, check, ownErrors);
   await runC12cChecks(browser, url, check, ownErrors);
+  await runC13AuthChecks(browser, url, check, ownErrors);
   const extraFailed = extra.filter((r) => !r.ok);
   console.log(`casos de navegación y responsive: ${extra.length}, pasaron: ${extra.length - extraFailed.length}, fallaron: ${extraFailed.length}`);
   console.log(`\ncasos: ${CASES.length + extra.length}, pasaron: ${pass + extra.length - extraFailed.length}, fallaron: ${failed.length + extraFailed.length}`);
@@ -851,3 +928,4 @@ async function runC12cChecks(browser, url, check, ownErrors) {
   console.error(`browser-check no pudo correr: ${err && err.message || err}`);
   process.exit(2);
 });
+

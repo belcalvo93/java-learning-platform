@@ -1,0 +1,60 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isSignedIn() &&
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    function isValidUserPayload(data) {
+      return data.keys().hasOnly([
+          'email', 'displayName', 'country', 'completedLessons', 'completedExercises',
+          'evaluationResults', 'certificate', 'privacyAcceptedAt',
+          'createdAt', 'updatedAt'
+        ])
+        && (!('role' in data))
+        && (!('isAdmin' in data))
+        && data.completedLessons is list
+        && data.completedLessons.size() <= 52
+        && data.completedExercises is list
+        && data.completedExercises.size() <= 208
+        && data.evaluationResults is map
+        && data.evaluationResults.keys().hasOnly(['beginner', 'intermediate', 'advanced', 'expert']);
+    }
+
+    // Cada estudiante solo lee, escribe y borra su propio documento validado.
+    // Ni siquiera la administradora lee documentos individuales desde el cliente (privacidad Ley 25.326).
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create, update: if isOwner(userId) && isValidUserPayload(request.resource.data);
+      allow delete: if isOwner(userId); // Derecho de supresión (Ley 25.326)
+    }
+
+    // Colección de administradores: solo lectura puntual para verificar el propio rol.
+    // Creación y edición exclusivamente desde la consola de Firebase (nunca desde cliente).
+    match /admins/{userId} {
+      allow get: if isOwner(userId);
+      allow list, create, update, delete: if false;
+    }
+
+    // Métricas agregadas sin datos personales (para C-09 / C-14):
+    match /stats/{docId} {
+      allow read: if isAdmin();
+      allow write: if false; // Solo actualizable por proceso de servidor / consola
+    }
+
+    // Denegación por defecto para cualquier otra ruta
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
