@@ -640,7 +640,6 @@ function showExercisesMenu() {
 
 let currentEvaluation = null;
 let evaluationAnswers = [];
-let evaluationStartTime = null;
 let evaluationTimer = null;
 
 function startEvaluation(level) {
@@ -649,7 +648,6 @@ function startEvaluation(level) {
 
   currentEvaluation = { level, ...evaluation };
   evaluationAnswers = new Array(evaluation.questions.length).fill(null);
-  evaluationStartTime = Date.now();
 
   renderEvaluation();
   startTimer(evaluation.timeLimit);

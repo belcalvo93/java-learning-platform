@@ -2,7 +2,6 @@
   "name": "java-learning-platform",
   "version": "1.0.0",
   "description": "> Aprende Java desde cero hasta nivel experto con explicaciones en español, ejercicios interactivos y validación en tiempo real.",
-  "main": "ai-validator.js",
   "directories": {
     "doc": "docs"
   },
@@ -20,7 +19,6 @@
   },
   "homepage": "https://github.com/belcalvo93/java-learning-platform#readme",
   "devDependencies": {
-    "@playwright/cli": "^0.1.22",
     "playwright": "^1.63.0"
   }
 }

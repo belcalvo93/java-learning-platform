@@ -187,12 +187,6 @@ class ProgressManager {
     };
   }
 
-  resetProgress() {
-    this.progress = {};
-    safeRemove(localStorage, 'javaMasterProgress');
-    this.updateUI();
-  }
-
   updateUI() {
     ensureLocalOnlyNotice();
     const stats = this.getStats();
@@ -3880,17 +3874,6 @@ function navigateLesson(direction) {
 function markCompleted(lessonId) {
   progressManager.markAsCompleted(lessonId);
   openLesson(lessonId); // Refresh
-}
-
-function copyCode(button) {
-  const codeBlock = button.closest('.code-block');
-  const code = codeBlock.querySelector('code').textContent;
-  navigator.clipboard.writeText(code);
-
-  button.textContent = '✓ Copiado';
-  setTimeout(() => {
-    button.textContent = 'Copiar';
-  }, 2000);
 }
 
 // EVENT LISTENERS
