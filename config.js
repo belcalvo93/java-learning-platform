@@ -19,15 +19,9 @@ const CONFIG = {
     // Backend (inactivo en v1.0)
     backendUrl: BACKEND_URL,
     executeEndpoint: '',
-    healthEndpoint: '',
 
     // Timeouts
     executionTimeout: 5000, // 5 segundos
-    aiTimeout: 10000, // 10 segundos
-
-    // Límites
-    maxCodeLength: 10000, // 10KB de código
-    maxOutputLength: 10000, // 10KB de output
 };
 
 // Exportar configuración

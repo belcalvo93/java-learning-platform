@@ -67,7 +67,7 @@ El plan de estudio está dividido en cuatro niveles de aprendizaje progresivos:
 ## Seguridad y privacidad
 
 - **Sin secretos en el código**: el repositorio no almacena credenciales, tokens ni API keys de ningún servicio.
-- **Backend de ejecución local offline**: la carpeta `backend/` contiene una implementación de servidor (`backend/server.js`) con medidas de seguridad endurecidas y comprobadas mediante tests (C-06: límites de memoria y buffer, finalización con `SIGKILL`, sanitización de procesos huérfanos y limitador de tasa de peticiones). Sin embargo, este backend se encuentra **apagado y no desplegado en producción**.
+- **Backend de ejecución local offline**: la carpeta `backend/` contiene una implementación de servidor en Node.js nativo (módulo `http`, en `backend/server.js`) con medidas de seguridad endurecidas y comprobadas mediante tests (C-06: límites de memoria y buffer, finalización con `SIGKILL`, sanitización de procesos huérfanos y limitador de tasa de peticiones). Sin embargo, este backend se encuentra **apagado y no desplegado en producción**.
 - **Aislamiento pendiente**: antes de habilitar cualquier servicio de ejecución remota de Java se requerirá una arquitectura de contenedores efímeros aislados y sin privilegios de red o sistema de archivos. No existen URLs públicas de backend activas.
 
 ---

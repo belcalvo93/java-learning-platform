@@ -626,7 +626,6 @@
         const emailInput = document.getElementById('signup-email');
         const passInput = document.getElementById('signup-password');
         const countryInput = document.getElementById('signup-country');
-        const ageCheck = document.getElementById('signup-age-confirm');
         const errorBox = document.getElementById('signup-error');
         const submitBtn = document.getElementById('btn-signup-submit');
 

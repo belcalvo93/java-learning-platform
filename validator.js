@@ -57,7 +57,6 @@ class JavaValidator {
 
     checkIndentation(code) {
         const lines = code.split('\n');
-        let expectedIndent = 0;
         const indentSize = 4;
 
         for (let i = 0; i < lines.length; i++) {
@@ -85,14 +84,6 @@ class JavaValidator {
             if (!isContinuation && leadingSpaces % indentSize !== 0) {
                 this.errors.push(`Error de indentación en línea ${i + 1}: Usa 4 espacios por nivel (encontrados: ${leadingSpaces})`);
                 return; // Stop after first error
-            }
-
-            // Adjust expected indent based on braces
-            if (trimmed.includes('{')) {
-                expectedIndent += indentSize;
-            }
-            if (trimmed.startsWith('}')) {
-                expectedIndent -= indentSize;
             }
         }
     }
@@ -350,92 +341,6 @@ class JavaValidator {
             ok = false;
         }
         return ok;
-    }
-
-    validateIntVariable(code, varName, expectedValue) {
-        const regex = new RegExp(`int\\s+${varName}\\s*=\\s*${expectedValue}\\s*;`);
-        if (!regex.test(code)) {
-            this.errors.push(`Error: Debes declarar: int ${varName} = ${expectedValue};`);
-            return false;
-        }
-        if (!code.includes('System.out.println')) {
-            this.errors.push('Error: Debes imprimir la variable con System.out.println()');
-            return false;
-        }
-        return true;
-    }
-
-    validateStringVariable(code, varName) {
-        const regex = new RegExp(`String\\s+${varName}\\s*=\\s*"[^"]+"`);
-        if (!regex.test(code)) {
-            this.errors.push(`Error: Debes declarar: String ${varName} = "valor";`);
-            return false;
-        }
-        return true;
-    }
-
-    validateSum(code) {
-        if (!code.match(/int\s+resultado\s*=/)) {
-            this.errors.push('Error: Debes declarar la variable: int resultado = ...');
-            return false;
-        }
-        if (!code.match(/resultado\s*=\s*[ab]\s*\+\s*[ab]/)) {
-            this.errors.push('Error: Debes asignar la suma: resultado = a + b;');
-            return false;
-        }
-        return true;
-    }
-
-    validateIfElse(code) {
-        if (!code.match(/if\s*\(/)) {
-            this.errors.push('Error: Sintaxis incorrecta. Usa: if (condicion) { }');
-            return false;
-        }
-        if (!code.match(/edad\s*>=\s*18|18\s*<=\s*edad/)) {
-            this.errors.push('Error: La condición debe comparar edad con 18 usando >=');
-            return false;
-        }
-        if (!code.includes('else')) {
-            this.errors.push('Error: Falta la cláusula else');
-            return false;
-        }
-        if (!code.match(/if\s*\([^)]+\)\s*\{/) || !code.match(/else\s*\{/)) {
-            this.errors.push('Error: Debes usar llaves { } para delimitar los bloques if y else');
-            return false;
-        }
-        return true;
-    }
-
-    validateComparison(code) {
-        if (!code.match(/if\s*\(/)) {
-            this.errors.push('Error: Debes usar una estructura if');
-            return false;
-        }
-        if (!code.match(/num1\s*[><]\s*num2|num2\s*[><]\s*num1/)) {
-            this.errors.push('Error: Debes comparar num1 y num2 con > o <');
-            return false;
-        }
-        return true;
-    }
-
-    validateForLoop(code) {
-        if (!code.match(/for\s*\(/)) {
-            this.errors.push('Error: Sintaxis incorrecta. Usa: for (init; cond; inc) { }');
-            return false;
-        }
-        if (!code.match(/int\s+i\s*=\s*1/)) {
-            this.errors.push('Error: Debes inicializar: int i = 1');
-            return false;
-        }
-        if (!code.match(/i\s*<=?\s*5/)) {
-            this.errors.push('Error: La condición debe ser: i <= 5');
-            return false;
-        }
-        if (!code.match(/i\s*\+\+|i\s*=\s*i\s*\+\s*1/)) {
-            this.errors.push('Error: Debes incrementar i con i++');
-            return false;
-        }
-        return true;
     }
 
     // C-18 lote 1, id 3 (+ ajuste 3: la línea vacía entre métodos es
@@ -1703,29 +1608,6 @@ function normalizeIncrements(toks) {
         out.push(t);
     }
     return out;
-}
-
-// Quita capas externas de paréntesis que envuelven todo el texto
-// (`((k))` → `k`): solo cuando el primer `(` cierra justo al final, así
-// los paréntesis con significado (`(a) + (b)`) quedan intactos. Si hay
-// paréntesis dentro de un texto se prefiere no quitar (seguro).
-function stripOuterParens(s) {
-    let t = s.trim();
-    for (let round = 0; round < 10; round++) {
-        if (t.length < 2 || t[0] !== '(' || t[t.length - 1] !== ')') break;
-        let depth = 0;
-        let closesAtEnd = false;
-        for (let i = 0; i < t.length; i++) {
-            if (t[i] === '(') depth++;
-            else if (t[i] === ')') {
-                depth--;
-                if (depth === 0) { closesAtEnd = (i === t.length - 1); break; }
-            }
-        }
-        if (!closesAtEnd) break;
-        t = t.slice(1, -1).trim();
-    }
-    return t;
 }
 
 function normalizeStructToks(toks, flags) {
