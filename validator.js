@@ -703,6 +703,11 @@ class JavaValidator {
             this.errors.push(badCall);
             return false;
         }
+        const badAfterBreak = checkAfterBreakInIf(stuToks);
+        if (badAfterBreak) {
+            this.errors.push(badAfterBreak);
+            return false;
+        }
         const badEmpty = checkEmptyParens(stuToks, matchedVariant.toks, matchedVariant.align);
         if (badEmpty) {
             this.errors.push(badEmpty);
@@ -1560,6 +1565,46 @@ function checkCallParens(stuToks, usedIdx) {
 // Paréntesis vacíos de la solución (`()`, como en `() ->` o
 // `println()`): en el código del estudiante van vacíos también
 // (una `x` adentro cambia la aridad o la salida y se rechaza).
+// Dentro del bloque `{ ... }` de un `if`, nada puede ejecutarse después de
+// `break;` (en Java es código inalcanzable y no compila; p. ej. id 24 con
+// `println` adentro del `if` tras `break`).
+function checkAfterBreakInIf(stuToks) {
+    for (let i = 0; i < stuToks.length; i++) {
+        if (!(stuToks[i].k === 'kw' && stuToks[i].v === 'if')) continue;
+        if (!(stuToks[i + 1] && stuToks[i + 1].k === 'sym' && stuToks[i + 1].v === '(')) continue;
+        let pd = 0;
+        let pClose = -1;
+        for (let j = i + 1; j < stuToks.length; j++) {
+            if (stuToks[j].k === 'sym' && stuToks[j].v === '(') pd++;
+            else if (stuToks[j].k === 'sym' && stuToks[j].v === ')') {
+                pd--;
+                if (pd === 0) { pClose = j; break; }
+            }
+        }
+        if (pClose === -1) continue;
+        const open = pClose + 1;
+        if (!(stuToks[open] && stuToks[open].k === 'sym' && stuToks[open].v === '{')) continue;
+        let bd = 0;
+        let close = -1;
+        for (let j = open; j < stuToks.length; j++) {
+            if (stuToks[j].k === 'sym' && stuToks[j].v === '{') bd++;
+            else if (stuToks[j].k === 'sym' && stuToks[j].v === '}') {
+                bd--;
+                if (bd === 0) { close = j; break; }
+            }
+        }
+        if (close === -1) continue;
+        for (let k = open + 1; k + 1 < close; k++) {
+            if (stuToks[k].k === 'kw' && stuToks[k].v === 'break' &&
+                stuToks[k + 1].k === 'sym' && stuToks[k + 1].v === ';' &&
+                k + 2 < close) {
+                return 'Después del break no puede ir otra instrucción dentro del mismo if: la impresión va fuera del if.';
+            }
+        }
+    }
+    return null;
+}
+
 function checkEmptyParens(stuToks, solToks, align) {
     for (let si = 0; si + 1 < solToks.length; si++) {
         const a = solToks[si];
@@ -1902,7 +1947,7 @@ const STRUCT_RULES = {
     21: { ctx: ['i'], free: [], strings: 'fixed', strictIncr: true, missing: 'Falta el while con su condición, la impresión y el incremento.' },
     22: { ctx: [], free: [], strings: 'fixed', forInitTypeOptional: true, strictIncr: true, missing: 'Falta el for descendente con sus límites y la impresión.' },
     23: { ctx: [], free: [], strings: 'fixed', strictIncr: true, missing: 'Falta el do-while con la inicialización, la impresión, el incremento y la condición.' },
-    24: { ctx: [], free: [], strings: 'fixed', missing: 'Falta el for con el if que sale con break y la impresión después.' },
+    24: { ctx: [], free: [], strings: 'fixed', alts: ['for (int i = 1; i < 11; i++) {\n    if (i == 5) break;\n    System.out.println(i);\n}'], missing: 'Falta el for con el if que sale con break y la impresión después.' },
     25: { ctx: [], free: [], strings: 'fixed', missing: 'Falta el for con el if que salta la vuelta con continue y la impresión.' },
     26: { ctx: [], free: [], strings: 'fixed', custom: 26, missing: 'Faltan los dos bucles anidados con la impresión de cada cuenta.' },
     27: { ctx: [], free: [], strings: 'fixed', missing: 'Falta el while que acumula con +=, incrementa y después imprime el total.' },
